@@ -21,21 +21,30 @@ Browser → /events
 
 ## Scraper System
 
-- `src/lib/scrapers/index.ts` — orchestrator. Add new scrapers here, one line.
-- `src/lib/scrapers/luma-discovery.ts` — paginates the Luma London discovery feed
-- Scrapers run with `Promise.allSettled` — one failure doesn't break others
-- Deduplication by event `id` in the orchestrator
+Four scrapers run in parallel via `Promise.allSettled`. Deduplication by event `id` in the orchestrator.
 
-**To add a new scraper**: implement `EventScraper` interface (`name: string`, `run(): Promise<LondonEvent[]>`), add to the `scrapers` array in `index.ts`.
+| Scraper | File | Sources |
+|---------|------|---------|
+| `luma-discovery` | `luma-discovery.ts` | London curated discovery feed (hardcoded place ID) |
+| `luma-calendar` | `luma-calendar.ts` | All calendars in `CALENDAR_SOURCES` |
+| `luma-user` | `luma-user.ts` | All users in `USER_SOURCES` |
+| `luma-channel` | `luma-channel.ts` | Community/topic pages in `CHANNEL_SOURCES` (auto-detects discovery vs calendar) |
+
+**To add a new source**: edit `src/lib/scrapers/sources.ts` — add to the appropriate array. That's it.
+
+**To add a new scraper type**: implement `EventScraper` (`name`, `run()`), add to the `scrapers` array in `index.ts`.
 
 **Luma API reference**: `/Users/lchavasse/code/web_scraping/luma-api.md`
 
 Key endpoints:
-- Discovery feed: `api.lu.ma/discover/get-paginated-events?discover_place_api_id=discplace-QCcNk3HXowOR97j`
-- Calendar events: `api2.luma.com/calendar/get-items?calendar_api_id=<cal-id>`
-- User events: `api2.luma.com/user/profile/events?username=<username>`
+- Discovery feed: `api.lu.ma/discover/get-paginated-events?discover_place_api_id=<discplace-id>`
+- Calendar events: `api2.luma.com/calendar/get-items?calendar_api_id=<cal-id>&period=upcoming`
+- User events: `api2.luma.com/user/profile/events?username=<username-or-usr-id>`
 
 Filter for London: `location_type === 'offline'` AND `geo_address_info.city === 'London'`
+
+Cal-id extraction: fetch `luma.com/<slug>`, regex `__NEXT_DATA__` for `"api_id":"(cal-[A-Za-z0-9]+)"`.
+Channel type detection: same page fetch — look for `discplace-` first, then `cal-`.
 
 ## Environment Variables
 

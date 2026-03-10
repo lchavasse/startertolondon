@@ -11,11 +11,23 @@ export interface LondonEvent {
   organiserName: string
   organiserAvatarUrl: string | null
   tags: string[]
-  source: 'luma-discovery' | 'luma-calendar' | 'luma-profile'
+  source: 'luma-discovery' | 'luma-calendar' | 'luma-profile' | 'cerebral-valley' | 'eventbrite' | 'meetup' | 'other'
   scrapedAt: string
+  curated: boolean
+  pending?: boolean
 }
 
 export interface EventScraper {
   name: string
   run(): Promise<LondonEvent[]>
+}
+
+export interface CommunitySource {
+  slug: string
+  type: 'calendar' | 'user'
+  curated: boolean
+  reviewed: boolean
+  name: string
+  url: string
+  addedAt: string
 }

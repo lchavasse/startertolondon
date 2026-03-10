@@ -1,0 +1,160 @@
+import { LondonEvent, EventScraper } from '@/lib/types'
+
+const API_BASE = 'https://api2.luma.com'
+const API_HEADERS = {
+  'x-luma-client-type': 'luma-web',
+  origin: 'https://luma.com',
+}
+const PAGE_HEADERS = {
+  'User-Agent':
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+}
+
+interface LumaEntry {
+  event: {
+    api_id: string
+    name: string
+    start_at: string
+    end_at: string
+    timezone: string
+    url: string
+    cover_url?: string | null
+    location_type: string
+    geo_address_info?: {
+      city?: string
+      full_address?: string
+    }
+  }
+  calendar?: {
+    name?: string
+    avatar_url?: string | null
+  }
+}
+
+async function extractCalId(source: string): Promise<string | null> {
+  // Direct cal-id path e.g. 'calendar/cal-ACd43Ggy4n6LhK6'
+  const direct = source.match(/^(?:calendar\/)(cal-[A-Za-z0-9]+)$/)
+  if (direct) return direct[1]
+
+  // Fetch page and extract from __NEXT_DATA__
+  try {
+    const res = await fetch(`https://luma.com/${source}`, {
+      headers: PAGE_HEADERS,
+      signal: AbortSignal.timeout(10000),
+    })
+    if (!res.ok) return null
+    const html = await res.text()
+    const dataMatch = html.match(
+      /<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/
+    )
+    if (!dataMatch) return null
+    const calMatch = dataMatch[1].match(/"api_id"\s*:\s*"(cal-[A-Za-z0-9]+)"/)
+    return calMatch ? calMatch[1] : null
+  } catch {
+    return null
+  }
+}
+
+async function fetchCalendarEvents(calId: string): Promise<LumaEntry[]> {
+  const entries: LumaEntry[] = []
+  let cursor: string | null = null
+
+  while (true) {
+    const url = new URL(`${API_BASE}/calendar/get-items`)
+    url.searchParams.set('calendar_api_id', calId)
+    url.searchParams.set('pagination_limit', '50')
+    url.searchParams.set('period', 'upcoming')
+    if (cursor) url.searchParams.set('pagination_cursor', cursor)
+
+    const res = await fetch(url.toString(), {
+      headers: API_HEADERS,
+      signal: AbortSignal.timeout(15000),
+    })
+    if (!res.ok) break
+
+    const data = await res.json()
+    entries.push(...(data.entries ?? []))
+    if (!data.has_more || !data.next_cursor) break
+    cursor = data.next_cursor
+  }
+
+  return entries
+}
+
+function mapEntry(
+  entry: LumaEntry,
+  scrapedAt: string,
+  curated: boolean
+): LondonEvent | null {
+  const { event, calendar } = entry
+  if (
+    event.location_type !== 'offline' ||
+    event.geo_address_info?.city !== 'London'
+  )
+    return null
+
+  return {
+    id: event.api_id,
+    name: event.name,
+    startAt: event.start_at,
+    endAt: event.end_at,
+    timezone: event.timezone,
+    url: `https://lu.ma/${event.url}`,
+    coverUrl: event.cover_url ?? null,
+    locationName: event.geo_address_info?.full_address ?? '',
+    city: 'London',
+    organiserName: calendar?.name ?? '',
+    organiserAvatarUrl: calendar?.avatar_url ?? null,
+    tags: calendar?.name ? [calendar.name] : [],
+    source: 'luma-calendar',
+    scrapedAt,
+    curated,
+  }
+}
+
+export class LumaCalendarScraper implements EventScraper {
+  name = 'luma-calendar'
+
+  constructor(private sources: string[], private curated: boolean = false) {}
+
+  async run(): Promise<LondonEvent[]> {
+    const scrapedAt = new Date().toISOString()
+    const events: LondonEvent[] = []
+    const failed: string[] = []
+    const BATCH = 5
+
+    for (let i = 0; i < this.sources.length; i += BATCH) {
+      const batch = this.sources.slice(i, i + BATCH)
+
+      await Promise.all(
+        batch.map(async (source) => {
+          const calId = await extractCalId(source)
+          if (!calId) {
+            console.warn(`[luma-calendar] Could not extract cal-id for: ${source}`)
+            failed.push(source)
+            return
+          }
+          try {
+            const entries = await fetchCalendarEvents(calId)
+            for (const entry of entries) {
+              const event = mapEntry(entry, scrapedAt, this.curated)
+              if (event) events.push(event)
+            }
+          } catch (err) {
+            console.warn(`[luma-calendar] Failed fetching ${calId}:`, err)
+            failed.push(source)
+          }
+        })
+      )
+    }
+
+    if (failed.length > 0) {
+      this._failed = failed
+    }
+
+    return events
+  }
+
+  _failed: string[] = []
+}

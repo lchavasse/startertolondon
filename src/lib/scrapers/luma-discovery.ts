@@ -81,6 +81,7 @@ export class LumaDiscoveryScraper implements EventScraper {
           tags: calendar?.name ? [calendar.name] : [],
           source: 'luma-discovery',
           scrapedAt,
+          curated: false,
         })
       }
 
