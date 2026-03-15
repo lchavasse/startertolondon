@@ -18,7 +18,7 @@ export default async function EventsPage() {
             </h1>
             <p className="text-[#f0ede6] text-3xl font-bold">Tech Events</p>
             {events.length > 0 && (
-              <p className="text-[#333] text-xs font-mono mt-2">
+              <p className="text-[#666] text-xs font-mono mt-2">
                 {events.length} upcoming events
               </p>
             )}
@@ -28,7 +28,7 @@ export default async function EventsPage() {
 
         {events.length === 0 ? (
           <div className="py-32 text-center">
-            <p className="font-mono text-xs uppercase tracking-widest text-[#333]">
+            <p className="font-mono text-xs uppercase tracking-widest text-[#666]">
               No events loaded yet — run the scraper
             </p>
           </div>

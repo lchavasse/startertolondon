@@ -73,7 +73,7 @@ export function SubmitForm() {
   if (stage === 'success') {
     return (
       <div className="border border-[#1e1e1e] p-4 space-y-3">
-        <p className="font-mono text-[10px] uppercase tracking-widest text-[#555]">
+        <p className="font-mono text-[10px] uppercase tracking-widest text-[#e4e4e4]">
           Suggest a calendar, profile, or event
         </p>
         <div className="space-y-2">
@@ -81,7 +81,7 @@ export function SubmitForm() {
           {resultDesc && <p className="font-mono text-[10px] text-[#888]">{resultDesc}</p>}
           <button
             onClick={reset}
-            className="font-mono text-[10px] text-[#555] hover:text-[#888] uppercase tracking-widest"
+            className="font-mono text-[10px] text-[#e4e4e4] hover:text-[#c8ff00] uppercase tracking-widest"
           >
             Submit another
           </button>
@@ -94,7 +94,7 @@ export function SubmitForm() {
 
   return (
     <div className="border border-[#1e1e1e] p-4 space-y-3">
-      <p className="font-mono text-[10px] uppercase tracking-widest text-[#555]">
+      <p className="font-mono text-[10px] uppercase tracking-widest text-[#e4e4e4]">
         Suggest a calendar, profile, or event
       </p>
 
@@ -111,7 +111,7 @@ export function SubmitForm() {
             if (stage === 'error') { setStage('idle'); setMessage('') }
           }}
           disabled={stage === 'loading'}
-          className="w-full bg-[#111] border border-[#2a2a2a] text-[#f0ede6] font-mono text-xs pl-3 pr-10 py-2 outline-none focus:border-[#c8ff00] placeholder:text-[#333] disabled:opacity-50"
+          className="w-full bg-[#111] border border-[#2a2a2a] text-[#f] font-mono text-xs pl-3 pr-10 py-2 outline-none focus:border-[#c8ff00] placeholder:text-[#888] disabled:opacity-50"
         />
         <button
           type="submit"

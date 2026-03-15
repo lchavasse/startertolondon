@@ -164,7 +164,7 @@ export function EventCard({ event, adminMode, adminKey, onEventUpdate }: EventCa
         </p>
 
         {event.locationName && (
-          <p className="text-[11px] text-[#555] truncate font-mono">
+          <p className="text-[11px] text-[#888] truncate font-mono">
             {event.locationName}
           </p>
         )}
@@ -174,7 +174,7 @@ export function EventCard({ event, adminMode, adminKey, onEventUpdate }: EventCa
             {event.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag}
-                className="text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 border border-[#2a2a2a] text-[#444] rounded-full"
+                className="text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 border border-[#2a2a2a] text-[#777] rounded-full"
               >
                 {tag}
               </span>
@@ -200,7 +200,7 @@ export function EventCard({ event, adminMode, adminKey, onEventUpdate }: EventCa
               </span>
             </div>
           )}
-          <span className="text-[11px] text-[#3a3a3a] truncate font-mono">{event.organiserName}</span>
+          <span className="text-[11px] text-[#666] truncate font-mono">{event.organiserName}</span>
         </div>
       </div>
 
@@ -212,7 +212,7 @@ export function EventCard({ event, adminMode, adminKey, onEventUpdate }: EventCa
             e.stopPropagation()
             setConfirmingDelete(true)
           }}
-          className="absolute bottom-2 right-2 w-7 h-7 flex items-center justify-center rounded bg-transparent text-[#333] hover:bg-red-600 hover:text-white transition-all duration-150 opacity-0 group-hover:opacity-100"
+          className="absolute bottom-2 right-2 w-7 h-7 flex items-center justify-center rounded bg-transparent text-[#555] hover:bg-red-600 hover:text-white transition-all duration-150 opacity-0 group-hover:opacity-100"
           title="Delete event"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

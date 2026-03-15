@@ -62,7 +62,7 @@ export function EventGrid({ events, tags, forceAdminMode, forceAdminKey, onEvent
             className={`flex-shrink-0 ml-auto px-3 py-1 text-[10px] font-mono uppercase tracking-widest border transition-all duration-150 rounded-sm ${
               adminMode
                 ? 'bg-[#2a2a2a] text-[#888] border-[#444]'
-                : 'bg-transparent text-[#333] border-[#1e1e1e] hover:border-[#2a2a2a] hover:text-[#555]'
+                : 'bg-transparent text-[#666] border-[#1e1e1e] hover:border-[#2a2a2a] hover:text-[#555]'
             }`}
           >
             Admin
@@ -76,13 +76,13 @@ export function EventGrid({ events, tags, forceAdminMode, forceAdminKey, onEvent
 
       {filtered.length === 0 ? (
         <div className="py-24 text-center">
-          <p className="font-mono text-xs uppercase tracking-widest text-[#333]">
+          <p className="font-mono text-xs uppercase tracking-widest text-[#666]">
             No events match your selection
           </p>
         </div>
       ) : (
         <>
-          <p className="font-mono text-[10px] text-[#333] uppercase tracking-widest">
+          <p className="font-mono text-[10px] text-[#666] uppercase tracking-widest">
             {filtered.length} events
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

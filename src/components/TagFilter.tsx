@@ -22,7 +22,7 @@ export function TagFilter({ tags, active, onChange }: TagFilterProps) {
         className={`flex-shrink-0 px-3 py-1 text-[10px] font-mono uppercase tracking-widest border transition-all duration-150 rounded-full ${
           allSelected
             ? 'bg-[#c8ff00] text-black border-[#c8ff00]'
-            : 'bg-transparent text-[#555] border-[#2a2a2a] hover:border-[#555]'
+            : 'bg-transparent text-[#888] border-[#2a2a2a] hover:border-[#555]'
         }`}
       >
         All
@@ -37,7 +37,7 @@ export function TagFilter({ tags, active, onChange }: TagFilterProps) {
             className={`flex-shrink-0 px-3 py-1 text-[10px] font-mono uppercase tracking-widest border transition-all duration-150 rounded-full ${
               isActive
                 ? 'bg-[#c8ff00] text-black border-[#c8ff00]'
-                : 'bg-transparent text-[#555] border-[#2a2a2a] hover:border-[#555] hover:text-[#888]'
+                : 'bg-transparent text-[#888] border-[#2a2a2a] hover:border-[#555] hover:text-[#888]'
             }`}
           >
             {tag}
