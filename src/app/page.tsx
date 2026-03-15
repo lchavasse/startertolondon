@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation'
+import { TerminalOnboarding } from '@/components/TerminalOnboarding'
 
 export default function Home() {
-  redirect('/events')
+  return <TerminalOnboarding />
 }

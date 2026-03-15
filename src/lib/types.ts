@@ -40,3 +40,65 @@ export interface CommunitySource {
   url: string
   addedAt: string
 }
+
+export type TimeInLondon = 'pre-luma' | 'new-arrival' | 'visiting' | 'other'
+
+export interface UserProfile {
+  name: string | null
+  age: number | null
+  bio: string
+  timeInLondon: TimeInLondon | null
+  timeInLondonLabel: string | null
+  lookingFor: string
+  interests: string[]
+  vibeTags: string[]
+  summary: string
+  completedAt: string | null
+}
+
+export interface ProfileSignal {
+  type: 'name' | 'age' | 'timeInLondon' | 'interest' | 'lookingFor'
+  value: string
+  confidence: number
+}
+
+export interface FollowUpQuestion {
+  id: 'time-in-london' | 'what-to-see'
+  kind: 'menu' | 'text'
+  prompt: string
+  options?: Array<{ id: string; label: string; value: string }>
+  placeholder?: string
+  suggestedTags?: string[]
+}
+
+export interface ProfileExtractionResult {
+  profile: UserProfile
+  signals: ProfileSignal[]
+  missingFields: Array<'timeInLondon' | 'lookingFor'>
+  suggestedTags: string[]
+}
+
+export interface QuestionPlannerResult {
+  questions: FollowUpQuestion[]
+}
+
+export type GuideCategory = 'community' | 'space' | 'company'
+
+export interface GuideItem {
+  id: string
+  category: GuideCategory
+  name: string
+  strapline: string
+  description: string
+  location: string
+  tags: string[]
+  vibe: string
+  reason: string
+  href?: string
+}
+
+export interface StoredOnboardingState {
+  profile: UserProfile
+  stage: 'in-progress' | 'complete'
+  lastAnsweredAt: string
+}
