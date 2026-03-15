@@ -16,7 +16,7 @@ interface EventGridProps {
 
 export function EventGrid({ events, tags, forceAdminMode, forceAdminKey, onEventUpdate }: EventGridProps) {
   const [activeTags, setActiveTags] = useState<string[]>([])
-  const [curatedOnly, setCuratedOnly] = useState(false)
+  const [curatedOnly, setCuratedOnly] = useState(forceAdminMode ? false : true)
   const [adminKey, setAdminKey] = useState<string | null>(forceAdminKey ?? null)
   const [adminMode, setAdminMode] = useState(forceAdminMode ?? false)
 
