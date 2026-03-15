@@ -1,4 +1,4 @@
-import { LondonEvent, EventScraper } from '@/lib/types'
+import { LondonEvent, EventScraper, FailedSource } from '@/lib/types'
 
 const API_BASE = 'https://api2.luma.com'
 const API_HEADERS = {
@@ -32,10 +32,17 @@ interface LumaEntry {
   }
 }
 
-async function extractCalId(source: string): Promise<string | null> {
+async function extractCalId(
+  source: string,
+  calIdCache: Record<string, string> = {},
+  newCalIds?: Record<string, string>
+): Promise<string | null> {
   // Direct cal-id path e.g. 'calendar/cal-ACd43Ggy4n6LhK6'
   const direct = source.match(/^(?:calendar\/)(cal-[A-Za-z0-9]+)$/)
   if (direct) return direct[1]
+
+  // Check cache first
+  if (calIdCache[source]) return calIdCache[source]
 
   // Fetch page and extract from __NEXT_DATA__
   try {
@@ -50,11 +57,15 @@ async function extractCalId(source: string): Promise<string | null> {
     )
     if (!dataMatch) return null
     const calMatch = dataMatch[1].match(/"api_id"\s*:\s*"(cal-[A-Za-z0-9]+)"/)
-    return calMatch ? calMatch[1] : null
+    const calId = calMatch ? calMatch[1] : null
+    if (calId && newCalIds) newCalIds[source] = calId
+    return calId
   } catch {
     return null
   }
 }
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 async function fetchCalendarEvents(calId: string): Promise<LumaEntry[]> {
   const entries: LumaEntry[] = []
@@ -71,7 +82,11 @@ async function fetchCalendarEvents(calId: string): Promise<LumaEntry[]> {
       headers: API_HEADERS,
       signal: AbortSignal.timeout(15000),
     })
-    if (!res.ok) break
+    if (!res.ok) {
+      const err = new Error(`HTTP ${res.status}`) as Error & { statusCode: number }
+      err.statusCode = res.status
+      throw err
+    }
 
     const data = await res.json()
     entries.push(...(data.entries ?? []))
@@ -85,7 +100,8 @@ async function fetchCalendarEvents(calId: string): Promise<LumaEntry[]> {
 function mapEntry(
   entry: LumaEntry,
   scrapedAt: string,
-  curated: boolean
+  curated: boolean,
+  calendarSlug: string
 ): LondonEvent | null {
   const { event, calendar } = entry
   if (
@@ -108,6 +124,7 @@ function mapEntry(
     organiserAvatarUrl: calendar?.avatar_url ?? null,
     tags: calendar?.name ? [calendar.name] : [],
     source: 'luma-calendar',
+    calendarSlug,
     scrapedAt,
     curated,
   }
@@ -115,46 +132,65 @@ function mapEntry(
 
 export class LumaCalendarScraper implements EventScraper {
   name = 'luma-calendar'
+  _failed: FailedSource[] = []
+  _newCalIds: Record<string, string> = {}
 
-  constructor(private sources: string[], private curated: boolean = false) {}
+  constructor(
+    private sources: string[],
+    private curated: boolean = false,
+    private calIdCache: Record<string, string> = {}
+  ) {}
 
   async run(): Promise<LondonEvent[]> {
     const scrapedAt = new Date().toISOString()
     const events: LondonEvent[] = []
-    const failed: string[] = []
-    const BATCH = 5
+    const failed: FailedSource[] = []
+    const BATCH = 3
 
-    for (let i = 0; i < this.sources.length; i += BATCH) {
-      const batch = this.sources.slice(i, i + BATCH)
+    // Phase 1: resolve cal-ids (all should be in cache from orchestrator pre-flight)
+    const calIdMap = new Map<string, string>()
+    for (const source of this.sources) {
+      const calId = await extractCalId(source, this.calIdCache, this._newCalIds)
+      if (calId) {
+        calIdMap.set(source, calId)
+      } else {
+        console.warn(`[luma-calendar] Could not extract cal-id for: ${source}`)
+        failed.push({ slug: source, error: 'Could not extract cal-id', isRateLimit: false, timestamp: scrapedAt })
+      }
+    }
+
+    // Phase 2: batch-fetch events for resolved sources
+    const resolvedSources = this.sources.filter((s) => calIdMap.has(s))
+    for (let i = 0; i < resolvedSources.length; i += BATCH) {
+      if (i > 0) await sleep(400)
+      const batch = resolvedSources.slice(i, i + BATCH)
 
       await Promise.all(
         batch.map(async (source) => {
-          const calId = await extractCalId(source)
-          if (!calId) {
-            console.warn(`[luma-calendar] Could not extract cal-id for: ${source}`)
-            failed.push(source)
-            return
-          }
+          const calId = calIdMap.get(source)!
           try {
             const entries = await fetchCalendarEvents(calId)
             for (const entry of entries) {
-              const event = mapEntry(entry, scrapedAt, this.curated)
+              const event = mapEntry(entry, scrapedAt, this.curated, source)
               if (event) events.push(event)
             }
           } catch (err) {
-            console.warn(`[luma-calendar] Failed fetching ${calId}:`, err)
-            failed.push(source)
+            const statusCode = (err as { statusCode?: number }).statusCode
+            const isRateLimit = statusCode === 429
+            console.warn(`[luma-calendar] Failed fetching ${calId} (${statusCode ?? 'err'}):`, err)
+            failed.push({
+              slug: source,
+              error: err instanceof Error ? err.message : String(err),
+              statusCode,
+              isRateLimit,
+              timestamp: scrapedAt,
+            })
           }
         })
       )
     }
 
-    if (failed.length > 0) {
-      this._failed = failed
-    }
-
+    this._failed = failed
     return events
   }
-
-  _failed: string[] = []
 }

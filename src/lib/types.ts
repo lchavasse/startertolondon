@@ -12,9 +12,18 @@ export interface LondonEvent {
   organiserAvatarUrl: string | null
   tags: string[]
   source: 'luma-discovery' | 'luma-calendar' | 'luma-profile' | 'cerebral-valley' | 'eventbrite' | 'meetup' | 'other'
+  calendarSlug?: string  // source slug that produced this event (enables per-source caching)
   scrapedAt: string
   curated: boolean
   pending?: boolean
+}
+
+export interface FailedSource {
+  slug: string
+  error: string
+  statusCode?: number
+  isRateLimit: boolean
+  timestamp: string
 }
 
 export interface EventScraper {

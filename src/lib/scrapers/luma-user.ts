@@ -1,4 +1,4 @@
-import { LondonEvent, EventScraper } from '@/lib/types'
+import { LondonEvent, EventScraper, FailedSource } from '@/lib/types'
 
 const API_BASE = 'https://api2.luma.com'
 const API_HEADERS = {
@@ -38,7 +38,11 @@ async function fetchUserEvents(
     headers: API_HEADERS,
     signal: AbortSignal.timeout(15000),
   })
-  if (!res.ok) return []
+  if (!res.ok) {
+    const err = new Error(`HTTP ${res.status}`) as Error & { statusCode: number }
+    err.statusCode = res.status
+    throw err
+  }
 
   const data = await res.json()
 
@@ -74,6 +78,7 @@ async function fetchUserEvents(
       organiserAvatarUrl: calendar.avatar_url ?? fallbackAvatar,
       tags: calendar.name ? [calendar.name] : [],
       source: 'luma-profile',
+      calendarSlug: username,
       scrapedAt,
       curated,
     })
@@ -84,11 +89,13 @@ async function fetchUserEvents(
 
 export class LumaUserScraper implements EventScraper {
   name = 'luma-user'
+  _failed: FailedSource[] = []
 
   constructor(private sources: string[], private curated: boolean = false) {}
 
   async run(): Promise<LondonEvent[]> {
     const scrapedAt = new Date().toISOString()
+    const failed: FailedSource[] = []
 
     const results = await Promise.allSettled(
       this.sources.map((u) => fetchUserEvents(u, scrapedAt, this.curated))
@@ -99,10 +106,21 @@ export class LumaUserScraper implements EventScraper {
       if (result.status === 'fulfilled') {
         events.push(...result.value)
       } else {
-        console.warn(`[luma-user] Failed for ${this.sources[i]}:`, result.reason)
+        const err = result.reason
+        const statusCode = (err as { statusCode?: number }).statusCode
+        const isRateLimit = statusCode === 429
+        console.warn(`[luma-user] Failed for ${this.sources[i]} (${statusCode ?? 'err'}):`, err)
+        failed.push({
+          slug: this.sources[i],
+          error: err instanceof Error ? err.message : String(err),
+          statusCode,
+          isRateLimit,
+          timestamp: scrapedAt,
+        })
       }
     }
 
+    this._failed = failed
     return events
   }
 }

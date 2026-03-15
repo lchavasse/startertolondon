@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { CommunitySource, LondonEvent } from '@/lib/types'
+import { CommunitySource, LondonEvent, FailedSource } from '@/lib/types'
 import { SystemSource } from '@/lib/scrapers/sources'
 import { format } from 'date-fns'
 import { EventGrid } from '@/components/EventGrid'
@@ -13,7 +13,7 @@ interface AdminData {
   systemSources: { calendars: SystemSourceWithEffective[]; users: SystemSourceWithEffective[] }
   manualEvents: LondonEvent[]
   blocklist: string[]
-  failed: string[]
+  failed: FailedSource[]
   events: LondonEvent[]
 }
 
@@ -310,14 +310,24 @@ export default function AdminPage() {
             {activeTab === 'failed' && (
               <section className="space-y-3">
                 <h2 className="font-mono text-xs uppercase tracking-widest text-[#555]">
-                  Failed Sources — last scrape ({data.failed.length})
+                  Failed Sources — last scrape ({data.failed.length}
+                  {data.failed.filter((f) => f.isRateLimit).length > 0 &&
+                    `, ${data.failed.filter((f) => f.isRateLimit).length} rate-limited`})
                 </h2>
                 {data.failed.length === 0 ? (
                   <p className="font-mono text-xs text-[#333]">None</p>
                 ) : (
                   <div className="space-y-1">
-                    {data.failed.map((slug) => (
-                      <p key={slug} className="font-mono text-xs text-red-400">{slug}</p>
+                    {data.failed.map((f) => (
+                      <div key={f.slug} className="flex items-start gap-3">
+                        <p className={`font-mono text-xs ${f.isRateLimit ? 'text-yellow-400' : 'text-red-400'}`}>
+                          {f.slug}
+                        </p>
+                        <p className="font-mono text-xs text-[#555]">
+                          {f.isRateLimit ? '[429 rate-limited]' : f.error}
+                          {f.timestamp && ` · ${new Date(f.timestamp).toLocaleTimeString()}`}
+                        </p>
+                      </div>
                     ))}
                   </div>
                 )}

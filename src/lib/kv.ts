@@ -1,10 +1,17 @@
 import { Redis } from '@upstash/redis'
-import { LondonEvent, CommunitySource } from '@/lib/types'
+import { LondonEvent, CommunitySource, FailedSource } from '@/lib/types'
 
 const redis = new Redis({
   url: process.env.KV_REST_API_URL!,
   token: process.env.KV_REST_API_TOKEN!,
 })
+
+// Raw events (no filtering — for scraper fallback use)
+export async function getRawEvents(): Promise<LondonEvent[]> {
+  const raw = await redis.get<string>('events:london')
+  if (!raw) return []
+  return typeof raw === 'string' ? JSON.parse(raw) : raw
+}
 
 // Scraped events
 export async function saveEvents(events: LondonEvent[]): Promise<void> {
@@ -158,12 +165,55 @@ export async function removeFromBlocklist(id: string): Promise<void> {
 }
 
 // Failed sources
-export async function getFailedSources(): Promise<string[]> {
+export async function getFailedSources(): Promise<FailedSource[]> {
   const raw = await redis.get<string>('sources:failed')
   if (!raw) return []
+  const data = typeof raw === 'string' ? JSON.parse(raw) : raw
+  // Backwards compat: old format was string[]
+  if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'string') {
+    return (data as string[]).map((slug) => ({ slug, error: 'unknown', isRateLimit: false, timestamp: '' }))
+  }
+  return data as FailedSource[]
+}
+
+export async function logFailedSources(failures: FailedSource[]): Promise<void> {
+  await redis.set('sources:failed', JSON.stringify(failures))
+}
+
+// Channel-id cache (slug → { type, id }) to avoid re-fetching luma.com channel pages
+export type ChannelCacheEntry = { type: 'discovery'; id: string } | { type: 'calendar'; id: string }
+
+export async function getChannelIdCache(): Promise<Record<string, ChannelCacheEntry>> {
+  const raw = await redis.get<string>('sources:channel-ids')
+  if (!raw) return {}
   return typeof raw === 'string' ? JSON.parse(raw) : raw
 }
 
-export async function logFailedSources(slugs: string[]): Promise<void> {
-  await redis.set('sources:failed', JSON.stringify(slugs))
+export async function saveChannelIdCache(updates: Record<string, ChannelCacheEntry>): Promise<void> {
+  const current = await getChannelIdCache()
+  await redis.set('sources:channel-ids', JSON.stringify({ ...current, ...updates }))
+}
+
+// Cal-id cache (slug → cal-id) to avoid re-fetching luma.com pages
+export async function getCalIdCache(): Promise<Record<string, string>> {
+  const raw = await redis.get<string>('sources:cal-ids')
+  if (!raw) return {}
+  return typeof raw === 'string' ? JSON.parse(raw) : raw
+}
+
+export async function saveCalIdCache(updates: Record<string, string>): Promise<void> {
+  const current = await getCalIdCache()
+  await redis.set('sources:cal-ids', JSON.stringify({ ...current, ...updates }))
+}
+
+// Per-source scrape timestamps (used to skip re-fetching fresh sources)
+export async function getSourceScrapedAt(): Promise<Record<string, string>> {
+  const raw = await redis.get<string>('sources:scraped-at')
+  if (!raw) return {}
+  return typeof raw === 'string' ? JSON.parse(raw) : raw
+}
+
+export async function saveSourceScrapedAt(updates: Record<string, string>): Promise<void> {
+  const current = await getSourceScrapedAt()
+  await redis.set('sources:scraped-at', JSON.stringify({ ...current, ...updates }))
 }

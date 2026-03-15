@@ -1,4 +1,5 @@
 import { LondonEvent, EventScraper } from '@/lib/types'
+import { ChannelCacheEntry } from '@/lib/kv'
 import { CHANNEL_SOURCES } from './sources'
 
 const DISCOVERY_URL = 'https://api.lu.ma/discover/get-paginated-events'
@@ -6,11 +7,6 @@ const API_BASE = 'https://api2.luma.com'
 const API_HEADERS = {
   'x-luma-client-type': 'luma-web',
   origin: 'https://luma.com',
-}
-const PAGE_HEADERS = {
-  'User-Agent':
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-  Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
 }
 
 interface LumaEntry {
@@ -34,36 +30,6 @@ interface LumaEntry {
   }
 }
 
-type ChannelId =
-  | { type: 'discovery'; placeId: string }
-  | { type: 'calendar'; calId: string }
-  | null
-
-async function identifyChannel(slug: string): Promise<ChannelId> {
-  try {
-    const res = await fetch(`https://luma.com/${slug}`, {
-      headers: PAGE_HEADERS,
-      signal: AbortSignal.timeout(10000),
-    })
-    if (!res.ok) return null
-    const html = await res.text()
-    const dataMatch = html.match(
-      /<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/
-    )
-    if (!dataMatch) return null
-    const json = dataMatch[1]
-
-    const placeMatch = json.match(/"api_id"\s*:\s*"(discplace-[A-Za-z0-9]+)"/)
-    if (placeMatch) return { type: 'discovery', placeId: placeMatch[1] }
-
-    const calMatch = json.match(/"api_id"\s*:\s*"(cal-[A-Za-z0-9]+)"/)
-    if (calMatch) return { type: 'calendar', calId: calMatch[1] }
-
-    return null
-  } catch {
-    return null
-  }
-}
 
 async function fetchDiscoveryEntries(placeId: string): Promise<LumaEntry[]> {
   const entries: LumaEntry[] = []
@@ -150,15 +116,18 @@ function mapEntry(
 export class LumaChannelScraper implements EventScraper {
   name = 'luma-channel'
 
+  constructor(private channelCache: Record<string, ChannelCacheEntry> = {}) {}
+
   async run(): Promise<LondonEvent[]> {
     const scrapedAt = new Date().toISOString()
     const events: LondonEvent[] = []
 
+    // All channel IDs are pre-resolved by the orchestrator's pre-flight pass
     await Promise.all(
       CHANNEL_SOURCES.map(async (slug) => {
-        const channel = await identifyChannel(slug)
+        const channel = this.channelCache[slug]
         if (!channel) {
-          console.warn(`[luma-channel] Could not identify channel: ${slug}`)
+          console.warn(`[luma-channel] No cached id for channel: ${slug} (will retry next run)`)
           return
         }
 
@@ -167,10 +136,10 @@ export class LumaChannelScraper implements EventScraper {
           let source: LondonEvent['source']
 
           if (channel.type === 'discovery') {
-            entries = await fetchDiscoveryEntries(channel.placeId)
+            entries = await fetchDiscoveryEntries(channel.id)
             source = 'luma-discovery'
           } else {
-            entries = await fetchCalendarEntries(channel.calId)
+            entries = await fetchCalendarEntries(channel.id)
             source = 'luma-calendar'
           }
 

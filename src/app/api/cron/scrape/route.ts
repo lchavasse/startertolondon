@@ -7,8 +7,13 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const events = await runAllScrapers()
+  const { events, failed, stats } = await runAllScrapers()
   await saveEvents(events)
 
-  return NextResponse.json({ ok: true, count: events.length })
+  return NextResponse.json({
+    ok: true,
+    ...stats,
+    rateLimited: failed.filter((f) => f.isRateLimit).length,
+    failedSlugs: failed.map((f) => f.slug),
+  })
 }
