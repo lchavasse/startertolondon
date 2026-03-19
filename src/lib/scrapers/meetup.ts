@@ -84,7 +84,7 @@ export class MeetupScraper implements EventScraper {
     const MAX_PAGES = 5
 
     while (page < MAX_PAGES) {
-      const res = await fetch(GQL_URL, {
+      const res: Response = await fetch(GQL_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'User-Agent': UA },
         body: JSON.stringify({
