@@ -177,7 +177,8 @@ export class LumaCalendarScraper implements EventScraper {
           } catch (err) {
             const statusCode = (err as { statusCode?: number }).statusCode
             const isRateLimit = statusCode === 429
-            console.warn(`[luma-calendar] Failed fetching ${calId} (${statusCode ?? 'err'}):`, err)
+            const statusNote = statusCode === 404 ? `${statusCode} (may be rate limit)` : statusCode ?? 'err'
+            console.warn(`[luma-calendar] Failed fetching ${calId} (${statusNote}):`, err)
             failed.push({
               slug: source,
               error: err instanceof Error ? err.message : String(err),

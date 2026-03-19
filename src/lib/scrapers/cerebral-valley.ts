@@ -120,6 +120,8 @@ function mapLumaEvent(
 export class CerebralValleyScraper implements EventScraper {
   name = 'cerebral-valley'
 
+  constructor(private knownSlugs: Set<string> = new Set()) {}
+
   async run(): Promise<LondonEvent[]> {
     const scrapedAt = new Date().toISOString()
 
@@ -139,21 +141,49 @@ export class CerebralValleyScraper implements EventScraper {
     }
 
     const data = await res.json()
-    const cvEvents: CVEvent[] = (data.events ?? []).filter(
-      (e: CVEvent) => e.location === 'London, UK'
-    )
+    const totalCount: number = data.totalCount ?? 0
+    const limit: number = data.limit ?? 20
+    let allEvents: CVEvent[] = data.events ?? []
 
-    // Enrich Luma events with full details; use CV data as-is for others
-    const results = await Promise.all(
-      cvEvents.map(async (e) => {
-        const slug = extractLumaSlug(e.url)
-        if (slug) {
-          const luma = await fetchLumaEventDetails(slug)
-          if (luma) return mapLumaEvent(luma, scrapedAt)
-        }
-        return mapCVEvent(e, scrapedAt)
+    // Paginate if there are more events beyond the first page
+    const totalPages = Math.ceil(totalCount / limit)
+    for (let page = 1; page < totalPages; page++) {
+      const pageParams = new URLSearchParams({
+        approved: 'true',
+        startDateTime: new Date().toISOString(),
+        offset: String(page * limit),
+        limit: String(limit),
       })
-    )
+      const pageRes = await fetch(`${CV_API_URL}?${pageParams}`, {
+        signal: AbortSignal.timeout(15000),
+      })
+      if (!pageRes.ok) break
+      const pageData = await pageRes.json()
+      allEvents = allEvents.concat(pageData.events ?? [])
+    }
+
+    const cvEvents = allEvents.filter((e) => e.location === 'London, UK')
+
+    const ENRICH_DELAY_MS = 500
+    const results: LondonEvent[] = []
+
+    for (const e of cvEvents) {
+      const slug = extractLumaSlug(e.url)
+
+      if (slug && this.knownSlugs.has(slug)) {
+        // Already properly enriched in Redis — emit cv- fallback, slug-dedup will discard it
+        results.push(mapCVEvent(e, scrapedAt))
+        continue
+      }
+
+      if (slug) {
+        const luma = await fetchLumaEventDetails(slug)
+        results.push(luma ? mapLumaEvent(luma, scrapedAt) : mapCVEvent(e, scrapedAt))
+        await new Promise((r) => setTimeout(r, ENRICH_DELAY_MS))
+      } else {
+        results.push(mapCVEvent(e, scrapedAt))
+      }
+    }
 
     return results
   }

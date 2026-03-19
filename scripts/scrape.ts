@@ -1,9 +1,22 @@
 import { runAllScrapers } from '../src/lib/scrapers'
-import { saveEvents } from '../src/lib/kv'
+import { saveEvents, getRawEvents } from '../src/lib/kv'
 import { Redis } from '@upstash/redis'
+import { dedupeBySlug } from '../src/lib/scrapers/dedup-utils'
 
 async function main() {
   const force = process.argv.includes('--force')
+  const dedupeOnly = process.argv.includes('--dedupe')
+
+  if (dedupeOnly) {
+    console.log('Dedupe mode: loading events from KV...')
+    const events = await getRawEvents()
+    console.log(`Loaded ${events.length} events`)
+    const deduped = dedupeBySlug(events)
+    console.log(`After slug dedup: ${deduped.length} (removed ${events.length - deduped.length})`)
+    await saveEvents(deduped)
+    console.log('Done.')
+    return
+  }
 
   if (force) {
     console.log('Force mode: clearing scraped-at cache...')

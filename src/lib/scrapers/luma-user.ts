@@ -109,7 +109,8 @@ export class LumaUserScraper implements EventScraper {
         const err = result.reason
         const statusCode = (err as { statusCode?: number }).statusCode
         const isRateLimit = statusCode === 429
-        console.warn(`[luma-user] Failed for ${this.sources[i]} (${statusCode ?? 'err'}):`, err)
+        const statusNote = statusCode === 404 ? `${statusCode} (may be rate limit)` : statusCode ?? 'err'
+        console.warn(`[luma-user] Failed for ${this.sources[i]} (${statusNote}):`, err)
         failed.push({
           slug: this.sources[i],
           error: err instanceof Error ? err.message : String(err),

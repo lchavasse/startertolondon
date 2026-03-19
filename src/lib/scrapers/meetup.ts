@@ -1,68 +1,47 @@
 import { LondonEvent, EventScraper } from '@/lib/types'
 
-const FIND_URL =
-  'https://www.meetup.com/find/?categoryId=546&source=EVENTS&keywords=london&radius=10'
-
+const GQL_URL = 'https://www.meetup.com/gql2'
 const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 
-type ApolloCache = Record<string, Record<string, unknown>>
+const QUERY = `
+  query EventSearch($filter: EventSearchFilter!, $first: Int, $after: String) {
+    eventSearch(filter: $filter, first: $first, after: $after) {
+      pageInfo { hasNextPage endCursor }
+      edges {
+        node {
+          id title dateTime endTime eventType eventUrl
+          venue { name address city country }
+          group { name urlname timezone }
+          featuredEventPhoto { highResUrl }
+        }
+      }
+    }
+  }
+`
 
-interface ApolloEvent {
-  __typename: 'Event'
-  id?: string
-  title?: string | null
-  dateTime?: string | null
+interface GQLEvent {
+  id: string
+  title: string
+  dateTime: string
   endTime?: string | null
-  eventType?: string | null
-  eventUrl?: string | null
-  timezone?: string | null
-  venue?: {
-    __typename?: string
-    name?: string | null
-    address?: string | null
-    city?: string | null
-    country?: string | null
-  } | null
-  group?: { __ref: string } | null
-  featuredEventPhoto?: { __ref: string } | null
-  displayPhoto?: { __ref: string } | null
+  eventType: string
+  eventUrl: string
+  venue?: { name?: string | null; address?: string | null; city?: string | null; country?: string | null } | null
+  group?: { name?: string | null; urlname?: string | null; timezone?: string | null } | null
+  featuredEventPhoto?: { highResUrl?: string | null } | null
 }
 
-interface ApolloGroup {
-  __typename: 'Group'
-  name?: string | null
-  urlname?: string | null
-  timezone?: string | null
-}
+function mapEvent(raw: GQLEvent, scrapedAt: string): LondonEvent | null {
+  if (!raw.id || !raw.title || !raw.dateTime || !raw.eventUrl) return null
+  if (raw.eventType !== 'PHYSICAL') return null
 
-interface ApolloPhoto {
-  __typename: 'PhotoInfo'
-  highResUrl?: string | null
-  baseUrl?: string | null
-}
+  const city = raw.venue?.city ?? ''
+  if (city && !city.toLowerCase().startsWith('london') && city.toLowerCase() !== 'greater london') return null
 
-function mapEvent(cache: ApolloCache, key: string, scrapedAt: string): LondonEvent | null {
-  const raw = cache[key] as unknown as ApolloEvent
-  if (!raw?.id || !raw.title || !raw.dateTime || !raw.eventUrl) return null
-  if (raw.eventType && raw.eventType !== 'PHYSICAL') return null
-
-  const venue = raw.venue
-  const city = venue?.city ?? ''
-  // city can be "London EC1V 9BP" or just "London"
-  if (city && !city.toLowerCase().startsWith('london')) return null
-
-  const groupRef = raw.group?.__ref
-  const group = groupRef ? (cache[groupRef] as unknown as ApolloGroup) : null
-
-  const photoRef = raw.featuredEventPhoto?.__ref ?? raw.displayPhoto?.__ref
-  const photo = photoRef ? (cache[photoRef] as unknown as ApolloPhoto) : null
-  const coverUrl = photo?.highResUrl ?? null
-
-  const timezone = group?.timezone ?? raw.timezone ?? 'Europe/London'
-
-  const locationName = venue?.address
-    ? `${venue.address}${city ? ', ' + city : ''}`
+  const timezone = raw.group?.timezone ?? 'Europe/London'
+  const locationName = raw.venue?.address
+    ? `${raw.venue.address}${city ? ', ' + city : ''}`
     : city || 'London'
 
   return {
@@ -72,10 +51,10 @@ function mapEvent(cache: ApolloCache, key: string, scrapedAt: string): LondonEve
     endAt: raw.endTime ?? raw.dateTime,
     timezone,
     url: raw.eventUrl,
-    coverUrl,
+    coverUrl: raw.featuredEventPhoto?.highResUrl ?? null,
     locationName,
     city: 'London',
-    organiserName: group?.name ?? '',
+    organiserName: raw.group?.name ?? '',
     organiserAvatarUrl: null,
     tags: [],
     source: 'meetup',
@@ -89,26 +68,49 @@ export class MeetupScraper implements EventScraper {
 
   async run(): Promise<LondonEvent[]> {
     const scrapedAt = new Date().toISOString()
-
-    const res = await fetch(FIND_URL, {
-      headers: { 'User-Agent': UA, Accept: 'text/html' },
-      signal: AbortSignal.timeout(20000),
-    })
-
-    if (!res.ok) throw new Error(`Meetup fetch failed: ${res.status}`)
-
-    const html = await res.text()
-    const match = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/)
-    if (!match) throw new Error('Meetup: __NEXT_DATA__ not found')
-
-    const nextData = JSON.parse(match[1])
-    const cache: ApolloCache = nextData?.props?.pageProps?.__APOLLO_STATE__ ?? {}
-
     const events: LondonEvent[] = []
-    for (const key of Object.keys(cache)) {
-      if (!key.startsWith('Event:')) continue
-      const event = mapEvent(cache, key, scrapedAt)
-      if (event) events.push(event)
+
+    const baseFilter = {
+      lat: 51.5074,
+      lon: -0.1278,
+      radius: 25.0,
+      query: 'tech',
+      eventType: 'PHYSICAL',
+      startDateRange: new Date().toISOString(),
+    }
+
+    let after: string | null = null
+    let page = 0
+    const MAX_PAGES = 5
+
+    while (page < MAX_PAGES) {
+      const res = await fetch(GQL_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'User-Agent': UA },
+        body: JSON.stringify({
+          operationName: 'EventSearch',
+          variables: { filter: baseFilter, first: 50, ...(after ? { after } : {}) },
+          query: QUERY,
+        }),
+        signal: AbortSignal.timeout(20000),
+      })
+
+      if (!res.ok) throw new Error(`Meetup GraphQL failed: ${res.status}`)
+
+      const data = await res.json()
+      if (data.errors) throw new Error(`Meetup GraphQL error: ${data.errors[0]?.message}`)
+
+      const search = data?.data?.eventSearch
+      const edges: { node: GQLEvent }[] = search?.edges ?? []
+
+      for (const { node } of edges) {
+        const event = mapEvent(node, scrapedAt)
+        if (event) events.push(event)
+      }
+
+      if (!search?.pageInfo?.hasNextPage) break
+      after = search.pageInfo.endCursor
+      page++
     }
 
     return events

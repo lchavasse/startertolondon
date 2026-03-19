@@ -22,6 +22,7 @@ import { CerebralValleyScraper } from './cerebral-valley'
 import { EventbriteScraper } from './eventbrite'
 import { MeetupScraper } from './meetup'
 import { fetchPageId } from './luma-page-fetch'
+import { dedupeBySlug, extractUrlSlug } from './dedup-utils'
 
 // Sources scraped within this window are skipped to avoid rate limiting.
 const CACHE_TTL_HOURS = 20
@@ -45,6 +46,16 @@ export async function runAllScrapers(): Promise<ScraperResult> {
     getCalIdCache(),
   ])
   const blockSet = new Set(blocklist)
+
+  // Build set of slugs from properly-enriched events (not cv- fallbacks)
+  // so CV scraper can skip re-fetching events already in Redis
+  const knownLumaSlugs = new Set<string>()
+  for (const event of existingEvents) {
+    if (!event.id.startsWith('cv-')) {
+      const slug = extractUrlSlug(event.url)
+      if (slug) knownLumaSlugs.add(slug)
+    }
+  }
 
   // Group existing events by calendarSlug for fallback on failure
   const existingBySlug = new Map<string, LondonEvent[]>()
@@ -164,7 +175,7 @@ export async function runAllScrapers(): Promise<ScraperResult> {
     userScraper,
     ...(staleUncuratedUsers.length ? [new LumaUserScraper(staleUncuratedUsers, false)] : []),
     new LumaChannelScraper(channelIdCache),
-    new CerebralValleyScraper(),
+    new CerebralValleyScraper(knownLumaSlugs),
     new EventbriteScraper(),
     new MeetupScraper(),
   ]
@@ -247,7 +258,7 @@ export async function runAllScrapers(): Promise<ScraperResult> {
     }
   }
 
-  // Dedup: curated:true wins over curated:false for same event id
+  // Pass 1: ID-based dedup (curated:true wins)
   const seen = new Map<string, LondonEvent>()
   for (const event of [...freshEvents, ...fallbackEvents, ...cachedSourceEvents]) {
     const existing = seen.get(event.id)
@@ -256,7 +267,9 @@ export async function runAllScrapers(): Promise<ScraperResult> {
     }
   }
 
-  const events = [...seen.values()].filter((e) => !blockSet.has(e.id))
+  // Pass 2: slug-based dedup — catches cv- vs evt- duplicates
+  const deduped = dedupeBySlug([...seen.values()])
+  const events = deduped.filter((e) => !blockSet.has(e.id))
 
   return {
     events,

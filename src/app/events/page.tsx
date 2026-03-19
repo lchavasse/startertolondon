@@ -14,7 +14,7 @@ export default async function EventsPage() {
         <div className="mb-10 space-y-6">
           <div>
             <h1 className="font-mono text-xs uppercase tracking-[0.3em] text-[#c8ff00] mb-2">
-              London
+              London Calling
             </h1>
             <p className="text-[#f0ede6] text-3xl font-bold">Tech Events</p>
             {events.length > 0 && (
@@ -22,6 +22,7 @@ export default async function EventsPage() {
                 {events.length} upcoming events
               </p>
             )}
+            <p className="text-[#7ea1c4] text-xs font-mono mt-2">There are many events lists. This one is <a href="https://x.com/lachlanchavasse" target="_blank" rel="noopener noreferrer" className="text-[#7ea1c4] hover:text-[#c8ff00] underline">mine</a>.</p>
           </div>
           <SubmitForm />
         </div>
