@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   applyLookingFor,
@@ -10,23 +10,16 @@ import {
   extractProfile,
   finalizeProfile,
   loadStoredOnboarding,
-  planQuestions,
   saveStoredOnboarding,
+  TIME_OPTIONS,
 } from '@/lib/profile'
-import { FollowUpQuestion, StoredOnboardingState, UserProfile } from '@/lib/types'
+import { StoredOnboardingState, UserProfile } from '@/lib/types'
 
-const BOOT_LINES = [
-  '> booting london guide runtime',
-  '> calibrating city map',
-  '> syncing terminal shell',
-]
-
-const INTRO_COPY = ['*You just woke up.', 'Time to figure out where you are.*']
 const MATRIX_CHARS = '01アイウエオカキクケコサシスセソ0123456789'
 const RAIN_DURATION = 2600
 const MORPH_DURATION = 1100
 const GLOBAL_COLUMN_SPACING = 16
-const GLYPH_ROW_HEIGHT = 18
+const GLYPH_ROW_HEIGHT = 14
 
 function Mascot() {
   return (
@@ -104,19 +97,19 @@ function MatrixCityMap() {
     const buildMaskedLayers = () => {
       maskedLayers = [
         {
-          columns: buildColumns(5, 3.9, 1.4, 28, 18, 0, true),
+          columns: buildColumns(4, 3.9, 1.4, 28, 18, 0, true),
           xJitter: 1.5,
           yJitter: 0,
           opacityBoost: 1,
         },
         {
-          columns: buildColumns(5, 3.4, 1.2, 24, 16, 2.5, true),
+          columns: buildColumns(4, 3.4, 1.2, 24, 16, 2.0, true),
           xJitter: 2.2,
           yJitter: 7,
           opacityBoost: 0.82,
         },
         {
-          columns: buildColumns(5, 3.1, 1.0, 22, 14, 1.2, true),
+          columns: buildColumns(4, 3.1, 1.0, 22, 14, 1.0, true),
           xJitter: 1.1,
           yJitter: -5,
           opacityBoost: 0.6,
@@ -134,7 +127,7 @@ function MatrixCityMap() {
       canvas.style.height = `${height}px`
       context.setTransform(dpr, 0, 0, dpr, 0, 0)
       context.textBaseline = 'top'
-      context.font = '16px var(--font-plex-mono)'
+      context.font = '13px var(--font-plex-mono)'
 
       globalColumns = buildColumns(GLOBAL_COLUMN_SPACING, 15, 18, 14, 14)
       buildMaskedLayers()
@@ -190,8 +183,8 @@ function MatrixCityMap() {
     const buildStaticGlyphs = (): StaticGlyph[] => {
       if (!mask) return []
       const glyphs: StaticGlyph[] = []
-      for (let y = 0; y < mask.height; y += 5) {
-        for (let x = 0; x < mask.width; x += 5) {
+      for (let y = 0; y < mask.height; y += 4) {
+        for (let x = 0; x < mask.width; x += 4) {
           if (!isMaskedPixel(x, y)) continue
           if ((x + y) % 3 !== 0) continue
           glyphs.push({
@@ -307,329 +300,360 @@ function MatrixCityMap() {
   return <canvas ref={canvasRef} className="matrix-canvas" aria-hidden="true" />
 }
 
-function TerminalMenu({
-  question,
-  onSubmit,
-}: {
-  question: FollowUpQuestion
-  onSubmit: (value: string) => void
-}) {
-  const options = useMemo(() => question.options ?? [], [question.options])
-  const [activeIndex, setActiveIndex] = useState(0)
-  const [customValue, setCustomValue] = useState('')
+const INTRO_TEXT = 'you just woke up.  who are you?'
+const CHAR_SPEED = 22
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (question.kind !== 'menu') return
-      if (event.key === 'ArrowDown') {
-        event.preventDefault()
-        setActiveIndex((current) => (current + 1) % options.length)
-      }
-      if (event.key === 'ArrowUp') {
-        event.preventDefault()
-        setActiveIndex((current) => (current - 1 + options.length) % options.length)
-      }
-      if (event.key === 'Enter') {
-        event.preventDefault()
-        const activeOption = options[activeIndex]
-        if (!activeOption) return
-        if (activeOption.id === 'other') {
-          if (customValue.trim()) onSubmit(customValue.trim())
-          return
-        }
-        onSubmit(activeOption.value)
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [activeIndex, customValue, onSubmit, options, question.kind])
-
-  return (
-    <div className="terminal-stack terminal-stack--tight">
-      <p className="terminal-prompt terminal-prompt--question">{question.prompt}</p>
-      <div className="terminal-menu" role="listbox" aria-label={question.prompt}>
-        {options.map((option, index) => {
-          const selected = index === activeIndex
-          const isOther = option.id === 'other'
-          return (
-            <div key={option.id} className={`terminal-menu__item ${selected ? 'is-active' : ''}`}>
-              <span className="terminal-menu__arrow">{selected ? '>' : ' '}</span>
-              <span className="terminal-menu__label">{option.label}</span>
-              {isOther && selected && (
-                <input
-                  value={customValue}
-                  onChange={(event) => setCustomValue(event.target.value)}
-                  className="terminal-menu__input terminal-menu__input--inline"
-                  placeholder="type other"
-                />
-              )}
-            </div>
-          )
-        })}
-      </div>
-      <p className="terminal-hint">arrow keys to navigate, enter to confirm</p>
-    </div>
-  )
+const STEP_PROMPTS: Partial<Record<string, string>> = {
+  time: 'how long are you here for?',
+  'looking-for': 'what are you looking for?',
+  returning: 'what are you looking for?',
 }
+
+type Step = 'identity' | 'time' | 'looking-for' | 'processing' | 'returning'
+type HistoryEntry = { prompt: string; answer: string }
 
 export function TerminalOnboarding() {
   const router = useRouter()
   const [shellVisible, setShellVisible] = useState(false)
-  const [introVisible, setIntroVisible] = useState(false)
-  const [identityValue, setIdentityValue] = useState('')
-  const [questionIndex, setQuestionIndex] = useState(0)
-  const [questions, setQuestions] = useState<FollowUpQuestion[]>([])
-  const [profile, setProfile] = useState<UserProfile | null>(() => loadStoredOnboarding()?.profile ?? null)
-  const [phase, setPhase] = useState<'identity' | 'questions' | 'processing' | 'returning'>(() => loadStoredOnboarding() ? 'returning' : 'identity')
-  const [whatToSee, setWhatToSee] = useState('')
   const [typedChars, setTypedChars] = useState(0)
-  const [allowContinue, setAllowContinue] = useState(false)
-  const [identityHeight, setIdentityHeight] = useState(40)
+  const [promptTypedChars, setPromptTypedChars] = useState(0)
+  const [step, setStep] = useState<Step>(() => loadStoredOnboarding() ? 'returning' : 'identity')
+  const [history, setHistory] = useState<HistoryEntry[]>([])
+  const [currentInput, setCurrentInput] = useState('')
+  const [activeTimeIndex, setActiveTimeIndex] = useState(0)
+  const activeTimeIndexRef = useRef(0)
+  const [profile, setProfile] = useState<UserProfile | null>(() => loadStoredOnboarding()?.profile ?? null)
+
+  const [otherTimeValue, setOtherTimeValue] = useState('')
+  const otherTimeRef = useRef<HTMLInputElement | null>(null)
+  const otherTimeValueRef = useRef('')
+
   const inputRef = useRef<HTMLTextAreaElement | null>(null)
+  const bodyRef = useRef<HTMLDivElement | null>(null)
+  const windowRef = useRef<HTMLElement | null>(null)
+  const positionRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 })
 
+  const introComplete = typedChars >= INTRO_TEXT.length
+  const typedIntro = INTRO_TEXT.slice(0, typedChars)
+  const isTextStep = step === 'identity' || step === 'looking-for' || step === 'returning'
+  const stepPrompt = STEP_PROMPTS[step] ?? ''
+  const promptComplete = promptTypedChars >= stepPrompt.length
+  const typedPrompt = stepPrompt.slice(0, promptTypedChars)
+
+  // Shell appear timer
   useEffect(() => {
-    const shellTimer = window.setTimeout(() => setShellVisible(true), 1100)
-    const introTimer = window.setTimeout(() => setIntroVisible(true), 1550)
-
-    return () => {
-      window.clearTimeout(shellTimer)
-      window.clearTimeout(introTimer)
-    }
+    const t = window.setTimeout(() => setShellVisible(true), 1100)
+    return () => window.clearTimeout(t)
   }, [])
 
+  // Typewriter for intro
   useEffect(() => {
-    if (shellVisible && phase === 'identity') {
+    if (!shellVisible || step !== 'identity' || typedChars >= INTRO_TEXT.length) return
+    const t = window.setTimeout(() => setTypedChars((c) => c + 1), CHAR_SPEED)
+    return () => window.clearTimeout(t)
+  }, [shellVisible, typedChars, step])
+
+  // Reset prompt typewriter when step changes
+  useEffect(() => { setPromptTypedChars(0) }, [step])
+
+  // Typewriter for step prompts (time, looking-for, returning)
+  useEffect(() => {
+    if (!stepPrompt || promptTypedChars >= stepPrompt.length) return
+    const t = window.setTimeout(() => setPromptTypedChars((c) => c + 1), CHAR_SPEED)
+    return () => window.clearTimeout(t)
+  }, [stepPrompt, promptTypedChars])
+
+  // Auto-scroll body to bottom on new content
+  useEffect(() => {
+    if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
+  }, [history, step, typedChars, shellVisible])
+
+  // Route all keypresses to hidden textarea for text input steps
+  useEffect(() => {
+    if (!isTextStep) return
+    if (step === 'identity' && !introComplete) return
+    if (step !== 'identity' && !promptComplete) return
+    inputRef.current?.focus()
+    const capture = (e: Event) => {
+      const tag = (e.target as HTMLElement).tagName
+      if (tag === 'BUTTON' || tag === 'A') return
       inputRef.current?.focus()
     }
-  }, [phase, shellVisible])
+    document.addEventListener('keydown', capture, true)
+    document.addEventListener('click', capture, true)
+    return () => {
+      document.removeEventListener('keydown', capture, true)
+      document.removeEventListener('click', capture, true)
+    }
+  }, [isTextStep, step, introComplete, promptComplete])
 
-  useEffect(() => {
-    if (phase !== 'returning') return
-    const timer = window.setTimeout(() => setAllowContinue(true), 450)
-    return () => window.clearTimeout(timer)
-  }, [phase])
+  // Keep ref in sync with state so the keydown handler always reads the current index
+  useEffect(() => { activeTimeIndexRef.current = activeTimeIndex }, [activeTimeIndex])
 
+  // Keep otherTimeValueRef in sync with state
+  useEffect(() => { otherTimeValueRef.current = otherTimeValue }, [otherTimeValue])
+
+  // Auto-focus inline input when "other" is the active option
   useEffect(() => {
-    if (phase !== 'returning') return
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Enter' && allowContinue) {
-        event.preventDefault()
-        router.push('/guide')
+    if (step !== 'time') return
+    const isOther = TIME_OPTIONS[activeTimeIndex]?.id === 'other'
+    if (isOther) {
+      otherTimeRef.current?.focus()
+    }
+  }, [step, activeTimeIndex])
+
+  // Arrow keys + enter for time menu
+  // Delay registering the Enter handler by 400ms to prevent the Enter from the
+  // previous identity step immediately firing through.
+  useEffect(() => {
+    if (step !== 'time') return
+    const handle = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); setActiveTimeIndex((i) => (i + 1) % TIME_OPTIONS.length) }
+      if (e.key === 'ArrowUp')   { e.preventDefault(); setActiveTimeIndex((i) => (i - 1 + TIME_OPTIONS.length) % TIME_OPTIONS.length) }
+      if (e.key === 'Enter') {
+        e.preventDefault()
+        const opt = TIME_OPTIONS[activeTimeIndexRef.current]
+        if (!opt || !profile) return
+        if (opt.id === 'other') return  // handled by inline input's onKeyDown
+        const next = applyTimeInLondon(profile, opt.value)
+        saveStoredOnboarding({ profile: next, stage: 'in-progress', lastAnsweredAt: new Date().toISOString() })
+        setProfile(next)
+        setHistory((h) => [...h, { prompt: 'how long are you here for?', answer: opt.label }])
+        setCurrentInput('')
+        setStep('looking-for')
       }
     }
+    const t = window.setTimeout(() => window.addEventListener('keydown', handle), 400)
+    return () => {
+      window.clearTimeout(t)
+      window.removeEventListener('keydown', handle)
+    }
+  }, [step, profile])
 
-    window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [allowContinue, phase, router])
 
-  useEffect(() => {
-    if (!introVisible) return
-    const total = INTRO_COPY.join(' ').length
-    const interval = window.setInterval(() => {
-      setTypedChars((current) => {
-        if (current >= total) {
-          window.clearInterval(interval)
-          return current
-        }
-        return current + 1
-      })
-    }, 18)
-
-    return () => window.clearInterval(interval)
-  }, [introVisible])
-
-  useEffect(() => {
-    const node = inputRef.current
-    if (!node) return
-    node.style.height = '0px'
-    const nextHeight = Math.max(40, node.scrollHeight)
-    node.style.height = `${nextHeight}px`
-    setIdentityHeight(nextHeight)
-  }, [identityValue, phase])
-
-  const typedIntro = useMemo(() => {
-    const full = INTRO_COPY.join('\n')
-    return full.slice(0, typedChars)
-  }, [typedChars])
-
-  const enoughIdentity = identityValue.trim().length >= 100
-  const currentQuestion = questions[questionIndex] ?? null
-
-  function resetExperience() {
-    clearStoredOnboarding()
-    window.location.reload()
+  function persist(p: UserProfile, stage: StoredOnboardingState['stage']) {
+    saveStoredOnboarding({ profile: p, stage, lastAnsweredAt: new Date().toISOString() })
   }
 
-  function persist(nextProfile: UserProfile, stage: StoredOnboardingState['stage']) {
-    const nextState: StoredOnboardingState = {
-      profile: nextProfile,
-      stage,
-      lastAnsweredAt: new Date().toISOString(),
-    }
-    saveStoredOnboarding(nextState)
+  function advanceFromIdentity() {
+    const source = currentInput.trim() || DEFAULT_IDENTITY_TEXT
+    const { profile: next } = extractProfile(source)
+    persist(next, 'in-progress')
+    setProfile(next)
+    setHistory([{ prompt: INTRO_TEXT, answer: source }])
+    setCurrentInput('')
+    setStep('time')
   }
 
-  function handleIdentitySubmit() {
-    const source = identityValue.trim() || DEFAULT_IDENTITY_TEXT
-    if (source.length < 100) return
-    const extraction = extractProfile(source)
-    const nextQuestions = planQuestions(extraction).questions
-    const nextProfile = extraction.profile
-    setProfile(nextProfile)
-    persist(nextProfile, 'in-progress')
-    setQuestions(nextQuestions)
-    setPhase('questions')
-    setQuestionIndex(0)
+
+  function advanceFromLookingFor() {
+    if (!profile || !currentInput.trim()) return
+    const next = finalizeProfile(applyLookingFor(profile, currentInput.trim()))
+    persist(next, 'complete')
+    setProfile(next)
+    setHistory((h) => [...h, { prompt: 'what are you looking for?', answer: currentInput.trim() }])
+    setStep('processing')
+    window.setTimeout(() => router.push('/guide'), 900)
   }
 
-  function handleQuestionSubmit(value: string) {
-    if (!profile || !currentQuestion) return
-
-    let nextProfile = profile
-    if (currentQuestion.id === 'time-in-london') {
-      nextProfile = applyTimeInLondon(profile, value)
-    }
-    if (currentQuestion.id === 'what-to-see') {
-      nextProfile = applyLookingFor(profile, value, currentQuestion.suggestedTags)
-      setWhatToSee(value)
-    }
-
-    setProfile(nextProfile)
-    const nextIndex = questionIndex + 1
-    if (nextIndex >= questions.length) {
-      setPhase('processing')
-      persist(nextProfile, 'in-progress')
-      window.setTimeout(() => {
-        const finalProfile = finalizeProfile(nextProfile)
-        setProfile(finalProfile)
-        persist(finalProfile, 'complete')
-        router.push('/guide')
-      }, 900)
-      return
-    }
-
-    persist(nextProfile, 'in-progress')
-    setQuestionIndex(nextIndex)
+  function advanceFromReturning() {
+    if (!profile || !currentInput.trim()) return
+    const next = finalizeProfile(applyLookingFor(profile, currentInput.trim()))
+    persist(next, 'complete')
+    router.push('/guide')
   }
+
+  function handleTextKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      if (step === 'identity') advanceFromIdentity()
+      else if (step === 'looking-for') advanceFromLookingFor()
+      else if (step === 'returning') advanceFromReturning()
+    }
+  }
+
+  function handleTitlebarMouseDown(event: React.MouseEvent) {
+    if ((event.target as HTMLElement).closest('button')) return
+    event.preventDefault()
+    const el = windowRef.current
+    if (!el) return
+    el.style.transition = 'none'
+    const startX = event.clientX - positionRef.current.x
+    const startY = event.clientY - positionRef.current.y
+    const onMove = (e: MouseEvent) => {
+      positionRef.current = { x: e.clientX - startX, y: e.clientY - startY }
+      el.style.transform = `translate(calc(-50% + ${positionRef.current.x}px), calc(-50% + ${positionRef.current.y}px))`
+    }
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+  }
+
+  const enoughInput = currentInput.trim().length >= 80
 
   return (
     <main className="terminal-screen">
       <MatrixCityMap />
       <div className="terminal-grid" aria-hidden="true" />
-      <button type="button" className="terminal-reset" onClick={resetExperience}>
+      <button type="button" className="terminal-reset" onClick={() => { clearStoredOnboarding(); window.location.reload() }}>
         [ reset session ]
       </button>
 
       <div className="terminal-stage">
-        <section className={`terminal-window ${shellVisible ? 'is-visible' : ''}`}>
-          <header className="terminal-window__titlebar">
-            <span className="terminal-window__dots">
-              <i />
-              <i />
-              <i />
-            </span>
-            <span className="terminal-window__title">starter-london / immersive shell</span>
+        <section ref={windowRef} className={`terminal-window ${shellVisible ? 'is-visible' : ''}`}>
+          <header className="terminal-window__titlebar" onMouseDown={handleTitlebarMouseDown}>
+            <span className="terminal-window__dots"><i /><i /><i /></span>
+            <span className="terminal-window__title">starter-london</span>
           </header>
 
-          <div className="terminal-window__body">
-            <div className="terminal-header">
-              <Mascot />
-              <div>
-                <p className="terminal-kicker">A Starter Guide to London v0.1</p>
-                <p className="terminal-meta">~/init</p>
-              </div>
-            </div>
+          <div className="terminal-window__body" ref={bodyRef}>
+            {shellVisible && (
+              <div className="terminal-output">
+                <p className="terminal-output__line terminal-output__line--dim">starter-london v0.1 — london guide runtime</p>
+                <p className="terminal-output__line terminal-output__line--dim">──────────────────────────────────────────</p>
 
-            <div className="terminal-bootlog">
-              {BOOT_LINES.map((line, index) => (
-                <p key={line} className="terminal-line" style={{ animationDelay: `${index * 100}ms` }}>
-                  {line}
-                </p>
-              ))}
-            </div>
-
-            {introVisible && (
-              <div className="terminal-stack">
-                <pre className="terminal-copy">{typedIntro}<span className="terminal-cursor">_</span></pre>
-
-                {phase === 'returning' && profile ? (
-                  <div className="terminal-stack terminal-stack--tight">
-                    <p className="terminal-prompt terminal-prompt--question">
-                      {profile.name ? `hello ${profile.name.toLowerCase()}` : 'hello traveller'}
-                    </p>
-                    <p className="terminal-copy terminal-copy--muted">what do you want today.</p>
-                    <p className="terminal-hint">press enter to continue</p>
-                  </div>
-                ) : null}
-
-                {phase === 'identity' && (
-                  <div className="terminal-stack terminal-stack--tight">
-                    <p className="terminal-prompt terminal-prompt--question">Q: who are you..?</p>
-                    <div className="terminal-inline-input" style={{ minHeight: `${identityHeight + 12}px` }}>
-                      <span className="terminal-inline-input__prompt">traveller@ldn:~$</span>
-                      <textarea
-                        ref={inputRef}
-                        value={identityValue}
-                        onChange={(event) => setIdentityValue(event.target.value)}
-                        className="terminal-textarea terminal-textarea--inline"
-                        rows={1}
-                        placeholder={DEFAULT_IDENTITY_TEXT}
-                      />
+                {/* Completed steps shown as history */}
+                {history.map((entry, i) => (
+                  <div key={i}>
+                    <p className="terminal-output__line terminal-output__line--dim">&nbsp;</p>
+                    <p className="terminal-output__line terminal-output__line--dim">{entry.prompt}</p>
+                    <div className="terminal-prompt-line">
+                      <span className="terminal-prompt-line__user">traveller@ldn</span>
+                      <span className="terminal-prompt-line__sep"> ~ % </span>
+                      <span className="terminal-text-display">{entry.answer}</span>
                     </div>
-                    <div className="terminal-statusrow">
-                      <span className={`terminal-meter ${enoughIdentity ? 'is-ready' : ''}`}>
-                        [{enoughIdentity ? 'ready' : 'need 100 chars'}]
-                      </span>
-                      <span className="terminal-copy terminal-copy--muted">{identityValue.trim().length} chars</span>
-                    </div>
-                    <button type="button" className="terminal-action" onClick={handleIdentitySubmit} disabled={!enoughIdentity}>
-                      continue
-                    </button>
                   </div>
+                ))}
+
+                {/* Returning greeting */}
+                {step === 'returning' && profile && (
+                  <>
+                    <p className="terminal-output__line terminal-output__line--dim">&nbsp;</p>
+                    <p className="terminal-output__line">{profile.name ? `hello, ${profile.name.toLowerCase()}.` : 'hello, traveller.'}</p>
+                  </>
                 )}
 
-                {phase === 'questions' && currentQuestion?.kind === 'menu' && (
-                  <TerminalMenu question={currentQuestion} onSubmit={handleQuestionSubmit} />
-                )}
+                {step !== 'processing' && (
+                  <>
+                    <p className="terminal-output__line terminal-output__line--dim">&nbsp;</p>
 
-                {phase === 'questions' && currentQuestion?.kind === 'text' && (
-                  <div className="terminal-stack terminal-stack--tight">
-                    <p className="terminal-prompt terminal-prompt--question">{currentQuestion.prompt}</p>
-                    {!!currentQuestion.suggestedTags?.length && (
-                      <div className="terminal-tags">
-                        {currentQuestion.suggestedTags.map((tag) => (
-                          <span key={tag} className="terminal-tag">{tag}</span>
-                        ))}
-                      </div>
+                    {/* Identity typewriter prompt */}
+                    {step === 'identity' && (
+                      <p className="terminal-output__line">
+                        {typedIntro}{!introComplete && <span className="terminal-cursor">█</span>}
+                      </p>
                     )}
-                    <div className="terminal-inline-input terminal-inline-input--single">
-                      <span className="terminal-inline-input__prompt">query@ldn:~$</span>
-                      <input
-                        autoFocus
-                        value={whatToSee}
-                        onChange={(event) => setWhatToSee(event.target.value)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter' && whatToSee.trim()) {
-                            event.preventDefault()
-                            handleQuestionSubmit(whatToSee.trim())
-                          }
-                        }}
-                        className="terminal-input terminal-input--inline"
-                        placeholder={currentQuestion.placeholder}
-                      />
-                    </div>
-                    <button type="button" className="terminal-action" onClick={() => handleQuestionSubmit(whatToSee.trim())} disabled={!whatToSee.trim()}>
-                      continue
-                    </button>
-                  </div>
+
+                    {/* Time menu */}
+                    {step === 'time' && (
+                      <>
+                        <p className="terminal-output__line">
+                          {typedPrompt}{!promptComplete && <span className="terminal-cursor">█</span>}
+                        </p>
+                        {promptComplete && (<>
+                        <p className="terminal-output__line terminal-output__line--dim">&nbsp;</p>
+                        <div className="terminal-menu">
+                          {TIME_OPTIONS.map((opt, i) => (
+                            <div
+                              key={opt.id}
+                              className={`terminal-menu__item ${i === activeTimeIndex ? 'is-active' : ''}`}
+                              onClick={() => {
+                                setActiveTimeIndex(i)
+                                if (opt.id !== 'other') {
+                                  if (!profile) return
+                                  const next = applyTimeInLondon(profile, opt.value)
+                                  saveStoredOnboarding({ profile: next, stage: 'in-progress', lastAnsweredAt: new Date().toISOString() })
+                                  setProfile(next)
+                                  setHistory((h) => [...h, { prompt: 'how long are you here for?', answer: opt.label }])
+                                  setCurrentInput('')
+                                  setStep('looking-for')
+                                }
+                              }}
+                            >
+                              <span className="terminal-menu__arrow">{i === activeTimeIndex ? '▶' : ' '}</span>
+                              {opt.id === 'other' && i === activeTimeIndex ? (
+                                <input
+                                  ref={otherTimeRef}
+                                  value={otherTimeValue}
+                                  onChange={(e) => setOtherTimeValue(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      e.preventDefault()
+                                      e.stopPropagation()
+                                      if (!otherTimeValue.trim() || !profile) return
+                                      const next = applyTimeInLondon(profile, otherTimeValue.trim())
+                                      saveStoredOnboarding({ profile: next, stage: 'in-progress', lastAnsweredAt: new Date().toISOString() })
+                                      setProfile(next)
+                                      setHistory((h) => [...h, { prompt: 'how long are you here for?', answer: otherTimeValue.trim() }])
+                                      setCurrentInput('')
+                                      setStep('looking-for')
+                                    }
+                                    if (e.key === 'ArrowUp') {
+                                      e.preventDefault()
+                                      setActiveTimeIndex((i) => (i - 1 + TIME_OPTIONS.length) % TIME_OPTIONS.length)
+                                    }
+                                    if (e.key === 'ArrowDown') {
+                                      e.preventDefault()
+                                      setActiveTimeIndex((i) => (i + 1) % TIME_OPTIONS.length)
+                                    }
+                                  }}
+                                  className="terminal-menu__input"
+                                  placeholder="something else..."
+                                />
+                              ) : (
+                                <span className="terminal-menu__label">{opt.id === 'other' ? 'other...' : opt.label}</span>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        <p className="terminal-output__line terminal-output__line--dim">↑↓ navigate · enter to select</p>
+                        </>)}
+                      </>
+                    )}
+
+                    {/* Looking-for / returning prompt */}
+                    {(step === 'looking-for' || step === 'returning') && (
+                      <p className="terminal-output__line">
+                        {typedPrompt}{!promptComplete && <span className="terminal-cursor">█</span>}
+                      </p>
+                    )}
+
+                    {/* Text input — shown only once the prompt has finished typing */}
+                    {isTextStep && (step === 'identity' ? introComplete : promptComplete) && (
+                      <>
+                        <p className="terminal-output__line terminal-output__line--dim">&nbsp;</p>
+                        <div className="terminal-prompt-line">
+                          <span className="terminal-prompt-line__user">traveller@ldn</span>
+                          <span className="terminal-prompt-line__sep"> ~ % </span>
+                          <div className="terminal-text-display">
+                            {currentInput}<span className="terminal-cursor">█</span>
+                          </div>
+                          <textarea
+                            ref={inputRef}
+                            value={currentInput}
+                            onChange={(e) => setCurrentInput(e.target.value)}
+                            onKeyDown={handleTextKeyDown}
+                            className="terminal-hidden-input"
+                            rows={4}
+                          />
+                        </div>
+                        {enoughInput && (
+                          <p className="terminal-output__line terminal-output__line--status is-ready">✓ press enter to continue</p>
+                        )}
+                      </>
+                    )}
+                  </>
                 )}
 
-                {phase === 'processing' && (
-                  <div className="terminal-stack terminal-stack--tight">
-                    <p className="terminal-prompt terminal-prompt--question">processing traveller profile...</p>
-                    <p className="terminal-copy terminal-copy--muted">building your first map of london</p>
-                  </div>
+                {step === 'processing' && (
+                  <>
+                    <p className="terminal-output__line terminal-output__line--dim">&nbsp;</p>
+                    <p className="terminal-output__line terminal-output__line--dim">processing profile...</p>
+                    <p className="terminal-output__line terminal-output__line--dim">building your map of london</p>
+                  </>
                 )}
               </div>
             )}

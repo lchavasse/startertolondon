@@ -24,7 +24,7 @@ export const INTEREST_VOCAB = [
   'design',
 ] as const
 
-const TIME_OPTIONS: Array<{ id: TimeInLondon; label: string; value: string }> = [
+export const TIME_OPTIONS: Array<{ id: TimeInLondon; label: string; value: string }> = [
   { id: 'pre-luma', label: 'was here pre-luma mate', value: 'was here pre-luma mate' },
   { id: 'new-arrival', label: 'fresh off the boat', value: 'fresh off the boat' },
   { id: 'visiting', label: 'just visiting', value: 'just visiting' },
