@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { getEvents } from '@/lib/kv'
 import { EventGrid } from '@/components/EventGrid'
 import { SubmitForm } from '@/components/SubmitForm'
+import { AppNav } from '@/components/AppNav'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,9 +19,12 @@ export default async function EventsPage() {
             <h1 className="app-section__title">Tech Events</h1>
             {events.length > 0 && <p className="app-section__meta">{events.length} upcoming events</p>}
           </div>
-          <Link href="/guide" className="terminal-ghost">
-            personalised guide
-          </Link>
+          <div className="flex items-center gap-4">
+            <AppNav />
+            <Link href="/guide" className="terminal-ghost">
+              personalised guide
+            </Link>
+          </div>
         </header>
 
         <div className="app-frame">

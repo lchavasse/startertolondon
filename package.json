@@ -11,6 +11,7 @@
     "scrape:force": "npx tsx --env-file=.env.local scripts/scrape.ts --force"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.100.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.36.4",
     "@vercel/analytics": "^2.0.1",
