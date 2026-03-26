@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Database } from '@/lib/database.types'
+import { KBEntityType } from '@/lib/kb'
+
+if (!process.env.ADMIN_SECRET) {
+  console.warn('ADMIN_SECRET is not set — admin KB API will reject all requests')
+}
 
 function isAuthorized(req: NextRequest): boolean {
   return req.headers.get('x-admin-key') === process.env.ADMIN_SECRET
@@ -18,7 +23,7 @@ const ALLOWED_TABLES = {
   community: 'communities',
   vc: 'vcs',
   programme: 'programmes',
-} as const
+} as const satisfies Record<KBEntityType, string>
 
 type EntityType = keyof typeof ALLOWED_TABLES
 
@@ -74,7 +79,8 @@ export async function POST(req: NextRequest) {
     .eq('id', id)
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('KB update error:', error.message)
+    return NextResponse.json({ error: 'Update failed.' }, { status: 500 })
   }
 
   return NextResponse.json({ ok: true })

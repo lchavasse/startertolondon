@@ -79,6 +79,7 @@ export function KBEditModal({ entity, onSave, onClose }: KBEditModalProps) {
       })
 
       if (res.status === 401) {
+        try { sessionStorage.removeItem('admin-key') } catch { /* ignore */ }
         setError('Admin key invalid.')
         setSaving(false)
         return
@@ -93,6 +94,7 @@ export function KBEditModal({ entity, onSave, onClose }: KBEditModalProps) {
 
       // Optimistically update local entity state
       const updated = { ...entity, ...fields } as KBEntity
+      setSaving(false)
       onSave(updated)
     } catch {
       setError('Network error.')

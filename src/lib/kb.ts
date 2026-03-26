@@ -137,15 +137,15 @@ export async function fetchGuideItems(): Promise<GuideItem[]> {
   const [spacesRes, communitiesRes, programmesRes] = await Promise.all([
     supabase
       .from('spaces')
-      .select('id, name, strapline, description, area, crowd_tags, tags')
+      .select('id, name, strapline, description, area, crowd_tags, tags, website')
       .order('name'),
     supabase
       .from('communities')
-      .select('id, name, strapline, description, primary_area, sectors, tags')
+      .select('id, name, strapline, description, primary_area, sectors, tags, website')
       .order('name'),
     supabase
       .from('programmes')
-      .select('id, name, strapline, description, sectors, programme_type, tags')
+      .select('id, name, strapline, description, sectors, programme_type, tags, website')
       .order('name'),
   ])
 
@@ -162,6 +162,7 @@ export async function fetchGuideItems(): Promise<GuideItem[]> {
       location: s.area ?? 'London',
       tags: scoreTags.map((t) => t.toLowerCase()),
       vibe: scoreTags.slice(0, 3).join(', '),
+      href: s.website ?? undefined,
       reason: s.description ?? `A London space: ${s.strapline ?? s.name}`,
     })
   }
@@ -177,6 +178,7 @@ export async function fetchGuideItems(): Promise<GuideItem[]> {
       location: c.primary_area ?? 'London',
       tags: scoreTags.map((t) => t.toLowerCase()),
       vibe: scoreTags.slice(0, 3).join(', '),
+      href: c.website ?? undefined,
       reason: c.description ?? `A London community: ${c.strapline ?? c.name}`,
     })
   }
@@ -192,6 +194,7 @@ export async function fetchGuideItems(): Promise<GuideItem[]> {
       location: 'London',
       tags: scoreTags.map((t) => t.toLowerCase()),
       vibe: [p.programme_type, ...scoreTags.slice(0, 2)].filter(Boolean).join(', '),
+      href: p.website ?? undefined,
       reason: p.description ?? `A London programme: ${p.strapline ?? p.name}`,
     })
   }

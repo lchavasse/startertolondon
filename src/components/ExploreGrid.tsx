@@ -41,7 +41,11 @@ export function ExploreGrid({ spaces, communities, vcs, programmes, availableSec
 
   const [adminMode] = useState<boolean>(() => {
     if (typeof window === 'undefined') return false
-    return !!sessionStorage.getItem('admin-key')
+    try {
+      return !!sessionStorage.getItem('admin-key')
+    } catch {
+      return false
+    }
   })
 
   const typeFiltered = useMemo(
