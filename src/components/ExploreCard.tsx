@@ -46,30 +46,24 @@ export function ExploreCard({ entity, adminMode, onEdit }: ExploreCardProps) {
   const typeLabel = TYPE_LABELS[entity._type]
 
   return (
-    <div className="group terminal-panel relative flex flex-col overflow-hidden">
+    <div className="group relative flex flex-col bg-[#111111] border border-[#1e1e1e] hover:border-[#c8ff00] overflow-hidden transition-colors duration-150">
       {/* Cover image / placeholder */}
-      <div
-        className="relative aspect-[4/3] overflow-hidden border-b"
-        style={{ background: 'rgba(4,5,6,0.92)', borderColor: 'var(--line)' }}
-      >
+      <div className="relative aspect-square overflow-hidden bg-[#0a0a0a]">
         {entity.cover_image ? (
           <Image
             src={entity.cover_image}
             alt={entity.name}
             fill
             unoptimized
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1">
-            <span
-              className="text-3xl font-bold leading-none"
-              style={{ color: 'var(--accent-bright)' }}
-            >
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1c] via-[#0f0f0f] to-[#080808] flex flex-col items-center justify-center gap-1">
+            <span className="text-5xl font-black leading-none text-[#1e1e1e] select-none">
               {initial}
             </span>
-            <span className="text-[9px] uppercase tracking-widest" style={{ color: 'var(--muted)' }}>
+            <span className="text-[9px] font-mono uppercase tracking-widest text-[#333] select-none">
               {typeLabel}
             </span>
           </div>
@@ -78,8 +72,7 @@ export function ExploreCard({ entity, adminMode, onEdit }: ExploreCardProps) {
         {adminMode && (
           <button
             onClick={() => onEdit?.(entity)}
-            className="absolute right-2 top-2 border px-2 py-1 text-[9px] uppercase tracking-widest opacity-0 transition-all duration-150 group-hover:opacity-100"
-            style={{ borderColor: 'var(--line)', background: 'rgba(0,0,0,0.6)', color: 'var(--accent-bright)' }}
+            className="absolute top-2 right-2 px-2 py-1 bg-black/60 border border-[#c8ff00] text-[#c8ff00] text-[9px] font-mono uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-150"
           >
             edit
           </button>
@@ -87,42 +80,47 @@ export function ExploreCard({ entity, adminMode, onEdit }: ExploreCardProps) {
       </div>
 
       {/* Card body */}
-      <div className="flex flex-1 flex-col gap-2 p-3">
+      <div className="flex flex-col flex-1 p-4 gap-3">
         <div className="flex items-start justify-between gap-2">
-          <h3
-            className="text-sm font-semibold leading-snug transition-colors duration-150 group-hover:text-[var(--accent-bright)]"
-            style={{ color: 'var(--foreground)' }}
-          >
+          <h3 className="font-bold text-[#f0ede6] text-sm leading-snug group-hover:text-[#c8ff00] transition-colors duration-150">
             {entity.name}
           </h3>
           {badge && (
-            <span className="terminal-tag shrink-0">{badge}</span>
+            <span className="text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 border border-[#2a2a2a] text-[#777] rounded-full flex-shrink-0">
+              {badge}
+            </span>
           )}
         </div>
 
         {entity.strapline && (
-          <p className="terminal-copy--muted line-clamp-2">{entity.strapline}</p>
+          <p className="text-[11px] text-[#888] line-clamp-2 font-mono">{entity.strapline}</p>
         )}
 
         {area && (
-          <p className="text-[11px]" style={{ color: 'var(--muted)' }}>{area}</p>
+          <p className="text-[11px] text-[#666] font-mono">{area}</p>
         )}
 
-        <div className="terminal-tags mt-auto">
-          {sectors.slice(0, 3).map((tag) => (
-            <span key={tag} className="terminal-tag">{tag}</span>
-          ))}
-        </div>
+        {sectors.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-auto">
+            {sectors.slice(0, 3).map((tag) => (
+              <span
+                key={tag}
+                className="text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 border border-[#2a2a2a] text-[#777] rounded-full"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
 
         {entity.website && (
-          <div className="border-t pt-2" style={{ borderColor: 'var(--line)' }}>
+          <div className="pt-3 border-t border-[#1a1a1a]">
             <a
               href={entity.website}
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
-              className="truncate text-[11px] transition-colors duration-150 hover:text-[var(--accent-bright)]"
-              style={{ color: 'var(--muted)' }}
+              className="text-[11px] text-[#666] truncate font-mono hover:text-[#c8ff00] transition-colors duration-150 block"
             >
               {entity.website.replace(/^https?:\/\//, '')}
             </a>

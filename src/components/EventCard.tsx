@@ -17,7 +17,7 @@ export function EventCard({ event, adminMode, adminKey, onEventUpdate }: EventCa
   const [pending, setPending] = useState(event.pending ?? false)
   const [deleted, setDeleted] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
-  const formattedDate = format(new Date(event.startAt), 'EEE d MMM · h:mmaaa')
+  const formattedDate = format(new Date(event.startAt), "EEE d MMM · h:mmaaa")
 
   async function toggleCurated(e: React.MouseEvent) {
     e.preventDefault()
@@ -29,10 +29,17 @@ export function EventCard({ event, adminMode, adminKey, onEventUpdate }: EventCa
     try {
       const res = await fetch('/api/admin', {
         method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-admin-key': adminKey ?? '' },
+        headers: {
+          'content-type': 'application/json',
+          'x-admin-key': adminKey ?? '',
+        },
         body: JSON.stringify({ action: 'curate-event', id: event.id, curated: next }),
       })
-      if (!res.ok) throw new Error('request failed')
+      if (!res.ok) {
+        setCurated(!next)
+        if (next) setPending(event.pending ?? false)
+        onEventUpdate?.(event.id, { curated: !next, ...(next ? { pending: event.pending ?? false } : {}) })
+      }
     } catch {
       setCurated(!next)
       if (next) setPending(event.pending ?? false)
@@ -48,10 +55,16 @@ export function EventCard({ event, adminMode, adminKey, onEventUpdate }: EventCa
     try {
       const res = await fetch('/api/admin', {
         method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-admin-key': adminKey ?? '' },
+        headers: {
+          'content-type': 'application/json',
+          'x-admin-key': adminKey ?? '',
+        },
         body: JSON.stringify({ action: 'approve-event', id: event.id }),
       })
-      if (!res.ok) throw new Error('request failed')
+      if (!res.ok) {
+        setPending(true)
+        onEventUpdate?.(event.id, { pending: true })
+      }
     } catch {
       setPending(true)
       onEventUpdate?.(event.id, { pending: true })
@@ -64,49 +77,61 @@ export function EventCard({ event, adminMode, adminKey, onEventUpdate }: EventCa
     try {
       const res = await fetch('/api/admin', {
         method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-admin-key': adminKey ?? '' },
+        headers: {
+          'content-type': 'application/json',
+          'x-admin-key': adminKey ?? '',
+        },
         body: JSON.stringify({ action: 'delete-event', id: event.id }),
       })
       if (res.ok) {
         setDeleted(true)
         onEventUpdate?.(event.id, 'deleted')
       }
-    } catch {
-      // leave visible on failure
-    }
+    } catch { /* card stays visible on failure */ }
     setConfirmingDelete(false)
   }
 
   if (deleted) return null
 
-  const cardStyle = pending && !curated ? { borderColor: 'rgba(209,170,119,0.5)' } : curated ? { borderColor: 'var(--line-strong)' } : undefined
+  let borderClass = 'border-[#1e1e1e] hover:border-[#c8ff00]'
+  if (adminMode) {
+    if (pending && !curated) {
+      borderClass = 'border-amber-500/60 hover:border-amber-400 shadow-[0_0_12px_rgba(245,158,11,0.15)]'
+    } else if (curated) {
+      borderClass = 'border-[#c8ff00]/50 hover:border-[#c8ff00] shadow-[0_0_12px_rgba(200,255,0,0.1)]'
+    }
+  }
 
   return (
     <a
       href={event.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group terminal-panel relative flex flex-col overflow-hidden"
-      style={cardStyle}
+      className={`group relative flex flex-col bg-[#111111] border overflow-hidden transition-colors duration-150 ${borderClass}`}
     >
-      <div className="relative aspect-[4/3] overflow-hidden border-b" style={{ background: 'rgba(4,5,6,0.92)', borderColor: 'var(--line)' }}>
+      {/* Cover */}
+      <div className="relative aspect-square overflow-hidden bg-[#0a0a0a]">
         {event.coverUrl ? (
           <Image
             src={event.coverUrl}
             alt={event.name}
             fill
             unoptimized
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 33vw, 25vw"
+            className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="terminal-eyebrow">LDN</span>
+          <div className="absolute inset-0 bg-gradient-to-br from-[#1c1c1c] via-[#0f0f0f] to-[#080808] flex items-center justify-center">
+            <span className="text-[#1e1e1e] text-5xl font-black select-none">LDN</span>
           </div>
         )}
 
         {adminMode && pending && !curated && (
-          <button onClick={approvePending} className="absolute left-2 top-2 terminal-action px-2 py-1 text-[9px]" title="Click to approve">
+          <button
+            onClick={approvePending}
+            className="absolute top-2 left-2 px-1.5 py-0.5 bg-amber-500/90 hover:bg-green-500 text-black text-[8px] font-mono font-black uppercase tracking-wider transition-colors cursor-pointer"
+            title="Click to approve"
+          >
             pending
           </button>
         )}
@@ -114,35 +139,72 @@ export function EventCard({ event, adminMode, adminKey, onEventUpdate }: EventCa
         {adminMode ? (
           <button
             onClick={toggleCurated}
-            className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center border text-xs"
-            style={{ borderColor: 'var(--line)', background: 'rgba(0,0,0,0.52)', color: curated ? 'var(--accent-bright)' : 'var(--muted)' }}
+            className="absolute top-2 right-2 w-6 h-6 flex items-center justify-center text-xs font-black leading-none select-none transition-colors"
+            style={{ color: curated ? '#c8ff00' : '#444', background: 'rgba(0,0,0,0.5)' }}
             title={curated ? 'Remove curation' : 'Mark as curated'}
           >
             {curated ? '★' : '☆'}
           </button>
         ) : curated ? (
-          <div className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center border text-xs" style={{ borderColor: 'var(--line-strong)', color: 'var(--accent-bright)' }}>
+          <div className="absolute top-2 right-2 w-6 h-6 bg-[#c8ff00] flex items-center justify-center text-black text-xs font-black leading-none select-none">
             ★
           </div>
         ) : null}
+
       </div>
 
-      <div className="flex flex-1 flex-col gap-2 p-3">
-        <p className="terminal-eyebrow">{formattedDate}</p>
-        <h3 className="text-sm font-semibold leading-snug text-[var(--foreground)] transition-colors duration-150 group-hover:text-[var(--accent-bright)] line-clamp-2">
+      {/* Body */}
+      <div className="flex flex-col flex-1 p-4 gap-3">
+        <h3 className="font-bold text-[#f0ede6] text-sm leading-snug line-clamp-2 group-hover:text-[#c8ff00] transition-colors duration-150">
           {event.name}
         </h3>
-        {event.locationName && <p className="terminal-copy--muted truncate">{event.locationName}</p>}
-        <div className="terminal-tags mt-auto">
-          {event.tags.slice(0, 3).map((tag) => (
-            <span key={tag} className="terminal-tag">{tag}</span>
-          ))}
-        </div>
-        <div className="flex items-center gap-2 border-t pt-2" style={{ borderColor: 'var(--line)' }}>
-          <span className="truncate text-[11px]" style={{ color: 'var(--muted)' }}>{event.organiserName}</span>
+
+        <p className="font-mono text-[10px] uppercase tracking-widest text-[#c8ff00]">
+          {formattedDate}
+        </p>
+
+        {event.locationName && (
+          <p className="text-[11px] text-[#888] truncate font-mono">
+            {event.locationName}
+          </p>
+        )}
+
+        {event.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-auto">
+            {event.tags.slice(0, 3).map((tag) => (
+              <span
+                key={tag}
+                className="text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 border border-[#2a2a2a] text-[#777] rounded-full"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="flex items-center gap-2 pt-3 border-t border-[#1a1a1a]">
+          {event.organiserAvatarUrl ? (
+            <div className="relative w-5 h-5 rounded-full overflow-hidden flex-shrink-0 ring-1 ring-[#2a2a2a]">
+              <Image
+                src={event.organiserAvatarUrl}
+                alt={event.organiserName}
+                fill
+                className="object-cover"
+                sizes="20px"
+              />
+            </div>
+          ) : (
+            <div className="w-5 h-5 rounded-full bg-[#c8ff00]/10 border border-[#c8ff00]/20 flex items-center justify-center flex-shrink-0">
+              <span className="text-[9px] font-mono font-bold text-[#c8ff00]/60">
+                {event.organiserName ? event.organiserName.charAt(0).toUpperCase() : '?'}
+              </span>
+            </div>
+          )}
+          <span className="text-[11px] text-[#666] truncate font-mono">{event.organiserName}</span>
         </div>
       </div>
 
+      {/* Admin delete button */}
       {adminMode && (
         <button
           onClick={(e) => {
@@ -150,20 +212,41 @@ export function EventCard({ event, adminMode, adminKey, onEventUpdate }: EventCa
             e.stopPropagation()
             setConfirmingDelete(true)
           }}
-          className="absolute bottom-2 right-2 flex h-7 w-7 items-center justify-center border opacity-0 transition-all duration-150 group-hover:opacity-100"
-          style={{ borderColor: 'var(--line)', color: 'var(--muted)' }}
+          className="absolute bottom-2 right-2 w-7 h-7 flex items-center justify-center rounded bg-transparent text-[#555] hover:bg-red-600 hover:text-white transition-all duration-150 opacity-0 group-hover:opacity-100"
           title="Delete event"
         >
-          x
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+            <path d="M10 11v6" />
+            <path d="M14 11v6" />
+            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+          </svg>
         </button>
       )}
 
+      {/* Delete confirmation overlay */}
       {confirmingDelete && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-black/85 px-4 text-center backdrop-blur-sm">
-          <p className="terminal-copy">Delete this event from the database?</p>
+        <div
+          className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/85 backdrop-blur-sm"
+          onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
+        >
+          <p className="font-mono text-xs text-[#f0ede6] mb-4 px-4 text-center">
+            Delete this event from the database?
+          </p>
           <div className="flex gap-2">
-            <button onClick={deleteEvent} className="terminal-action" style={{ color: 'var(--danger)' }}>delete</button>
-            <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmingDelete(false) }} className="terminal-ghost">cancel</button>
+            <button
+              onClick={deleteEvent}
+              className="px-4 py-1.5 bg-red-600 hover:bg-red-500 text-white font-mono text-[10px] uppercase tracking-widest font-bold transition-colors"
+            >
+              Delete
+            </button>
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setConfirmingDelete(false) }}
+              className="px-4 py-1.5 border border-[#333] hover:border-[#555] text-[#888] hover:text-[#f0ede6] font-mono text-[10px] uppercase tracking-widest font-bold transition-colors"
+            >
+              Cancel
+            </button>
           </div>
         </div>
       )}

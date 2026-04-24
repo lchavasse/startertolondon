@@ -1,8 +1,6 @@
-import Link from 'next/link'
 import { getEvents } from '@/lib/kv'
 import { EventGrid } from '@/components/EventGrid'
 import { SubmitForm } from '@/components/SubmitForm'
-import { AppNav } from '@/components/AppNav'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,40 +9,33 @@ export default async function EventsPage() {
   const tags = [...new Set(events.flatMap((e) => e.tags))].sort()
 
   return (
-    <main className="app-shell">
-      <div className="app-shell__inner app-shell__inner--narrow">
-        <header className="app-header">
+    <main className="min-h-screen bg-[#0a0a0a] px-4 py-10 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-10 space-y-6">
           <div>
-            <p className="terminal-eyebrow">starter-london / live feed</p>
-            <h1 className="app-section__title">Tech Events</h1>
-            {events.length > 0 && <p className="app-section__meta">{events.length} upcoming events</p>}
-          </div>
-          <div className="flex items-center gap-4">
-            <AppNav />
-            <Link href="/guide" className="terminal-ghost">
-              personalised guide
-            </Link>
-          </div>
-        </header>
-
-        <div className="app-frame">
-          <section className="terminal-panel app-hero">
-            <p className="terminal-copy--muted">
-              The live feed should stay dense and useful. Same shell language, closer to the original utilitarian layout.
-            </p>
-            <SubmitForm />
-          </section>
-
-          <section className="terminal-panel app-panel">
-            {events.length === 0 ? (
-              <div className="py-32 text-center">
-                <p className="terminal-hint">No events loaded yet. Run the scraper.</p>
-              </div>
-            ) : (
-              <EventGrid events={events} tags={tags} />
+            <h1 className="font-mono text-xs uppercase tracking-[0.3em] text-[#c8ff00] mb-2">
+              London Calling
+            </h1>
+            <p className="text-[#f0ede6] text-3xl font-bold">Tech Events</p>
+            {events.length > 0 && (
+              <p className="text-[#666] text-xs font-mono mt-2">
+                {events.length} upcoming events
+              </p>
             )}
-          </section>
+            <p className="text-[#7ea1c4] text-xs font-mono mt-2">There are many events lists. This one is <a href="https://x.com/lachlanchavasse" target="_blank" rel="noopener noreferrer" className="text-[#7ea1c4] hover:text-[#c8ff00] underline">mine</a>.</p>
+          </div>
+          <SubmitForm />
         </div>
+
+        {events.length === 0 ? (
+          <div className="py-32 text-center">
+            <p className="font-mono text-xs uppercase tracking-widest text-[#666]">
+              No events loaded yet — run the scraper
+            </p>
+          </div>
+        ) : (
+          <EventGrid events={events} tags={tags} />
+        )}
       </div>
     </main>
   )

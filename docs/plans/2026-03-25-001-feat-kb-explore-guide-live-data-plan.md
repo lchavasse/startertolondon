@@ -1,7 +1,7 @@
 ---
 title: "feat: Build /explore KB browser and wire /guide to live Supabase data"
 type: feat
-status: active
+status: completed
 date: 2026-03-25
 origin: docs/brainstorms/2026-03-25-kb-explore-ui-requirements.md
 ---

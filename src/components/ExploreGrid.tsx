@@ -14,11 +14,11 @@ interface ExploreGridProps {
 }
 
 const TYPE_LABELS: Record<KBEntityType | 'all', string> = {
-  all: 'ALL',
-  space: 'SPACES',
-  community: 'COMMUNITIES',
-  vc: 'VCS',
-  programme: 'PROGRAMMES',
+  all: 'All',
+  space: 'Spaces',
+  community: 'Communities',
+  vc: 'VCs',
+  programme: 'Programmes',
 }
 
 const TYPE_KEYS = ['all', 'space', 'community', 'vc', 'programme'] as const
@@ -61,7 +61,6 @@ export function ExploreGrid({ spaces, communities, vcs, programmes, availableSec
     })
   }, [typeFiltered, activeSectors])
 
-  // Only show sectors relevant to current type filter
   const visibleSectors = useMemo(() => {
     const inView = new Set<string>()
     for (const e of typeFiltered) {
@@ -84,7 +83,10 @@ export function ExploreGrid({ spaces, communities, vcs, programmes, availableSec
   return (
     <div className="space-y-4">
       {/* Entity type filter */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-[9px] font-mono uppercase tracking-widest text-[#666] flex-shrink-0">
+          Type
+        </span>
         {TYPE_KEYS.map((type) => (
           <button
             key={type}
@@ -92,11 +94,11 @@ export function ExploreGrid({ spaces, communities, vcs, programmes, availableSec
               setActiveType(type)
               setActiveSectors([])
             }}
-            className={
+            className={`flex-shrink-0 px-3 py-1 text-[10px] font-mono uppercase tracking-widest border transition-all duration-150 rounded-sm ${
               activeType === type
-                ? 'filter-chip--active px-3 py-1 text-[10px] uppercase tracking-widest'
-                : 'filter-chip px-3 py-1 text-[10px] uppercase tracking-widest'
-            }
+                ? 'bg-[#c8ff00] text-black border-[#c8ff00]'
+                : 'bg-transparent text-[#888] border-[#2a2a2a] hover:border-[#555] hover:text-[#888]'
+            }`}
           >
             {TYPE_LABELS[type]}
           </button>
@@ -105,26 +107,26 @@ export function ExploreGrid({ spaces, communities, vcs, programmes, availableSec
 
       {/* Sector filter */}
       {visibleSectors.length > 0 && (
-        <div className="flex flex-wrap gap-2 border-t pt-4" style={{ borderColor: 'var(--line)' }}>
+        <div className="border-t border-[#1a1a1a] pt-4 flex gap-2 overflow-x-auto pb-2 scrollbar-none">
           <button
             onClick={() => setActiveSectors([])}
-            className={
+            className={`flex-shrink-0 px-3 py-1 text-[10px] font-mono uppercase tracking-widest border transition-all duration-150 rounded-full ${
               activeSectors.length === 0
-                ? 'filter-chip--active px-3 py-1 text-[10px] uppercase tracking-widest'
-                : 'filter-chip px-3 py-1 text-[10px] uppercase tracking-widest'
-            }
+                ? 'bg-[#c8ff00] text-black border-[#c8ff00]'
+                : 'bg-transparent text-[#888] border-[#2a2a2a] hover:border-[#555]'
+            }`}
           >
-            ALL
+            All
           </button>
           {visibleSectors.map((sector) => (
             <button
               key={sector}
               onClick={() => toggleSector(sector)}
-              className={
+              className={`flex-shrink-0 px-3 py-1 text-[10px] font-mono uppercase tracking-widest border transition-all duration-150 rounded-full ${
                 activeSectors.includes(sector)
-                  ? 'filter-chip--active px-3 py-1 text-[10px] uppercase tracking-widest'
-                  : 'filter-chip px-3 py-1 text-[10px] uppercase tracking-widest'
-              }
+                  ? 'bg-[#c8ff00] text-black border-[#c8ff00]'
+                  : 'bg-transparent text-[#888] border-[#2a2a2a] hover:border-[#555] hover:text-[#888]'
+              }`}
             >
               {sector}
             </button>
@@ -135,12 +137,16 @@ export function ExploreGrid({ spaces, communities, vcs, programmes, availableSec
       {/* Count + grid */}
       {filtered.length === 0 ? (
         <div className="py-24 text-center">
-          <p className="terminal-hint">No entries match your selection</p>
+          <p className="font-mono text-xs uppercase tracking-widest text-[#666]">
+            No entries match your selection
+          </p>
         </div>
       ) : (
         <>
-          <p className="app-section__meta">{filtered.length} entries</p>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <p className="font-mono text-[10px] text-[#666] uppercase tracking-widest">
+            {filtered.length} entries
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {filtered.map((entity) => (
               <ExploreCard
                 key={entity.id}
@@ -153,7 +159,6 @@ export function ExploreGrid({ spaces, communities, vcs, programmes, availableSec
         </>
       )}
 
-      {/* Admin edit modal */}
       {editingEntity && (
         <KBEditModal
           entity={editingEntity}
