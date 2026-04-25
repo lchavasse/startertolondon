@@ -83,6 +83,7 @@ export async function fetchAllKBEntities(): Promise<{
     supabase
       .from('spaces')
       .select('id, slug, name, strapline, description, area, access_type, crowd_tags, tags, cover_image, website, featured')
+      .not('tags', 'cs', '{venue-only}')
       .order('name'),
     supabase
       .from('communities')
@@ -138,6 +139,7 @@ export async function fetchGuideItems(): Promise<GuideItem[]> {
     supabase
       .from('spaces')
       .select('id, name, strapline, description, area, crowd_tags, tags, website')
+      .not('tags', 'cs', '{venue-only}')
       .order('name'),
     supabase
       .from('communities')
