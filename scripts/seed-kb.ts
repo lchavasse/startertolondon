@@ -13,7 +13,7 @@ import { parse as parseYaml } from 'yaml'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '../src/lib/database.types'
 
-type Kind = 'space' | 'community' | 'person' | 'event_series' | 'vc' | 'programme'
+type Kind = 'space' | 'community' | 'person' | 'event_series' | 'vc' | 'programme' | 'company'
 type Entity = { kind: Kind; slug: string; fields: Record<string, unknown> }
 
 const REF_FIELDS: Record<Kind, Record<string, { table: Kind; joinTable: string; leftKey: string; rightKey: string; role?: string }>> = {
@@ -30,6 +30,10 @@ const REF_FIELDS: Record<Kind, Record<string, { table: Kind; joinTable: string; 
   },
   vc: {},
   programme: {},
+  company: {
+    based_at:    { table: 'space',  joinTable: 'company_spaces', leftKey: 'company_id', rightKey: 'space_id' },
+    founded_by:  { table: 'person', joinTable: 'company_people', leftKey: 'company_id', rightKey: 'person_id', role: 'founder' },
+  },
 }
 
 const TABLE_NAME: Record<Kind, keyof Database['public']['Tables']> = {
@@ -39,6 +43,7 @@ const TABLE_NAME: Record<Kind, keyof Database['public']['Tables']> = {
   event_series: 'event_series',
   vc: 'vcs',
   programme: 'programmes',
+  company: 'companies',
 }
 
 // ─── Parse the batch file ────────────────────────────────────────────────────
@@ -48,7 +53,7 @@ function parseBatch(path: string): Entity[] {
   const entities: Entity[] = []
 
   // Split on headings like `## kind: slug`, grab the following ```yaml block
-  const headingRe = /^##\s+(space|community|person|event_series|vc|programme):\s+([a-z0-9-]+)\s*$/gm
+  const headingRe = /^##\s+(space|community|person|event_series|vc|programme|company):\s+([a-z0-9-]+)\s*$/gm
   const matches = [...src.matchAll(headingRe)]
 
   for (let i = 0; i < matches.length; i++) {

@@ -449,6 +449,75 @@ export type Database = {
         }
         Relationships: []
       }
+      company_people: {
+        Row: {
+          company_id: string
+          person_id: string
+          role: string | null
+        }
+        Insert: {
+          company_id: string
+          person_id: string
+          role?: string | null
+        }
+        Update: {
+          company_id?: string
+          person_id?: string
+          role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_people_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_people_person_id_fkey"
+            columns: ["person_id"]
+            isOneToOne: false
+            referencedRelation: "people"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      company_spaces: {
+        Row: {
+          company_id: string
+          notes: string | null
+          relation: string | null
+          space_id: string
+        }
+        Insert: {
+          company_id: string
+          notes?: string | null
+          relation?: string | null
+          space_id: string
+        }
+        Update: {
+          company_id?: string
+          notes?: string | null
+          relation?: string | null
+          space_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_spaces_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "company_spaces_space_id_fkey"
+            columns: ["space_id"]
+            isOneToOne: false
+            referencedRelation: "spaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       error_logs: {
         Row: {
           applicant_email: string | null
