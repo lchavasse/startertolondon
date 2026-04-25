@@ -12,18 +12,14 @@ The user is the authority on what goes in the KB. You enrich, validate, and writ
 - `docs/kb-seeds/YYYY-MM-DD-<topic>.md` — one markdown file per batch, source of truth, lives in git.
 - `scripts/seed-kb.ts` — parser + idempotent upserter. Run: `npm run seed:kb -- <file> [--dry-run]`.
 - `supabase/migrations/` — schema changes (CHECK enums, new tables, new join tables). Apply with `SUPABASE_DB_PASSWORD=<pw> supabase db push --yes`. CLI is linked to project ref `yexvsmicvmbyfthdiixa` (frontier-tower).
+- `.claude/skills/kb-research/SKILL.md` — research runbook (Luma extraction, og: scraping, geocoding, identity verification).
 - `.claude/skills/kb-copy/SKILL.md` — voice/tone rules for description + strapline fields.
 - Reference batch: `docs/kb-seeds/2026-04-24-east-london-spaces.md`.
 
 ## The 5-step loop
 
 1. **Gather.** User shares names + minimal notes for 3–10 entities. Don't go bigger in one batch — depth beats breadth.
-2. **Research.** Per entity: WebSearch for missing facts (address, website, lead full names, founding year, etc.). For every `space`, geocode the address via Nominatim and capture `lat` + `lng`:
-   ```bash
-   curl -s -A "starter-london-seed/0.1 (lachlan.chavasse@gmail.com)" \
-     "https://nominatim.openstreetmap.org/search?format=json&limit=1&q=<URL_ENCODED_ADDRESS>"
-   ```
-   No API key needed. If the unit-level address fails, retry with the building or street-only.
+2. **Research.** Use the **kb-research** skill — it has the full runbook (Luma extraction, og: meta scraping, geocode fallbacks, identity verification, evidence trail). Per entity: confirm address, website, lead full names, social links, Luma IDs. For every `space`, geocode via Nominatim. Stop at the research summary, then return here for drafting.
 3. **Draft.** Create the batch markdown. One `## kind: slug` heading per entity (kebab-case slug), fenced `yaml` block with fields. Slug refs (`lives_at`, `led_by`, `hosted_at`, `hosted_by`, `under`) connect to other entities by slug — the script resolves at write time.
 4. **Confirm + dry-run.** Show the user the draft, get sign-off (especially copy and connections). Then `npm run seed:kb -- <file> --dry-run` validates parsing + slug-ref resolution without DB writes.
 5. **Live + verify.** Drop `--dry-run`. Then a quick Supabase query to confirm row counts and that any `venue-only`-tagged spaces are still excluded by the `/explore` filter.
@@ -62,6 +58,8 @@ If a value you need isn't in the enum, write a widening migration (see `20260425
 | `event_series` | `hosted_at: [<space-slug>]` | `event_series_spaces` |
 | `event_series` | `hosted_by: [<person-slug>]` | `event_series_people`, role=`host` |
 | `event_series` | `under: [<community-slug>]` | `community_event_series` |
+| `company` | `based_at: [<space-slug>]` | `company_spaces` (relation defaults to `based_at`) |
+| `company` | `founded_by: [<person-slug>]` | `company_people`, role=`founder` |
 
 If you need a join not listed (e.g. `vc.invests_in: [<company-slug>]`), add it to `REF_FIELDS` and re-run.
 
@@ -114,7 +112,7 @@ Run with `npx tsx --env-file=.env.local scripts/verify-kb.ts`.
 ## Backlog / open items (as of 2026-04-25)
 
 - **London regions normalization list** — user planned to share. Until then, use the area label they give you literally.
-- `companies` + `accommodation` tables exist in schema but not yet seeded.
+- `accommodation` table exists in schema but not yet seeded. (`companies` is now seeded via `company` kind.)
 - `/api/admin/kb` `ALLOWED_TABLES` should be expanded to include `person` and `event_series` so post-seed fixes don't require re-running batches.
 - Per-table field validation in `seed-kb.ts` (currently typo'd field names surface as opaque Postgres errors).
 - See `docs/brainstorms/2026-04-25-kb-data-ingestion-workflow-requirements.md` for the full deferred list.
