@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Geist, Geist_Mono, Press_Start_2P } from 'next/font/google'
+import { Geist, IBM_Plex_Mono, Press_Start_2P } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
@@ -8,9 +8,11 @@ const geistSans = Geist({
   subsets: ['latin'],
 })
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
+const ibmPlexMono = IBM_Plex_Mono({
+  weight: ['400', '500'],
+  variable: '--font-plex-mono-loaded',
   subsets: ['latin'],
+  display: 'swap',
 })
 
 const pressStart2P = Press_Start_2P({
@@ -30,8 +32,11 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={pressStart2P.variable}>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html
+      lang="en"
+      className={`${pressStart2P.variable} ${ibmPlexMono.variable} ${geistSans.variable}`}
+    >
+      <body className="antialiased">
         {children}
         <Analytics />
       </body>

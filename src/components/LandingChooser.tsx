@@ -76,8 +76,6 @@ export function LandingChooser() {
 
   return (
     <section className="landing">
-      <p className="landing__eyebrow">[ calling / london ]</p>
-
       <h1 className="landing__title" aria-label={FULL_TITLE}>
         {lines.map((line, i) => (
           <span key={i} className="landing__title-line">

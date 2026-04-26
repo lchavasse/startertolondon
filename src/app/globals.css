@@ -4,7 +4,7 @@
   --background: #0a0a0a;
   --foreground: #f0ede6;
   /* terminal onboarding tokens */
-  --font-plex-mono: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+  --font-plex-mono: var(--font-plex-mono-loaded), 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
   --background-soft: #0b0d0f;
   --panel: rgba(9, 13, 14, 0.82);
   --panel-strong: rgba(12, 16, 17, 0.94);
@@ -30,6 +30,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-plex-mono);
 }
 
 .scrollbar-none {
