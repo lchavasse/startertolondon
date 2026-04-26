@@ -52,8 +52,11 @@ function parseBatch(path: string): Entity[] {
   const src = readFileSync(path, 'utf8')
   const entities: Entity[] = []
 
-  // Split on headings like `## kind: slug`, grab the following ```yaml block
-  const headingRe = /^##\s+(space|community|person|event_series|vc|programme|company):\s+([a-z0-9-]+)\s*$/gm
+  // Split on headings like `## kind: slug`, grab the following ```yaml block.
+  // Kinds are derived from TABLE_NAME so adding a new entity table only requires
+  // updating TABLE_NAME + REF_FIELDS — the parser auto-picks it up.
+  const kindAlternation = Object.keys(TABLE_NAME).join('|')
+  const headingRe = new RegExp(`^##\\s+(${kindAlternation}):\\s+([a-z0-9-]+)\\s*$`, 'gm')
   const matches = [...src.matchAll(headingRe)]
 
   for (let i = 0; i < matches.length; i++) {
