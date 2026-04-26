@@ -1,11 +1,14 @@
-import { fetchAllKBEntities, deriveSectors } from '@/lib/kb'
-import { ExploreGrid } from '@/components/ExploreGrid'
+import { fetchAllKBEntities, deriveSectors, fetchHighlights } from '@/lib/kb'
+import { HighlightsExplorer } from '@/components/HighlightsExplorer'
 import { AppNav } from '@/components/AppNav'
 
 export const dynamic = 'force-dynamic'
 
 export default async function ExplorePage() {
-  const entities = await fetchAllKBEntities()
+  const [entities, highlights] = await Promise.all([
+    fetchAllKBEntities(),
+    fetchHighlights(),
+  ])
   const availableSectors = deriveSectors(entities)
 
   const total = entities.spaces.length + entities.communities.length + entities.vcs.length + entities.programmes.length
@@ -24,7 +27,8 @@ export default async function ExplorePage() {
           <AppNav />
         </div>
 
-        <ExploreGrid
+        <HighlightsExplorer
+          highlights={highlights}
           spaces={entities.spaces}
           communities={entities.communities}
           vcs={entities.vcs}

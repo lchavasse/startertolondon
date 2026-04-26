@@ -23,6 +23,8 @@ npm run seed:kb -- docs/kb-seeds/2026-04-24-east-london-spaces.md --dry-run
 
 ```yaml
 name: Ramen Space
+display_name: RAMEN
+pixel_art: /pixel/ramen.png
 area: Dalston
 address: Unit 6, Sledge Tower, Dalston Square, London E8 3GP
 lat: 51.5456324
@@ -59,6 +61,8 @@ led_by: [charlie-ward]
 
 ```yaml
 name: Plugged
+display_name: PLUGGED
+pixel_art: /pixel/plugged.png
 area: Shoreditch
 address: Senna Building, Gorsuch Pl, London E2 8JF
 lat: 51.5301925
@@ -95,6 +99,8 @@ led_by: [joshua-tulloch]
 
 ```yaml
 name: Encode Hub
+display_name: ENCODE
+pixel_art: /pixel/encode.png
 area: Shoreditch
 address: 41 Pitfield Street, London N1 6DA
 lat: 51.5275694

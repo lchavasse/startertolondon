@@ -160,7 +160,9 @@ export type Database = {
           cover_image: string | null
           created_at: string | null
           description: string | null
+          display_name: string | null
           embedding: string | null
+          events_url: string | null
           exclusivity: string | null
           featured: boolean | null
           id: string
@@ -168,6 +170,7 @@ export type Database = {
           luma_cal_ids: string[] | null
           luma_user_ids: string[] | null
           name: string
+          pixel_art: string | null
           primary_area: string | null
           sectors: string[] | null
           size_band: string | null
@@ -182,7 +185,9 @@ export type Database = {
           cover_image?: string | null
           created_at?: string | null
           description?: string | null
+          display_name?: string | null
           embedding?: string | null
+          events_url?: string | null
           exclusivity?: string | null
           featured?: boolean | null
           id?: string
@@ -190,6 +195,7 @@ export type Database = {
           luma_cal_ids?: string[] | null
           luma_user_ids?: string[] | null
           name: string
+          pixel_art?: string | null
           primary_area?: string | null
           sectors?: string[] | null
           size_band?: string | null
@@ -204,7 +210,9 @@ export type Database = {
           cover_image?: string | null
           created_at?: string | null
           description?: string | null
+          display_name?: string | null
           embedding?: string | null
+          events_url?: string | null
           exclusivity?: string | null
           featured?: boolean | null
           id?: string
@@ -212,6 +220,7 @@ export type Database = {
           luma_cal_ids?: string[] | null
           luma_user_ids?: string[] | null
           name?: string
+          pixel_art?: string | null
           primary_area?: string | null
           sectors?: string[] | null
           size_band?: string | null
@@ -917,13 +926,16 @@ export type Database = {
           created_at: string | null
           crowd_tags: string[] | null
           description: string | null
+          display_name: string | null
           embedding: string | null
+          events_url: string | null
           featured: boolean | null
           id: string
           lat: number | null
           lng: number | null
           luma_cal_ids: string[] | null
           name: string
+          pixel_art: string | null
           slug: string
           strapline: string | null
           tags: string[] | null
@@ -941,13 +953,16 @@ export type Database = {
           created_at?: string | null
           crowd_tags?: string[] | null
           description?: string | null
+          display_name?: string | null
           embedding?: string | null
+          events_url?: string | null
           featured?: boolean | null
           id?: string
           lat?: number | null
           lng?: number | null
           luma_cal_ids?: string[] | null
           name: string
+          pixel_art?: string | null
           slug: string
           strapline?: string | null
           tags?: string[] | null
@@ -965,13 +980,16 @@ export type Database = {
           created_at?: string | null
           crowd_tags?: string[] | null
           description?: string | null
+          display_name?: string | null
           embedding?: string | null
+          events_url?: string | null
           featured?: boolean | null
           id?: string
           lat?: number | null
           lng?: number | null
           luma_cal_ids?: string[] | null
           name?: string
+          pixel_art?: string | null
           slug?: string
           strapline?: string | null
           tags?: string[] | null
