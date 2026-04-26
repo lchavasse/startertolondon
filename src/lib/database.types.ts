@@ -161,6 +161,7 @@ export type Database = {
           created_at: string | null
           description: string | null
           display_name: string | null
+          display_order: number | null
           embedding: string | null
           events_url: string | null
           exclusivity: string | null
@@ -186,6 +187,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           display_name?: string | null
+          display_order?: number | null
           embedding?: string | null
           events_url?: string | null
           exclusivity?: string | null
@@ -211,6 +213,7 @@ export type Database = {
           created_at?: string | null
           description?: string | null
           display_name?: string | null
+          display_order?: number | null
           embedding?: string | null
           events_url?: string | null
           exclusivity?: string | null
@@ -927,6 +930,7 @@ export type Database = {
           crowd_tags: string[] | null
           description: string | null
           display_name: string | null
+          display_order: number | null
           embedding: string | null
           events_url: string | null
           featured: boolean | null
@@ -954,6 +958,7 @@ export type Database = {
           crowd_tags?: string[] | null
           description?: string | null
           display_name?: string | null
+          display_order?: number | null
           embedding?: string | null
           events_url?: string | null
           featured?: boolean | null
@@ -981,6 +986,7 @@ export type Database = {
           crowd_tags?: string[] | null
           description?: string | null
           display_name?: string | null
+          display_order?: number | null
           embedding?: string | null
           events_url?: string | null
           featured?: boolean | null
