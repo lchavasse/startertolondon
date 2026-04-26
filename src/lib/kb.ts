@@ -1,6 +1,11 @@
 import { supabase } from './supabase'
 import { GuideItem } from './types'
 
+// Spaces tagged with this are stored for their location/joins (e.g. event venues)
+// but not surfaced as browseable cards on /explore or in /guide ranking.
+export const HIDDEN_FROM_BROWSE_TAG = 'venue-only'
+const HIDE_VENUES_FILTER = `tags.is.null,tags.not.cs.{${HIDDEN_FROM_BROWSE_TAG}}`
+
 // ─── Tagged union for KB entities ────────────────────────────────────────────
 
 export type KBEntityType = 'space' | 'community' | 'vc' | 'programme'
@@ -83,7 +88,7 @@ export async function fetchAllKBEntities(): Promise<{
     supabase
       .from('spaces')
       .select('id, slug, name, strapline, description, area, access_type, crowd_tags, tags, cover_image, website, featured')
-      .not('tags', 'cs', '{venue-only}')
+      .or(HIDE_VENUES_FILTER)
       .order('name'),
     supabase
       .from('communities')
@@ -139,7 +144,7 @@ export async function fetchGuideItems(): Promise<GuideItem[]> {
     supabase
       .from('spaces')
       .select('id, name, strapline, description, area, crowd_tags, tags, website')
-      .not('tags', 'cs', '{venue-only}')
+      .or(HIDE_VENUES_FILTER)
       .order('name'),
     supabase
       .from('communities')

@@ -34,7 +34,7 @@ cost_type: membership
 crowd_tags: [founders, indie-hackers, solopreneurs, saas, developers]
 tags: [coworking, founders]
 featured: true
-description: |
+description: |-
   Founder coworking by Dalston Junction. Run by Ramen Club. Trial days for new members.
 ```
 
@@ -49,7 +49,7 @@ tags: [indie-hackers, coworking, saas]
 exclusivity: application
 featured: true
 strapline: London's indie-hacker mothership
-description: |
+description: |-
   Indie hacker community run by Charlie Ward. Hosts IndieBeers and runs Ramen Space.
 lives_at: [ramen-space]
 led_by: [charlie-ward]
@@ -70,7 +70,7 @@ cost_type: membership
 crowd_tags: [founders, builders]
 tags: [coworking, founders, community]
 featured: true
-description: |
+description: |-
   Members-only founder coworking at Shoreditch Exchange. Workshops, open houses, the odd party.
 ```
 
@@ -85,7 +85,7 @@ tags: [coworking, community, workshops]
 exclusivity: application
 featured: true
 strapline: The community every founder wishes they had
-description: |
+description: |-
   Founders community since 2024. Runs Plugged at Shoreditch Exchange. Public events on Luma.
 lives_at: [plugged]
 led_by: [joshua-tulloch]
@@ -106,7 +106,7 @@ cost_type: variable
 crowd_tags: [ai, web3, developers, students, builders]
 tags: [coworking, ai, web3, hackathon-host]
 featured: true
-description: |
+description: |-
   Encode Club's Shoreditch base. Free Friday coworking. Open for AI and web3 events.
 ```
 
@@ -121,7 +121,7 @@ tags: [students, hackathons, education]
 exclusivity: open
 featured: true
 strapline: AI and web3 community, student energy
-description: |
+description: |-
   Student-led AI + web3 community. Hackathons, education, anchored at Encode Hub on Pitfield.
 lives_at: [encode-hub]
 led_by: [anthony-beaumont]
@@ -141,7 +141,7 @@ cost_type: free
 crowd_tags: [pub, social, indie-hackers]
 tags: [pub, event-venue, venue-only]
 featured: false
-description: |
+description: |-
   Shoreditch pub. Last-Wednesday-of-the-month home for IndieBeers.
 ```
 
@@ -190,7 +190,7 @@ typical_size: 30
 meetup_group_ids: [indie-london]
 tags: [indie-hackers, social, monthly]
 strapline: Last-Wednesday pub meetup for indie hackers
-description: |
+description: |-
   Monthly indie-hacker drinks at The Bricklayers Arms. Last Wed of the month, 6pm. Ask for Charlie.
 hosted_at: [bricklayers-arms]
 hosted_by: [charlie-ward]
@@ -207,7 +207,7 @@ free_or_paid: free
 typical_size: 25
 tags: [ai, web3, coworking]
 strapline: Free Friday coworking at Encode Hub
-description: |
+description: |-
   Weekly free Friday coworking at Encode Hub. Open to the Encode Club community.
 hosted_at: [encode-hub]
 under: [encode-club]
