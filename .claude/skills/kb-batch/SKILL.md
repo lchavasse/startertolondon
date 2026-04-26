@@ -69,6 +69,7 @@ If you need a join not listed (e.g. `vc.invests_in: [<company-slug>]`), add it t
 - **Pub / cafe / external venue that hosts events**: add as a `space` with `tags: [venue-only, ...]`. The `venue-only` tag hides it from `/explore` and `/guide` browse surfaces (the filter is in `src/lib/kb.ts`, constant `HIDDEN_FROM_BROWSE_TAG`). Lat/lng still gets captured for future map use.
 - **Recurring meetup / coworking session**: add an `event_series` row. `hosted_at` for the venue, `hosted_by` for the organiser, `under` for the umbrella community.
 - **Lat/lng on every `space`** — required. Always geocode (Nominatim cmd above).
+- **Area labels are normalized.** Always use a `display_name` from `docs/kb-reference/london-regions.md` for the `area` / `primary_area` field. If the user says "Hoxton", check `aliases` and store `Shoreditch`. If a label isn't in that file, ask the user before inventing one.
 - **One-off events** (a single hackathon, a single conference): don't add. The Luma + Meetup + Eventbrite scrapers cover those.
 - **Person rows**: only add people who lead/host/found something we're already modelling. Don't bulk-import contacts.
 
@@ -111,8 +112,8 @@ Run with `npx tsx --env-file=.env.local scripts/verify-kb.ts`.
 
 ## Backlog / open items (as of 2026-04-25)
 
-- **London regions normalization list** — user planned to share. Until then, use the area label they give you literally.
 - `accommodation` table exists in schema but not yet seeded. (`companies` is now seeded via `company` kind.)
+- `regions` table not yet in schema. `docs/kb-reference/london-regions.md` is reference-only for now; promote to a real table by adding `region` to `Kind` + `TABLE_NAME` in seed-kb.ts and writing a migration.
 - `/api/admin/kb` `ALLOWED_TABLES` should be expanded to include `person` and `event_series` so post-seed fixes don't require re-running batches.
 - Per-table field validation in `seed-kb.ts` (currently typo'd field names surface as opaque Postgres errors).
 - See `docs/brainstorms/2026-04-25-kb-data-ingestion-workflow-requirements.md` for the full deferred list.
