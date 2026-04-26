@@ -1,6 +1,7 @@
 import { getEvents } from '@/lib/kv'
 import { EventGrid } from '@/components/EventGrid'
 import { SubmitForm } from '@/components/SubmitForm'
+import { AppNav } from '@/components/AppNav'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,17 +13,20 @@ export default async function EventsPage() {
     <main className="min-h-screen bg-[#0a0a0a] px-4 py-10 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="mb-10 space-y-6">
-          <div>
-            <h1 className="font-mono text-xs uppercase tracking-[0.3em] text-[#c8ff00] mb-2">
-              London Calling
-            </h1>
-            <p className="text-[#f0ede6] text-3xl font-bold">Tech Events</p>
-            {events.length > 0 && (
-              <p className="text-[#666] text-xs font-mono mt-2">
-                {events.length} upcoming events
-              </p>
-            )}
-            <p className="text-[#7ea1c4] text-xs font-mono mt-2">There are many events lists. This one is <a href="https://x.com/lachlanchavasse" target="_blank" rel="noopener noreferrer" className="text-[#7ea1c4] hover:text-[#c8ff00] underline">mine</a>.</p>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h1 className="font-mono text-xs uppercase tracking-[0.3em] text-[#c8ff00] mb-2">
+                London Calling
+              </h1>
+              <p className="text-[#f0ede6] text-3xl font-bold">Tech Events</p>
+              {events.length > 0 && (
+                <p className="text-[#666] text-xs font-mono mt-2">
+                  {events.length} upcoming events
+                </p>
+              )}
+              <p className="text-[#7ea1c4] text-xs font-mono mt-2">There are many events lists. This one is <a href="https://x.com/lachlanchavasse" target="_blank" rel="noopener noreferrer" className="text-[#7ea1c4] hover:text-[#c8ff00] underline">mine</a>.</p>
+            </div>
+            <AppNav />
           </div>
           <SubmitForm />
         </div>

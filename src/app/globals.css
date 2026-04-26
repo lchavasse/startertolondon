@@ -741,6 +741,206 @@ body {
   border-radius: 999px;
 }
 
+/* ─── Landing chooser at / (scoped under .landing-shell) ─────────────────── */
+
+.landing-shell {
+  position: fixed;
+  inset: 0;
+  background: #040506;
+  overflow: hidden;
+  isolation: isolate;
+  font-family: var(--font-plex-mono);
+  color: var(--accent);
+}
+
+.landing-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background-image:
+    linear-gradient(rgba(159, 213, 172, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(159, 213, 172, 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+  opacity: 0.5;
+  mask-image: radial-gradient(ellipse at center, rgba(0,0,0,0.85), transparent 70%);
+}
+
+.landing-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background:
+    linear-gradient(180deg, rgba(4, 8, 6, 0.55) 0%, rgba(4, 8, 6, 0.05) 35%, rgba(4, 8, 6, 0.05) 65%, rgba(4, 8, 6, 0.7) 100%),
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 4px);
+  opacity: 0.85;
+}
+
+.landing {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  min-height: 100vh;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.landing__eyebrow {
+  margin: 0 0 0.5rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.38em;
+  text-transform: uppercase;
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+.landing__title {
+  margin: 0;
+  font-family: var(--font-pixel), var(--font-plex-mono), monospace;
+  font-weight: 400;
+  font-size: clamp(2rem, 7vw, 5rem);
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  color: var(--accent-bright);
+  text-shadow:
+    0 0 20px rgba(180, 255, 175, 0.6),
+    0 0 50px rgba(133, 255, 128, 0.3),
+    0 0 100px rgba(84, 255, 112, 0.12);
+}
+
+.landing__title-line {
+  display: block;
+}
+
+.landing__cursor {
+  display: inline-block;
+  width: 0.55em;
+  height: 1.1em;
+  vertical-align: -0.18em;
+  background: var(--accent-bright);
+  box-shadow: 0 0 8px rgba(180, 255, 175, 0.7);
+  animation: cursor-blink 1s step-end infinite;
+  margin-left: 4px;
+}
+
+.landing__tagline {
+  margin: 0.25rem 0 1.5rem;
+  font-size: clamp(0.7rem, 1.6vw, 0.9rem);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted-strong);
+}
+
+.landing__options {
+  display: flex;
+  gap: 3rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  animation: landing-fade-in 0.45s ease-out both;
+}
+
+.landing__option {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  padding: 0.4rem 0.6rem;
+  color: var(--accent);
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  align-items: flex-start;
+  text-align: left;
+  cursor: pointer;
+  transition: color 120ms ease, text-shadow 120ms ease;
+}
+
+.landing__option:hover {
+  color: var(--accent-bright);
+}
+
+.landing__option--active {
+  color: var(--accent-yellow);
+  text-shadow: 0 0 18px rgba(200, 255, 0, 0.45);
+}
+
+.landing__option:focus-visible {
+  outline: 2px solid var(--accent-bright);
+  outline-offset: 6px;
+}
+
+.landing__option-label {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+}
+
+.landing__option-sub {
+  font-size: 0.66rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted-strong);
+}
+
+.landing__option--active .landing__option-sub {
+  color: var(--accent-bright);
+}
+
+.landing__hint {
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  animation: landing-fade-in 0.45s ease-out 0.1s both;
+}
+
+.landing__hint-key {
+  color: var(--accent);
+  margin-right: 0.35em;
+}
+
+.landing__hint-sep {
+  color: var(--muted);
+  opacity: 0.5;
+}
+
+@keyframes cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes landing-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing__cursor,
+  .landing__options,
+  .landing__hint {
+    animation: none;
+  }
+  .landing__option {
+    transition: none;
+  }
+}
+
 /* ─── Highlight top-trump cards (scoped under .kb-card) ───────────────────── */
 
 .kb-highlights {
