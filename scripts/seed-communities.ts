@@ -1,0 +1,298 @@
+import { createClient } from '@supabase/supabase-js'
+import { Database } from '../src/lib/database.types'
+
+const supabase = createClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
+
+type CommunityInsert = Database['public']['Tables']['communities']['Insert']
+
+const COMMUNITIES: CommunityInsert[] = [
+  {
+    slug: 'innovation-forum',
+    name: 'Innovation Forum',
+    description: 'The Innovation Forum is an international grassroots network that supports scientific entrepreneurs aiming to build ambitious companies at the intersection of science, technology and health. Their IMAGINE IF! initiative is a leading pre-acceleration programme for early-stage science-based ventures.',
+    sectors: ['deeptech', 'climate', 'science'],
+    size_band: 'large',
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://inno-forum.org',
+    featured: false,
+  },
+  {
+    slug: 'unicorn-mafia',
+    name: 'Unicorn Mafia',
+    description: "Invite-only community of London's sharpest developers, focused on tech builders, AI, and hackathons.",
+    sectors: ['ai', 'software'],
+    size_band: 'medium',
+    location_type: 'irl',
+    exclusivity: 'invite',
+    primary_area: 'London',
+    website: 'https://www.unicrnmafia.com',
+    featured: false,
+  },
+  {
+    slug: 'crick-science-entrepreneur-network',
+    name: 'Crick Science Entrepreneur Network (CSEN)',
+    description: 'We bring together deep tech scientists interested in translating their research into real-world impact. Community focuses on life sciences and adjacent disciplines — e.g. AI for life science and health tech, neurotechnology etc.',
+    sectors: ['deeptech', 'science'],
+    size_band: 'large',
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://www.crick-science-entrepreneur-network.com',
+    featured: false,
+  },
+  {
+    slug: 'getseen-ventures-ai',
+    name: 'GetSeen Ventures AI Community',
+    sectors: ['ai'],
+    size_band: 'large',
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://www.linkedin.com/company/getseenventures',
+    featured: false,
+  },
+  {
+    slug: 'nethermind-eth-community',
+    name: 'Nethermind ETH Community',
+    sectors: ['web3'],
+    featured: false,
+  },
+  {
+    slug: 'desci-london',
+    name: 'DeSci London',
+    sectors: ['science', 'web3'],
+    size_band: 'large',
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://x.com/descilondon',
+    featured: false,
+  },
+  {
+    slug: 'london-ai-nexus',
+    name: 'London AI Nexus',
+    description: "London AI Nexus is a community designed to unite experts, founders, and VCs within London's vibrant AI ecosystem. We aim to promote knowledge sharing, collaboration, and networking.",
+    sectors: ['ai', 'founders'],
+    size_band: 'medium',
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://www.linkedin.com/company/london-ai-nexus',
+    featured: false,
+  },
+  {
+    slug: 'science-entrepreneur-club',
+    name: 'Science Entrepreneur Club',
+    description: "We're a non-profit on a mission to build meaningful communities to enable innovation and connect the life science ecosystem. Includes the BioEntrepreneur Club for early-stage life science founders and the BioCapital Network investor community.",
+    sectors: ['science', 'climate'],
+    size_band: 'large',
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://www.science-entrepreneur.com',
+    featured: false,
+  },
+  {
+    slug: 'nxgn',
+    name: 'NXGN',
+    description: 'NXGN (pronounced "next gen") is a community that gives a voice to the next generation in healthtech and biotech. We serve and champion the rising leaders shaping healthcare.',
+    sectors: ['science'],
+    size_band: 'large',
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://nxgn.substack.com',
+    featured: false,
+  },
+  {
+    slug: 'in-silico',
+    name: 'In Silico',
+    sectors: ['science'],
+    featured: false,
+  },
+  {
+    slug: 'london-founder-house',
+    name: 'London Founder House',
+    sectors: ['founders'],
+    featured: false,
+  },
+  {
+    slug: 'deep-science-ventures',
+    name: 'Deep Science Ventures',
+    description: 'We are a venture creator, combining available scientific knowledge and founder-type scientists into high-impact ventures.',
+    sectors: ['deeptech', 'climate', 'science'],
+    size_band: 'large',
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://deepscienceventures.com',
+    featured: false,
+  },
+  {
+    slug: 'voyagers-health',
+    name: 'Voyagers Health',
+    sectors: ['climate', 'science'],
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://voyagers.io/health',
+    featured: false,
+  },
+  {
+    slug: 'wilbe',
+    name: 'Wilbe',
+    description: 'The first full-stack venture firm where scientists come to excel. As a member, you can access entrepreneurship and career resources, advocacy, venture funding and lab space all in one space.',
+    sectors: ['deeptech', 'climate', 'science'],
+    size_band: 'large',
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://app.wilbe.com/home',
+    featured: false,
+  },
+  {
+    slug: 'prosemino',
+    name: 'Prosemino',
+    description: 'VC fund run by Yen and ERV, backing climate and science founders.',
+    sectors: ['climate', 'science'],
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://www.prosemino.co.uk',
+    featured: false,
+  },
+  {
+    slug: 'seraphim-space-accelerator',
+    name: 'Seraphim Space Accelerator',
+    sectors: ['deeptech'],
+    featured: false,
+  },
+  {
+    slug: 'karman-space-programme',
+    name: 'Karman Space Programme',
+    description: 'A team of intrinsically motivated students at Imperial College developing a reusable liquid bi-propellant rocket that will go to Space!',
+    sectors: ['deeptech'],
+    size_band: 'large',
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://www.karmanspace.co.uk',
+    featured: false,
+  },
+  {
+    slug: 'bioentrepreneur-club',
+    name: 'BioEntrepreneur Club',
+    sectors: ['science'],
+    size_band: 'medium',
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://www.science-entrepreneur.com/bioentrepreneur-club',
+    featured: false,
+  },
+  {
+    slug: 'london-longevity-network',
+    name: 'London Longevity Network',
+    sectors: ['science'],
+    size_band: 'large',
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://londonlongevity.net',
+    featured: false,
+  },
+  {
+    slug: 'realdreams',
+    name: 'realdreams.io',
+    sectors: ['social'],
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://www.realdreams.io',
+    featured: false,
+  },
+  {
+    slug: 'london-synbio-network',
+    name: 'London Synbio Network',
+    description: 'Monthly seminars for early career researchers doing synthetic biology research. PhD students, postdocs, fellows, industry, and policy share their work in casual 20-minute talks.',
+    sectors: ['science'],
+    size_band: 'medium',
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://www.linkedin.com/groups/13030320',
+    featured: false,
+  },
+  {
+    slug: 'grishin-robotics',
+    name: 'Grishin Robotics',
+    sectors: ['hardware', 'deeptech'],
+    primary_area: 'London',
+    featured: false,
+  },
+  {
+    slug: 'automata',
+    name: 'Automata',
+    sectors: ['hardware'],
+    featured: false,
+  },
+  {
+    slug: 'ignite-london',
+    name: 'Ignite London',
+    sectors: ['ai', 'deeptech'],
+    size_band: 'medium',
+    location_type: 'irl',
+    website: 'https://ignite-london.co',
+    featured: false,
+  },
+  {
+    slug: 'conception-x',
+    name: 'Conception X',
+    description: 'We help scientists explore the commercialisation potential of their research, provide entrepreneurship training tailored to the need of science deeptech founders, and help those scientists build startups. Non-profit, zero equity — part time programme for PhD founders across the UK/Europe.',
+    sectors: ['ai', 'deeptech', 'science'],
+    size_band: 'large',
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://www.conceptionx.org',
+    featured: false,
+  },
+  {
+    slug: 'nucleate-uk',
+    name: 'Nucleate UK',
+    description: 'UK chapter of Nucleate — the largest global student-led biotech community. Runs the Activator programme, a six-month equity-free cohort for academic biotech founders, plus career development and networking for scientific trainees.',
+    sectors: ['science', 'deeptech'],
+    size_band: 'medium',
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://nucleate.org',
+    featured: false,
+  },
+  {
+    slug: 'lifefabs',
+    name: 'LifeFabs',
+    description: 'Open access bio lab in London with a fellows programme and teaching programmes for life science founders and researchers.',
+    sectors: ['science', 'deeptech'],
+    location_type: 'irl',
+    primary_area: 'London',
+    featured: false,
+  },
+  {
+    slug: '50-years',
+    name: '50 Years',
+    description: 'VC fund and event community based at Soho Square, backing science-based founders. Runs 5050, an equity-free twice-yearly incubator for scientists becoming founders.',
+    sectors: ['deeptech', 'climate', 'science'],
+    size_band: 'small',
+    location_type: 'irl',
+    primary_area: 'London',
+    website: 'https://www.50years.vc',
+    featured: false,
+  },
+]
+
+async function seed() {
+  console.log(`Seeding ${COMMUNITIES.length} communities...`)
+
+  const { data, error } = await supabase
+    .from('communities')
+    .upsert(COMMUNITIES, { onConflict: 'slug' })
+    .select('id, name')
+
+  if (error) {
+    console.error('Error seeding communities:', error)
+    process.exit(1)
+  }
+
+  console.log(`✓ Seeded ${data?.length} communities`)
+  data?.forEach((c) => console.log(`  - ${c.name}`))
+}
+
+seed()

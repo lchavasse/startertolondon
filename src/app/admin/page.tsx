@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { CommunitySource, LondonEvent, FailedSource } from '@/lib/types'
+import { CommunitySource, LondonEvent } from '@/lib/types'
 import { SystemSource } from '@/lib/scrapers/sources'
 import { format } from 'date-fns'
 import { EventGrid } from '@/components/EventGrid'
@@ -13,7 +13,7 @@ interface AdminData {
   systemSources: { calendars: SystemSourceWithEffective[]; users: SystemSourceWithEffective[] }
   manualEvents: LondonEvent[]
   blocklist: string[]
-  failed: FailedSource[]
+  failed: string[]
   events: LondonEvent[]
 }
 
@@ -78,9 +78,9 @@ export default function AdminPage() {
 
   if (!key) {
     return (
-      <main className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
-        <div className="w-full max-w-sm space-y-4">
-          <h1 className="font-mono text-xs uppercase tracking-[0.3em] text-[#c8ff00]">Admin</h1>
+      <main className="min-h-screen app-shell flex items-center justify-center px-4">
+        <div className="w-full terminal-panel w-full max-w-sm space-y-4 p-5">
+          <h1 className="font-mono text-xs uppercase tracking-[0.3em] text-[var(--accent-bright)]">Admin</h1>
           <input
             type="password"
             placeholder="Enter admin key"
@@ -92,7 +92,7 @@ export default function AdminPage() {
                 setKey(inputKey)
               }
             }}
-            className="w-full bg-[#111] border border-[#2a2a2a] text-[#f0ede6] font-mono text-sm px-3 py-2 outline-none focus:border-[#c8ff00]"
+            className="w-full bg-[rgba(7,9,9,0.64)] border border-[var(--line)] text-[#f0ede6] font-mono text-sm px-3 py-2 outline-none focus:border-[var(--line-strong)]"
           />
           <button
             onClick={() => {
@@ -101,7 +101,7 @@ export default function AdminPage() {
                 setKey(inputKey)
               }
             }}
-            className="w-full bg-[#c8ff00] text-black font-mono text-xs uppercase tracking-widest py-2 hover:bg-white transition-colors"
+            className="w-full bg-[rgba(14,21,16,0.84)] text-[var(--accent-bright)] font-mono text-xs uppercase tracking-widest py-2 hover:bg-[rgba(14,21,16,0.84)] transition-colors"
           >
             Enter
           </button>
@@ -145,32 +145,32 @@ export default function AdminPage() {
   ]
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] px-4 py-10 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <main className="min-h-screen app-shell px-4 py-10 sm:px-6 lg:px-8">
+      <div className="app-shell__inner space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="font-mono text-xs uppercase tracking-[0.3em] text-[#c8ff00]">Admin Dashboard</h1>
+          <h1 className="font-mono text-xs uppercase tracking-[0.3em] text-[var(--accent-bright)]">Admin Dashboard</h1>
           <button
             onClick={() => {
               sessionStorage.removeItem('admin-key')
               setKey('')
               setData(null)
             }}
-            className="font-mono text-xs text-[#888] hover:text-[#888] uppercase tracking-widest"
+            className="font-mono text-xs text-[var(--muted)] hover:text-[var(--muted-strong)] uppercase tracking-widest"
           >
             Sign out
           </button>
         </div>
 
         {/* Tab Nav */}
-        <div className="flex gap-1 border-b border-[#1a1a1a]">
+        <div className="flex gap-1 border-b border-[var(--line)]">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-1.5 px-4 py-2 font-mono text-[10px] uppercase tracking-widest transition-colors ${
                 activeTab === tab.id
-                  ? 'text-[#c8ff00] border-b border-[#c8ff00] -mb-px'
-                  : 'text-[#e4e4e4] hover:text-[#c8ff00]'
+                  ? 'text-[var(--accent-bright)] border-b border-[#c8ff00] -mb-px'
+                  : 'text-[#444] hover:text-[var(--muted-strong)]'
               }`}
             >
               {tab.label}
@@ -183,7 +183,7 @@ export default function AdminPage() {
           ))}
         </div>
 
-        {loading && <p className="font-mono text-xs text-[#888]">Loading…</p>}
+        {loading && <p className="font-mono text-xs text-[var(--muted)]">Loading…</p>}
         {error && <p className="font-mono text-xs text-red-400">{error}</p>}
 
         {data && (
@@ -205,8 +205,8 @@ export default function AdminPage() {
                         eventFilter === f
                           ? f === 'pending'
                             ? 'bg-amber-500/20 border-amber-500/60 text-amber-400'
-                            : 'bg-[#c8ff00]/10 border-[#c8ff00]/40 text-[#c8ff00]'
-                          : 'border-[#2a2a2a] text-[#e4e4e4] hover:text-[#c8ff00] hover:border-[#444]'
+                            : 'bg-[rgba(14,21,16,0.84)]/10 border-[#c8ff00]/40 text-[var(--accent-bright)]'
+                          : 'border-[var(--line)] text-[#444] hover:text-[var(--muted-strong)] hover:border-[var(--line-strong)]'
                       }`}
                     >
                       {label}
@@ -216,7 +216,7 @@ export default function AdminPage() {
 
                 {filteredEvents.length === 0 ? (
                   <div className="py-16 text-center">
-                    <p className="font-mono text-xs uppercase tracking-widest text-[#555]">
+                    <p className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
                       {eventFilter === 'pending' ? 'No pending events — all caught up' : 'No events'}
                     </p>
                   </div>
@@ -237,11 +237,11 @@ export default function AdminPage() {
               <div className="space-y-10">
                 {/* Community Sources — Unreviewed */}
                 <section className="space-y-3">
-                  <h2 className="font-mono text-xs uppercase tracking-widest text-[#888]">
+                  <h2 className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
                     Community Sources — Unreviewed ({unreviewed.length})
                   </h2>
                   {unreviewed.length === 0 ? (
-                    <p className="font-mono text-xs text-[#555]">None</p>
+                    <p className="font-mono text-xs text-[var(--muted)]">None</p>
                   ) : (
                     unreviewed.map((source) => (
                       <SourceRow key={source.slug} source={source} post={post} />
@@ -251,11 +251,11 @@ export default function AdminPage() {
 
                 {/* Community Sources — Reviewed */}
                 <section className="space-y-3">
-                  <h2 className="font-mono text-xs uppercase tracking-widest text-[#888]">
+                  <h2 className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
                     Community Sources — Reviewed ({reviewed.length})
                   </h2>
                   {reviewed.length === 0 ? (
-                    <p className="font-mono text-xs text-[#555]">None</p>
+                    <p className="font-mono text-xs text-[var(--muted)]">None</p>
                   ) : (
                     reviewed.map((source) => (
                       <SourceRow key={source.slug} source={source} post={post} />
@@ -265,7 +265,7 @@ export default function AdminPage() {
 
                 {/* System Sources */}
                 <section className="space-y-3">
-                  <h2 className="font-mono text-xs uppercase tracking-widest text-[#888]">
+                  <h2 className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
                     System Sources ({data.systemSources.calendars.length + data.systemSources.users.length})
                   </h2>
                   <div className="space-y-1">
@@ -283,11 +283,11 @@ export default function AdminPage() {
             {/* Blocklist Tab */}
             {activeTab === 'blocklist' && (
               <section className="space-y-3">
-                <h2 className="font-mono text-xs uppercase tracking-widest text-[#888]">
+                <h2 className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
                   Blocklist ({data.blocklist.length})
                 </h2>
                 {data.blocklist.length === 0 ? (
-                  <p className="font-mono text-xs text-[#555]">None</p>
+                  <p className="font-mono text-xs text-[var(--muted)]">None</p>
                 ) : (
                   <div className="space-y-2">
                     {data.blocklist.map((id) => (
@@ -295,7 +295,7 @@ export default function AdminPage() {
                         <span className="font-mono text-xs text-[#f0ede6]">{id}</span>
                         <button
                           onClick={() => post('unblock', { eventId: id })}
-                          className="font-mono text-[10px] text-[#888] hover:text-[#c8ff00] uppercase tracking-widest"
+                          className="font-mono text-[10px] text-[var(--muted)] hover:text-[var(--accent-bright)] uppercase tracking-widest"
                         >
                           Unblock
                         </button>
@@ -309,25 +309,15 @@ export default function AdminPage() {
             {/* Failed Tab */}
             {activeTab === 'failed' && (
               <section className="space-y-3">
-                <h2 className="font-mono text-xs uppercase tracking-widest text-[#888]">
-                  Failed Sources — last scrape ({data.failed.length}
-                  {data.failed.filter((f) => f.isRateLimit).length > 0 &&
-                    `, ${data.failed.filter((f) => f.isRateLimit).length} rate-limited`})
+                <h2 className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
+                  Failed Sources — last scrape ({data.failed.length})
                 </h2>
                 {data.failed.length === 0 ? (
-                  <p className="font-mono text-xs text-[#555]">None</p>
+                  <p className="font-mono text-xs text-[var(--muted)]">None</p>
                 ) : (
                   <div className="space-y-1">
-                    {data.failed.map((f) => (
-                      <div key={f.slug} className="flex items-start gap-3">
-                        <p className={`font-mono text-xs ${f.isRateLimit ? 'text-yellow-400' : 'text-red-400'}`}>
-                          {f.slug}
-                        </p>
-                        <p className="font-mono text-xs text-[#888]">
-                          {f.isRateLimit ? '[429 rate-limited]' : f.error}
-                          {f.timestamp && ` · ${new Date(f.timestamp).toLocaleTimeString()}`}
-                        </p>
-                      </div>
+                    {data.failed.map((slug) => (
+                      <p key={slug} className="font-mono text-xs text-red-400">{slug}</p>
                     ))}
                   </div>
                 )}
@@ -352,10 +342,10 @@ function SourceRow({
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1 min-w-0">
           <p className="text-[#f0ede6] text-sm font-bold truncate">
-            {source.curated && <span className="text-[#c8ff00] mr-1">★</span>}
+            {source.curated && <span className="text-[var(--accent-bright)] mr-1">★</span>}
             {source.name}
           </p>
-          <p className="font-mono text-[10px] text-[#888]">
+          <p className="font-mono text-[10px] text-[var(--muted)]">
             {source.type} · {source.slug}
             {source.addedAt && ` · added ${format(new Date(source.addedAt), 'd MMM yyyy')}`}
           </p>
@@ -365,8 +355,8 @@ function SourceRow({
             onClick={() => post('curate-source', { slug: source.slug, curated: !source.curated })}
             className={`px-3 py-1 text-[10px] font-mono uppercase tracking-widest border transition-colors ${
               source.curated
-                ? 'border-[#c8ff00] text-[#c8ff00] hover:border-[#555] hover:text-[#888]'
-                : 'border-[#2a2a2a] text-[#888] hover:border-[#c8ff00] hover:text-[#c8ff00]'
+                ? 'border-[#c8ff00] text-[var(--accent-bright)] hover:border-[#555] hover:text-[var(--muted)]'
+                : 'border-[var(--line)] text-[var(--muted)] hover:border-[#c8ff00] hover:text-[var(--accent-bright)]'
             }`}
           >
             {source.curated ? '★ Curated' : '☆ Curate'}
@@ -374,14 +364,14 @@ function SourceRow({
           {!source.reviewed && (
             <button
               onClick={() => post('review-source', { slug: source.slug })}
-              className="px-3 py-1 text-[10px] font-mono uppercase tracking-widest border border-[#2a2a2a] text-[#888] hover:border-[#888] hover:text-[#888] transition-colors"
+              className="px-3 py-1 text-[10px] font-mono uppercase tracking-widest border border-[var(--line)] text-[var(--muted)] hover:border-[#888] hover:text-[var(--muted-strong)] transition-colors"
             >
               ✓ Accept
             </button>
           )}
           <button
             onClick={() => post('remove-source', { slug: source.slug })}
-            className="px-3 py-1 text-[10px] font-mono uppercase tracking-widest border border-[#2a2a2a] text-[#888] hover:border-red-500 hover:text-red-400 transition-colors"
+            className="px-3 py-1 text-[10px] font-mono uppercase tracking-widest border border-[var(--line)] text-[var(--muted)] hover:border-red-500 hover:text-red-400 transition-colors"
           >
             Remove
           </button>
@@ -391,7 +381,7 @@ function SourceRow({
         href={source.url}
         target="_blank"
         rel="noopener noreferrer"
-        className="font-mono text-[10px] text-[#e4e4e4] hover:text-[#c8ff00] truncate block"
+        className="font-mono text-[10px] text-[#444] hover:text-[var(--accent-bright)] truncate block"
       >
         {source.url}
       </a>
@@ -410,17 +400,17 @@ function SystemSourceRow({
 }) {
   return (
     <div className="flex items-center gap-3 px-4 py-2 border border-[#161616]">
-      <span className="font-mono text-[10px] text-[#555] w-14">{type}</span>
-      <span className="font-mono text-xs text-[#e4e4e4] flex-1 truncate">{source.slug}</span>
+      <span className="font-mono text-[10px] text-[var(--muted)] w-14">{type}</span>
+      <span className="font-mono text-xs text-[#444] flex-1 truncate">{source.slug}</span>
       {source.effectiveCurated !== source.curated && (
-        <span className="font-mono text-[10px] text-[#888]">overridden</span>
+        <span className="font-mono text-[10px] text-[var(--muted)]">overridden</span>
       )}
       <button
         onClick={() => post('toggle-system-source', { slug: source.slug, curated: !source.effectiveCurated })}
         className={`px-3 py-1 text-[10px] font-mono uppercase tracking-widest border transition-colors ${
           source.effectiveCurated
-            ? 'border-[#c8ff00] text-[#c8ff00] hover:border-[#555] hover:text-[#888]'
-            : 'border-[#2a2a2a] text-[#888] hover:border-[#c8ff00] hover:text-[#c8ff00]'
+            ? 'border-[#c8ff00] text-[var(--accent-bright)] hover:border-[#555] hover:text-[var(--muted)]'
+            : 'border-[var(--line)] text-[var(--muted)] hover:border-[#c8ff00] hover:text-[var(--accent-bright)]'
         }`}
       >
         {source.effectiveCurated ? '★ Curated' : '☆ Curate'}

@@ -1,5 +1,11 @@
-import { redirect } from 'next/navigation'
+import { MatrixBackground } from '@/components/MatrixBackground'
+import { LandingChooser } from '@/components/LandingChooser'
 
 export default function Home() {
-  redirect('/events')
+  return (
+    <main className="landing-shell">
+      <MatrixBackground />
+      <LandingChooser />
+    </main>
+  )
 }
