@@ -9,7 +9,8 @@
     "lint": "eslint",
     "scrape": "npx tsx --env-file=.env.local scripts/scrape.ts",
     "scrape:force": "npx tsx --env-file=.env.local scripts/scrape.ts --force",
-    "seed:kb": "npx tsx --env-file=.env.local scripts/seed-kb.ts"
+    "seed:kb": "npx tsx --env-file=.env.local scripts/seed-kb.ts",
+    "add-event": "npx tsx --env-file=.env.local scripts/add-event.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.100.0",
