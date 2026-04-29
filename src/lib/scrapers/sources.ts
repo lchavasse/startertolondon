@@ -86,3 +86,17 @@ export const CHANNEL_SOURCES: string[] = [
   'climate',
   'crypto',
 ]
+
+/**
+ * Meetup groups to fetch on every scrape regardless of the keyword search.
+ *
+ * Each entry is a Meetup group urlname (the slug in meetup.com/<urlname>/).
+ * Events from these groups bypass the pending-review queue entirely and land
+ * directly in events:london with the source's `curated` flag.
+ *
+ * curated: true  → ★ badge on site
+ * curated: false → visible without badge (allowlist-style)
+ */
+export const MEETUP_GROUP_SOURCES: SystemSource[] = [
+  { slug: 'indiebeers-london', curated: true },
+]

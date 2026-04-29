@@ -16,7 +16,7 @@ import {
   setPendingReview,
   getManualEvents,
 } from '@/lib/kv'
-import { CALENDAR_SOURCES, USER_SOURCES, CHANNEL_SOURCES } from './sources'
+import { CALENDAR_SOURCES, USER_SOURCES, CHANNEL_SOURCES, MEETUP_GROUP_SOURCES } from './sources'
 import { LumaDiscoveryScraper } from './luma-discovery'
 import { LumaCalendarScraper } from './luma-calendar'
 import { LumaUserScraper } from './luma-user'
@@ -289,12 +289,25 @@ export async function runAllScrapers(): Promise<ScraperResult> {
   const manualIds = new Set(manualEvents.map((e) => e.id))
   const cutoffMs = Date.now() - 60 * 60 * 1000
 
+  // Code-defined Meetup group sources — these override the curated flag and
+  // bypass pending review entirely, regardless of whether the event was
+  // discovered via keyword search or per-group fetch.
+  const meetupGroupCurated = new Map<string, boolean>(
+    MEETUP_GROUP_SOURCES.map((s) => [`meetup:${s.slug}`, s.curated]),
+  )
+
   const liveEvents: LondonEvent[] = []
   const pendingEvents: LondonEvent[] = []
   for (const event of blockFiltered) {
     const isEbOrMeetup = event.source === 'eventbrite' || event.source === 'meetup'
     if (!isEbOrMeetup) {
       liveEvents.push(event)
+      continue
+    }
+    // Meetup explicit group source: override curated flag, skip review.
+    const explicitCurated = event.calendarSlug ? meetupGroupCurated.get(event.calendarSlug) : undefined
+    if (explicitCurated !== undefined) {
+      liveEvents.push({ ...event, curated: explicitCurated })
       continue
     }
     const allowlisted = event.calendarSlug && allowlistSet.has(event.calendarSlug)

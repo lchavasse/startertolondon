@@ -1,4 +1,5 @@
 import { LondonEvent, EventScraper } from '@/lib/types'
+import { MEETUP_GROUP_SOURCES } from './sources'
 
 const GQL_URL = 'https://www.meetup.com/gql2'
 const UA =
@@ -14,6 +15,23 @@ const QUERY = `
           venue { name address city country }
           group { name urlname timezone }
           featuredEventPhoto { highResUrl }
+        }
+      }
+    }
+  }
+`
+
+const GROUP_QUERY = `
+  query GroupEvents($urlname: String!) {
+    groupByUrlname(urlname: $urlname) {
+      id name urlname timezone
+      events(first: 20, status: ACTIVE) {
+        edges {
+          node {
+            id title dateTime endTime eventType eventUrl
+            venue { name address city country }
+            featuredEventPhoto { highResUrl }
+          }
         }
       }
     }
@@ -117,6 +135,45 @@ export class MeetupScraper implements EventScraper {
       page++
     }
 
+    // Also fetch explicit group sources (always-on, regardless of keyword match).
+    for (const source of MEETUP_GROUP_SOURCES) {
+      try {
+        const groupEvents = await fetchGroupEvents(source.slug, scrapedAt)
+        events.push(...groupEvents)
+      } catch (err) {
+        console.warn(`[meetup] group '${source.slug}' fetch failed:`, err instanceof Error ? err.message : err)
+      }
+    }
+
     return events
   }
+}
+
+async function fetchGroupEvents(urlname: string, scrapedAt: string): Promise<LondonEvent[]> {
+  const res = await fetch(GQL_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'User-Agent': UA },
+    body: JSON.stringify({
+      operationName: 'GroupEvents',
+      variables: { urlname },
+      query: GROUP_QUERY,
+    }),
+    signal: AbortSignal.timeout(15000),
+  })
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const data = await res.json()
+  if (data.errors) throw new Error(`GraphQL: ${data.errors[0]?.message}`)
+
+  const group = data?.data?.groupByUrlname
+  if (!group) throw new Error(`group '${urlname}' not found`)
+
+  const groupMeta = { name: group.name, urlname: group.urlname, timezone: group.timezone }
+  const edges: { node: GQLEvent }[] = group.events?.edges ?? []
+
+  const out: LondonEvent[] = []
+  for (const { node } of edges) {
+    const event = mapEvent({ ...node, group: groupMeta }, scrapedAt)
+    if (event) out.push(event)
+  }
+  return out
 }
