@@ -15,8 +15,13 @@ interface EBVenue {
 }
 
 interface EBOrganizer {
+  id?: string
   name?: string
   logo?: { url?: string } | null
+}
+
+function slugifyOrganiser(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
 }
 
 interface EBImage {
@@ -151,6 +156,14 @@ function mapEvent(e: EBEvent, scrapedAt: string): LondonEvent | null {
     .map((t) => t.display_name!)
     .slice(0, 3)
 
+  const orgId = e.primary_organizer?.id
+  const orgName = e.primary_organizer?.name
+  const calendarSlug = orgId
+    ? `eventbrite:${orgId}`
+    : orgName
+      ? `eventbrite:org-${slugifyOrganiser(orgName)}`
+      : `eventbrite:event-${id}`
+
   return {
     id: `eb-${id}`,
     name: e.name ?? '',
@@ -164,10 +177,11 @@ function mapEvent(e: EBEvent, scrapedAt: string): LondonEvent | null {
       e.primary_venue?.name ??
       'London',
     city: 'London',
-    organiserName: e.primary_organizer?.name ?? '',
+    organiserName: orgName ?? '',
     organiserAvatarUrl: e.primary_organizer?.logo?.url ?? null,
     tags,
     source: 'eventbrite',
+    calendarSlug,
     scrapedAt,
     curated: false,
   }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { CommunitySource, FailedSource, LondonEvent } from '@/lib/types'
+import { CommunitySource, FailedSource, LondonEvent, EventDecision } from '@/lib/types'
 import { SystemSource } from '@/lib/scrapers/sources'
 import { format } from 'date-fns'
 import { EventGrid } from '@/components/EventGrid'
@@ -15,9 +15,12 @@ interface AdminData {
   blocklist: string[]
   failed: FailedSource[]
   events: LondonEvent[]
+  pendingReview: LondonEvent[]
+  recentDecisions: EventDecision[]
+  ebMeetupAllowlist: string[]
 }
 
-type Tab = 'events' | 'sources' | 'blocklist' | 'failed'
+type Tab = 'events' | 'review' | 'sources' | 'blocklist' | 'failed'
 type EventFilter = 'pending' | 'all' | 'curated'
 
 export default function AdminPage() {
@@ -67,7 +70,10 @@ export default function AdminPage() {
     }
   }
 
-  async function post(action: string, body: Record<string, string | boolean>) {
+  async function post(
+    action: string,
+    body: Record<string, string | boolean | string[]>,
+  ) {
     await fetch('/api/admin', {
       method: 'POST',
       headers: { 'x-admin-key': key, 'content-type': 'application/json' },
@@ -128,17 +134,23 @@ export default function AdminPage() {
     })
   }
 
-  const filteredEvents = data?.events.filter((e) => {
+  // EB/Meetup events are managed in the Review tab — exclude from the Events tab.
+  const eventsTabSource = data?.events.filter((e) => e.source !== 'eventbrite' && e.source !== 'meetup') ?? []
+
+  const filteredEvents = eventsTabSource.filter((e) => {
     if (eventFilter === 'pending') return e.pending && !e.curated
     if (eventFilter === 'curated') return e.curated
     return true
-  }) ?? []
+  })
 
-  const pendingCount = data?.events.filter((e) => e.pending && !e.curated).length ?? 0
-  const curatedCount = data?.events.filter((e) => e.curated).length ?? 0
+  const pendingCount = eventsTabSource.filter((e) => e.pending && !e.curated).length
+  const curatedCount = eventsTabSource.filter((e) => e.curated).length
+
+  const reviewCount = data?.pendingReview.length ?? 0
 
   const tabs: { id: Tab; label: string; badge?: number }[] = [
     { id: 'events', label: 'Events', badge: pendingCount || undefined },
+    { id: 'review', label: 'Review', badge: reviewCount || undefined },
     { id: 'sources', label: 'Sources' },
     { id: 'blocklist', label: 'Blocklist' },
     { id: 'failed', label: 'Failed', badge: data?.failed.length || undefined },
@@ -195,7 +207,7 @@ export default function AdminPage() {
                 <div className="flex items-center gap-2">
                   {([
                     ['pending', `Pending (${pendingCount})`],
-                    ['all', `All (${data.events.length})`],
+                    ['all', `All (${eventsTabSource.length})`],
                     ['curated', `Curated (${curatedCount})`],
                   ] as [EventFilter, string][]).map(([f, label]) => (
                     <button
@@ -230,6 +242,16 @@ export default function AdminPage() {
                   />
                 )}
               </div>
+            )}
+
+            {/* Review Tab — EB/Meetup pending queue + allowlist + decisions log */}
+            {activeTab === 'review' && (
+              <ReviewTab
+                pendingReview={data.pendingReview}
+                allowlist={data.ebMeetupAllowlist}
+                decisions={data.recentDecisions}
+                post={post}
+              />
             )}
 
             {/* Sources Tab */}
@@ -338,7 +360,7 @@ function SourceRow({
   post,
 }: {
   source: CommunitySource
-  post: (action: string, body: Record<string, string | boolean>) => Promise<void>
+  post: (action: string, body: Record<string, string | boolean | string[]>) => Promise<void>
 }) {
   return (
     <div className="border border-[#1e1e1e] p-4 space-y-2">
@@ -399,7 +421,7 @@ function SystemSourceRow({
 }: {
   source: SystemSourceWithEffective
   type: 'calendar' | 'user'
-  post: (action: string, body: Record<string, string | boolean>) => Promise<void>
+  post: (action: string, body: Record<string, string | boolean | string[]>) => Promise<void>
 }) {
   return (
     <div className="flex items-center gap-3 px-4 py-2 border border-[#161616]">
@@ -418,6 +440,338 @@ function SystemSourceRow({
       >
         {source.effectiveCurated ? '★ Curated' : '☆ Curate'}
       </button>
+    </div>
+  )
+}
+
+// ─── Review Tab — EB/Meetup pending queue ────────────────────────────────
+
+type ReviewSort = 'date' | 'source'
+
+function ReviewTab({
+  pendingReview,
+  allowlist,
+  decisions,
+  post,
+}: {
+  pendingReview: LondonEvent[]
+  allowlist: string[]
+  decisions: EventDecision[]
+  post: (action: string, body: Record<string, string | boolean | string[]>) => Promise<void>
+}) {
+  const [sort, setSort] = useState<ReviewSort>('date')
+  const [showDecisions, setShowDecisions] = useState(false)
+  const [allowlistInput, setAllowlistInput] = useState('')
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkBusy, setBulkBusy] = useState(false)
+  const [bulkReason, setBulkReason] = useState('')
+
+  const sorted = [...pendingReview].sort((a, b) => {
+    if (sort === 'source') return a.source.localeCompare(b.source) || a.startAt.localeCompare(b.startAt)
+    return new Date(a.startAt).getTime() - new Date(b.startAt).getTime()
+  })
+
+  const toggleSelected = (id: string) => {
+    setSelected((s) => {
+      const next = new Set(s)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const selectAllVisible = () => setSelected(new Set(sorted.map((e) => e.id)))
+  const clearSelection = () => setSelected(new Set())
+
+  async function bulkReject() {
+    const ids = [...selected]
+    if (ids.length === 0) return
+    if (!confirm(`Reject ${ids.length} event(s) permanently? They'll be added to the blocklist and never resurface.`)) return
+    setBulkBusy(true)
+    try {
+      await post('review-bulk', { ids, decision: 'reject', ...(bulkReason ? { reason: bulkReason } : {}) })
+      setSelected(new Set())
+      setBulkReason('')
+    } finally {
+      setBulkBusy(false)
+    }
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Header / sort controls */}
+      <div className="flex items-center justify-between">
+        <p className="font-mono text-xs text-[var(--muted)]">
+          {pendingReview.length} pending · {allowlist.length} allowlisted · {decisions.length} recent decisions
+        </p>
+        <div className="flex items-center gap-2">
+          {(['date', 'source'] as const).map((s) => (
+            <button
+              key={s}
+              onClick={() => setSort(s)}
+              className={`px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest border transition-colors ${
+                sort === s
+                  ? 'border-[#c8ff00]/40 text-[var(--accent-bright)]'
+                  : 'border-[var(--line)] text-[#444] hover:text-[var(--muted-strong)]'
+              }`}
+            >
+              sort: {s}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Allowlist management */}
+      <section className="space-y-3">
+        <h2 className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
+          EB/Meetup Allowlist ({allowlist.length})
+        </h2>
+        <div className="space-y-2">
+          {allowlist.length === 0 ? (
+            <p className="font-mono text-xs text-[#444]">None — all EB/Meetup events go through review.</p>
+          ) : (
+            allowlist.map((key) => (
+              <div key={key} className="flex items-center gap-3 px-3 py-1.5 border border-[#161616]">
+                <span className="font-mono text-xs text-[var(--accent-bright)] flex-1 truncate">{key}</span>
+                <button
+                  onClick={() => post('allowlist-remove', { key })}
+                  className="px-2 py-0.5 text-[10px] font-mono uppercase tracking-widest border border-[var(--line)] text-[var(--muted)] hover:border-red-500 hover:text-red-400 transition-colors"
+                >
+                  Remove
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+        <div className="flex items-center gap-2">
+          <input
+            value={allowlistInput}
+            onChange={(e) => setAllowlistInput(e.target.value)}
+            placeholder="meetup:<urlname> or eventbrite:<id>"
+            className="flex-1 bg-[rgba(7,9,9,0.64)] border border-[var(--line)] text-[#f0ede6] font-mono text-xs px-3 py-1.5 outline-none focus:border-[var(--line-strong)]"
+          />
+          <button
+            onClick={async () => {
+              if (allowlistInput.trim()) {
+                await post('allowlist-add', { key: allowlistInput.trim() })
+                setAllowlistInput('')
+              }
+            }}
+            className="px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest border border-[#c8ff00]/40 text-[var(--accent-bright)] hover:bg-[rgba(14,21,16,0.84)] transition-colors"
+          >
+            Add
+          </button>
+        </div>
+      </section>
+
+      {/* Pending events */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h2 className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
+            Pending Review ({pendingReview.length}) {selected.size > 0 && <span className="text-amber-400">· {selected.size} selected</span>}
+          </h2>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={selectAllVisible}
+              className="px-2 py-1 font-mono text-[10px] uppercase tracking-widest border border-[var(--line)] text-[var(--muted)] hover:text-[var(--muted-strong)] hover:border-[var(--line-strong)] transition-colors"
+            >
+              Select all
+            </button>
+            <button
+              onClick={clearSelection}
+              disabled={selected.size === 0}
+              className="px-2 py-1 font-mono text-[10px] uppercase tracking-widest border border-[var(--line)] text-[var(--muted)] hover:text-[var(--muted-strong)] hover:border-[var(--line-strong)] transition-colors disabled:opacity-30"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+        {/* Bulk action bar — only shown when there's a selection */}
+        {selected.size > 0 && (
+          <div className="flex items-center gap-2 p-2 border border-amber-500/40 bg-amber-500/5">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-amber-400 px-1">
+              {selected.size} selected
+            </span>
+            <input
+              value={bulkReason}
+              onChange={(e) => setBulkReason(e.target.value)}
+              placeholder="reason for all (optional)"
+              className="flex-1 bg-[rgba(7,9,9,0.64)] border border-[var(--line)] text-[#f0ede6] font-mono text-[10px] px-2 py-1 outline-none focus:border-[var(--line-strong)]"
+            />
+            <button
+              disabled={bulkBusy}
+              onClick={bulkReject}
+              className="px-3 py-1 font-mono text-[10px] uppercase tracking-widest border border-red-500/40 text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30"
+            >
+              {bulkBusy ? 'Rejecting…' : `Reject ${selected.size}`}
+            </button>
+          </div>
+        )}
+
+        {sorted.length === 0 ? (
+          <p className="font-mono text-xs text-[#444]">Queue is empty — all caught up.</p>
+        ) : (
+          <div className="space-y-2">
+            {sorted.map((event) => (
+              <ReviewCard
+                key={event.id}
+                event={event}
+                post={post}
+                selected={selected.has(event.id)}
+                onToggle={() => toggleSelected(event.id)}
+              />
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Decisions log */}
+      <section className="space-y-3">
+        <button
+          onClick={() => setShowDecisions((v) => !v)}
+          className="font-mono text-xs uppercase tracking-widest text-[var(--muted)] hover:text-[var(--muted-strong)]"
+        >
+          Recent Decisions ({decisions.length}) {showDecisions ? '▾' : '▸'}
+        </button>
+        {showDecisions && (
+          <div className="space-y-1 max-h-96 overflow-y-auto pr-2">
+            {decisions.map((d, i) => (
+              <div key={`${d.id}-${i}`} className="flex items-start gap-2 px-3 py-1.5 border border-[#161616]">
+                <span
+                  className={`font-mono text-[10px] uppercase tracking-widest w-16 flex-none ${
+                    d.decision === 'feature'
+                      ? 'text-[var(--accent-bright)]'
+                      : d.decision === 'list'
+                        ? 'text-amber-400'
+                        : 'text-[#666]'
+                  }`}
+                >
+                  {d.decision}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-mono text-xs text-[#f0ede6] truncate">{d.name}</p>
+                  <p className="font-mono text-[10px] text-[#444] truncate">
+                    {d.organiser}
+                    {d.reason ? ` · ${d.reason}` : ''}
+                  </p>
+                </div>
+                <span className="font-mono text-[10px] text-[#444] flex-none">
+                  {format(new Date(d.timestamp), 'd MMM HH:mm')}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  )
+}
+
+function ReviewCard({
+  event,
+  post,
+  selected,
+  onToggle,
+}: {
+  event: LondonEvent
+  post: (action: string, body: Record<string, string | boolean | string[]>) => Promise<void>
+  selected: boolean
+  onToggle: () => void
+}) {
+  const [reason, setReason] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  async function decide(action: string, body: Record<string, string | boolean>) {
+    setBusy(true)
+    try {
+      await post(action, { ...body, ...(reason ? { reason } : {}) })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const date = new Date(event.startAt)
+  const dateLabel = format(date, 'EEE d MMM · HH:mm')
+  const sourceLabel = event.source === 'eventbrite' ? 'eventbrite' : 'meetup'
+
+  return (
+    <div className={`flex gap-3 p-3 border transition-colors ${selected ? 'border-amber-500/40 bg-amber-500/5' : 'border-[#161616]'}`}>
+      {/* Selection checkbox */}
+      <label className="flex-none flex items-start pt-1 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onToggle}
+          className="w-4 h-4 accent-amber-400 cursor-pointer"
+        />
+      </label>
+      {/* Cover image (or placeholder) */}
+      <div className="flex-none w-24 h-24 bg-[#0a0a0a] border border-[#161616] overflow-hidden">
+        {event.coverUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={event.coverUrl} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center font-mono text-[10px] text-[#444]">
+            no img
+          </div>
+        )}
+      </div>
+      {/* Content */}
+      <div className="flex-1 min-w-0 space-y-1">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-mono text-sm text-[#f0ede6] line-clamp-2">{event.name}</h3>
+          <span className="font-mono text-[10px] uppercase tracking-widest text-[#444] flex-none">
+            {sourceLabel}
+          </span>
+        </div>
+        <p className="font-mono text-xs text-[var(--muted)]">{dateLabel}</p>
+        <p className="font-mono text-[10px] text-[#666] truncate">
+          <a href={event.url} target="_blank" rel="noopener noreferrer" className="hover:text-[var(--accent-bright)]">
+            {event.organiserName || event.calendarSlug || ''}
+          </a>
+          {event.calendarSlug && ` · ${event.calendarSlug}`}
+        </p>
+        <p className="font-mono text-[10px] text-[#444] truncate">{event.locationName}</p>
+        {/* Action row */}
+        <div className="flex items-center gap-1 pt-1">
+          <input
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            placeholder="reason (optional)"
+            className="flex-1 bg-[rgba(7,9,9,0.64)] border border-[var(--line)] text-[#f0ede6] font-mono text-[10px] px-2 py-1 outline-none focus:border-[var(--line-strong)]"
+          />
+          <button
+            disabled={busy}
+            onClick={() => decide('review-decision', { id: event.id, decision: 'feature' })}
+            className="px-2 py-1 font-mono text-[10px] uppercase tracking-widest border border-[#c8ff00]/40 text-[var(--accent-bright)] hover:bg-[rgba(14,21,16,0.84)] transition-colors disabled:opacity-30"
+          >
+            ★ Feature
+          </button>
+          <button
+            disabled={busy}
+            onClick={() => decide('review-decision', { id: event.id, decision: 'list' })}
+            className="px-2 py-1 font-mono text-[10px] uppercase tracking-widest border border-amber-500/40 text-amber-400 hover:bg-amber-500/10 transition-colors disabled:opacity-30"
+          >
+            List
+          </button>
+          <button
+            disabled={busy}
+            onClick={() => decide('review-decision', { id: event.id, decision: 'reject' })}
+            className="px-2 py-1 font-mono text-[10px] uppercase tracking-widest border border-[var(--line)] text-[var(--muted)] hover:border-red-500 hover:text-red-400 transition-colors disabled:opacity-30"
+          >
+            Reject
+          </button>
+          <button
+            disabled={busy || !event.calendarSlug}
+            title={event.calendarSlug ? `Allowlist ${event.calendarSlug}` : 'No calendarSlug'}
+            onClick={() => decide('trust-organiser', { id: event.id })}
+            className="px-2 py-1 font-mono text-[10px] uppercase tracking-widest border border-[var(--line)] text-[var(--muted)] hover:border-[#c8ff00] hover:text-[var(--accent-bright)] transition-colors disabled:opacity-30"
+          >
+            Trust src
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

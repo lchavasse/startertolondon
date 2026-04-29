@@ -1,5 +1,5 @@
 import { Redis } from '@upstash/redis'
-import { LondonEvent, CommunitySource, FailedSource } from '@/lib/types'
+import { LondonEvent, CommunitySource, FailedSource, EventDecision } from '@/lib/types'
 
 const redis = new Redis({
   url: process.env.KV_REST_API_URL!,
@@ -129,6 +129,66 @@ export async function setCuratedOverride(id: string, curated: boolean): Promise<
   const current = await getCuratedOverrides()
   current[id] = curated
   await redis.set('events:curated-overrides', JSON.stringify(current))
+}
+
+// EB/Meetup allowlist — source keys (e.g. 'meetup:tech-startups-in-the-pub') whose
+// events skip the pending-review queue and publish straight to events:london.
+export async function getEbMeetupAllowlist(): Promise<string[]> {
+  const raw = await redis.get<string>('sources:eb-meetup-allowlist')
+  if (!raw) return []
+  return typeof raw === 'string' ? JSON.parse(raw) : raw
+}
+
+export async function addToEbMeetupAllowlist(key: string): Promise<void> {
+  const current = await getEbMeetupAllowlist()
+  if (!current.includes(key)) {
+    current.push(key)
+    await redis.set('sources:eb-meetup-allowlist', JSON.stringify(current))
+  }
+}
+
+export async function removeFromEbMeetupAllowlist(key: string): Promise<void> {
+  const current = await getEbMeetupAllowlist()
+  await redis.set('sources:eb-meetup-allowlist', JSON.stringify(current.filter((k) => k !== key)))
+}
+
+// Pending-review queue — non-allowlisted EB/Meetup events awaiting human review.
+// Regenerated each scrape (full overwrite) so stale items prune naturally.
+export async function getPendingReview(): Promise<LondonEvent[]> {
+  const raw = await redis.get<string>('events:pending-review')
+  if (!raw) return []
+  return typeof raw === 'string' ? JSON.parse(raw) : raw
+}
+
+export async function setPendingReview(events: LondonEvent[]): Promise<void> {
+  const sorted = [...events].sort(
+    (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime()
+  )
+  await redis.set('events:pending-review', JSON.stringify(sorted))
+}
+
+export async function removeFromPendingReview(id: string): Promise<void> {
+  const current = await getPendingReview()
+  await redis.set('events:pending-review', JSON.stringify(current.filter((e) => e.id !== id)))
+}
+
+// Decision log — durable record of every review action. Append-only (no cap in v1).
+// Used as few-shot context for the ranker.
+export async function getDecisions(): Promise<EventDecision[]> {
+  const raw = await redis.get<string>('events:decisions')
+  if (!raw) return []
+  return typeof raw === 'string' ? JSON.parse(raw) : raw
+}
+
+export async function getRecentDecisions(n: number): Promise<EventDecision[]> {
+  const all = await getDecisions()
+  return all.slice(-n).reverse()
+}
+
+export async function appendDecision(decision: EventDecision): Promise<void> {
+  const current = await getDecisions()
+  current.push(decision)
+  await redis.set('events:decisions', JSON.stringify(current))
 }
 
 // System source curated overrides

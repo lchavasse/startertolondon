@@ -12,8 +12,11 @@ import {
   getChannelIdCache,
   saveChannelIdCache,
   ChannelCacheEntry,
+  getEbMeetupAllowlist,
+  setPendingReview,
+  getManualEvents,
 } from '@/lib/kv'
-import { CALENDAR_SOURCES, USER_SOURCES, CHANNEL_SOURCES } from './sources'
+import { CALENDAR_SOURCES, USER_SOURCES, CHANNEL_SOURCES, MEETUP_GROUP_SOURCES } from './sources'
 import { LumaDiscoveryScraper } from './luma-discovery'
 import { LumaCalendarScraper } from './luma-calendar'
 import { LumaUserScraper } from './luma-user'
@@ -22,7 +25,7 @@ import { CerebralValleyScraper } from './cerebral-valley'
 import { EventbriteScraper } from './eventbrite'
 import { MeetupScraper } from './meetup'
 import { fetchPageId } from './luma-page-fetch'
-import { dedupeBySlug, extractUrlSlug } from './dedup-utils'
+import { dedupeBySlug, dedupeAcrossPlatforms, extractUrlSlug } from './dedup-utils'
 
 // Sources scraped within this window are skipped to avoid rate limiting.
 const CACHE_TTL_HOURS = 20
@@ -269,13 +272,62 @@ export async function runAllScrapers(): Promise<ScraperResult> {
 
   // Pass 2: slug-based dedup — catches cv- vs evt- duplicates
   const deduped = dedupeBySlug([...seen.values()])
-  const events = deduped.filter((e) => !blockSet.has(e.id))
+
+  // Pass 2b: cross-platform dedup — Luma wins over EB/Meetup duplicates
+  const crossDeduped = dedupeAcrossPlatforms(deduped)
+  const blockFiltered = crossDeduped.filter((e) => !blockSet.has(e.id))
+
+  // Pass 3: EB/Meetup quality split — allowlisted sources publish straight to
+  // events:london; everything else routes to events:pending-review for human review.
+  // Manual-events IDs are skipped from pending so previously-reviewed events don't
+  // re-enter the queue on the next scrape.
+  const [allowlist, manualEvents] = await Promise.all([
+    getEbMeetupAllowlist(),
+    getManualEvents(),
+  ])
+  const allowlistSet = new Set(allowlist)
+  const manualIds = new Set(manualEvents.map((e) => e.id))
+  const cutoffMs = Date.now() - 60 * 60 * 1000
+
+  // Code-defined Meetup group sources — these override the curated flag and
+  // bypass pending review entirely, regardless of whether the event was
+  // discovered via keyword search or per-group fetch.
+  const meetupGroupCurated = new Map<string, boolean>(
+    MEETUP_GROUP_SOURCES.map((s) => [`meetup:${s.slug}`, s.curated]),
+  )
+
+  const liveEvents: LondonEvent[] = []
+  const pendingEvents: LondonEvent[] = []
+  for (const event of blockFiltered) {
+    const isEbOrMeetup = event.source === 'eventbrite' || event.source === 'meetup'
+    if (!isEbOrMeetup) {
+      liveEvents.push(event)
+      continue
+    }
+    // Meetup explicit group source: override curated flag, skip review.
+    const explicitCurated = event.calendarSlug ? meetupGroupCurated.get(event.calendarSlug) : undefined
+    if (explicitCurated !== undefined) {
+      liveEvents.push({ ...event, curated: explicitCurated })
+      continue
+    }
+    const allowlisted = event.calendarSlug && allowlistSet.has(event.calendarSlug)
+    if (allowlisted) {
+      liveEvents.push(event)
+      continue
+    }
+    if (manualIds.has(event.id)) continue // already reviewed via skill
+    if (new Date(event.startAt).getTime() < cutoffMs) continue // past — auto-prune
+    pendingEvents.push(event)
+  }
+
+  await setPendingReview(pendingEvents).catch(() => {})
+  console.log(`[scrapers] ${liveEvents.length} → events:london, ${pendingEvents.length} → pending review`)
 
   return {
-    events,
+    events: liveEvents,
     failed: allScraperFailed,
     stats: {
-      total: events.length,
+      total: liveEvents.length,
       fresh: freshEvents.length,
       cached: fallbackEvents.length + cachedSourceEvents.length,
       failedCount: allScraperFailed.length,
