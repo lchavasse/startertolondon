@@ -72,10 +72,24 @@ async function fetchLumaEventDetails(
   }
 }
 
+// Extract the underlying-platform identifiers from a CV event's URL so we can
+// remap it to the correct source ('eventbrite' / 'meetup') and dedupe-by-id
+// against our own EB/Meetup scrapers.
+function detectPlatform(url: string): { source: 'eventbrite' | 'meetup' | null; id?: string; meetupGroup?: string } {
+  const eb = url.match(/eventbrite\.[^/]+\/e\/(?:[^/]*-)?tickets-(\d+)/i)
+  if (eb) return { source: 'eventbrite', id: eb[1] }
+  const mu = url.match(/meetup\.com\/([^/]+)\/events\/(\d+)/i)
+  if (mu) return { source: 'meetup', meetupGroup: mu[1], id: mu[2] }
+  return { source: null }
+}
+
 function mapCVEvent(e: CVEvent, scrapedAt: string): LondonEvent {
-  const tag = e.type && e.type !== '' ? e.type : null
-  return {
-    id: `cv-${e.id}`,
+  const platform = detectPlatform(e.url)
+  const baseTags = e.type && e.type !== '' ? [e.type] : []
+  const cvTag = 'cerebral-valley'
+  const tags = baseTags.includes(cvTag) ? baseTags : [...baseTags, cvTag]
+
+  const common = {
     name: e.name,
     startAt: e.startDateTime,
     endAt: e.endDateTime,
@@ -86,11 +100,26 @@ function mapCVEvent(e: CVEvent, scrapedAt: string): LondonEvent {
     city: 'London',
     organiserName: '',
     organiserAvatarUrl: null,
-    tags: tag ? [tag] : [],
-    source: 'cerebral-valley',
+    tags,
     scrapedAt,
     curated: false,
   }
+
+  // Remap CV → real platform source so EB/Meetup quality pipeline catches it.
+  // Tag 'cerebral-valley' on tags so it's identifiable in the review UI.
+  if (platform.source === 'eventbrite' && platform.id) {
+    return { ...common, id: `eb-${platform.id}`, source: 'eventbrite' }
+  }
+  if (platform.source === 'meetup' && platform.id && platform.meetupGroup) {
+    return {
+      ...common,
+      id: `meetup-${platform.id}`,
+      source: 'meetup',
+      calendarSlug: `meetup:${platform.meetupGroup}`,
+    }
+  }
+  // Unknown platform (hopin, splash, custom domains) — leave as cv-.
+  return { ...common, id: `cv-${e.id}`, source: 'cerebral-valley' }
 }
 
 function mapLumaEvent(

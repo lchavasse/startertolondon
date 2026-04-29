@@ -11,7 +11,8 @@
     "scrape:force": "npx tsx --env-file=.env.local scripts/scrape.ts --force",
     "seed:kb": "npx tsx --env-file=.env.local scripts/seed-kb.ts",
     "add-event": "npx tsx --env-file=.env.local scripts/add-event.ts",
-    "review-events": "npx tsx --env-file=.env.local scripts/review-events.ts"
+    "review-events": "npx tsx --env-file=.env.local scripts/review-events.ts",
+    "fix-covers": "npx tsx --env-file=.env.local scripts/fix-covers.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.1",
