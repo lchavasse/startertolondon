@@ -46,12 +46,30 @@ Filter for London: `location_type === 'offline'` AND `geo_address_info.city === 
 Cal-id extraction: fetch `luma.com/<slug>`, regex `__NEXT_DATA__` for `"api_id":"(cal-[A-Za-z0-9]+)"`.
 Channel type detection: same page fetch — look for `discplace-` first, then `cal-`.
 
+## EB/Meetup Quality Curator
+
+EB and Meetup events are noisy. The scraper splits them into two paths:
+
+- **Allowlisted sources** (`sources:eb-meetup-allowlist` — keys like `meetup:<urlname>` or `eventbrite:<organiser-id>`) auto-publish to `events:london` with `curated: false`.
+- **Everything else** routes to `events:pending-review` (hidden from `/events`) for human review.
+
+Cross-platform dedup runs first — when the same event appears on Luma and EB/Meetup (matched by name + date + venue), Luma wins.
+
+**Reviewing pending events**: invoke `/review-events` in Claude Code (or `npm run review-events`). The skill walks you through 10–20 candidates per session — the LLM ranker scores each one with a 1-line reason, you reply `feature` / `list` / `reject` / `skip` / `trust-organiser`. See `.claude/skills/review-events/SKILL.md`.
+
+Past decisions live in `events:decisions` and feed back as few-shot context for the next ranker call — quality improves with use.
+
+## Manual / Non-Luma Events
+
+For events from sources outside the cron pipeline (custom platforms, one-offs), use `/add-events` (skill at `.claude/skills/add-events/SKILL.md`) or `npm run add-event`. Writes to `events:manual` which `getEvents()` merges into the live feed.
+
 ## Environment Variables
 
 ```
 KV_REST_API_URL       # Upstash Redis REST URL
 KV_REST_API_TOKEN     # Upstash Redis token
 CRON_SECRET           # Auth token for /api/cron/scrape endpoint
+ANTHROPIC_API_KEY     # Local-only: required for `npm run review-events`
 ```
 
 ## Key Files

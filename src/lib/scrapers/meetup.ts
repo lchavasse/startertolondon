@@ -44,6 +44,9 @@ function mapEvent(raw: GQLEvent, scrapedAt: string): LondonEvent | null {
     ? `${raw.venue.address}${city ? ', ' + city : ''}`
     : city || 'London'
 
+  const groupSlug = raw.group?.urlname
+  const calendarSlug = groupSlug ? `meetup:${groupSlug}` : `meetup:event-${raw.id}`
+
   return {
     id: `meetup-${raw.id}`,
     name: raw.title,
@@ -58,6 +61,7 @@ function mapEvent(raw: GQLEvent, scrapedAt: string): LondonEvent | null {
     organiserAvatarUrl: null,
     tags: [],
     source: 'meetup',
+    calendarSlug,
     scrapedAt,
     curated: false,
   }

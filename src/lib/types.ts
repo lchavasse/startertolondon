@@ -26,6 +26,17 @@ export interface FailedSource {
   timestamp: string
 }
 
+export type ReviewDecision = 'feature' | 'list' | 'reject'
+
+export interface EventDecision {
+  id: string
+  name: string
+  organiser: string
+  decision: ReviewDecision
+  reason?: string
+  timestamp: string
+}
+
 export interface EventScraper {
   name: string
   run(): Promise<LondonEvent[]>

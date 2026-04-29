@@ -10,9 +10,11 @@
     "scrape": "npx tsx --env-file=.env.local scripts/scrape.ts",
     "scrape:force": "npx tsx --env-file=.env.local scripts/scrape.ts --force",
     "seed:kb": "npx tsx --env-file=.env.local scripts/seed-kb.ts",
-    "add-event": "npx tsx --env-file=.env.local scripts/add-event.ts"
+    "add-event": "npx tsx --env-file=.env.local scripts/add-event.ts",
+    "review-events": "npx tsx --env-file=.env.local scripts/review-events.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.91.1",
     "@supabase/supabase-js": "^2.100.0",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.36.4",
