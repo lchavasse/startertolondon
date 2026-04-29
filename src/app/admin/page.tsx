@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { CommunitySource, LondonEvent } from '@/lib/types'
+import { CommunitySource, FailedSource, LondonEvent } from '@/lib/types'
 import { SystemSource } from '@/lib/scrapers/sources'
 import { format } from 'date-fns'
 import { EventGrid } from '@/components/EventGrid'
@@ -13,7 +13,7 @@ interface AdminData {
   systemSources: { calendars: SystemSourceWithEffective[]; users: SystemSourceWithEffective[] }
   manualEvents: LondonEvent[]
   blocklist: string[]
-  failed: string[]
+  failed: FailedSource[]
   events: LondonEvent[]
 }
 
@@ -316,8 +316,11 @@ export default function AdminPage() {
                   <p className="font-mono text-xs text-[var(--muted)]">None</p>
                 ) : (
                   <div className="space-y-1">
-                    {data.failed.map((slug) => (
-                      <p key={slug} className="font-mono text-xs text-red-400">{slug}</p>
+                    {data.failed.map((f) => (
+                      <p key={f.slug} className="font-mono text-xs text-red-400">
+                        {f.slug}
+                        {f.error && <span className="text-[var(--muted)]"> — {f.error}</span>}
+                      </p>
                     ))}
                   </div>
                 )}
