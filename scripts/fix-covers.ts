@@ -19,6 +19,16 @@ const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 const REQUEST_DELAY_MS = 400
 
+function decodeHtmlEntities(s: string): string {
+  return s
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&#x2F;/gi, '/')
+}
+
 async function fetchOgImage(url: string): Promise<string | null> {
   try {
     const res = await fetch(url, {
@@ -36,7 +46,7 @@ async function fetchOgImage(url: string): Promise<string | null> {
       html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
       html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i) ||
       html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i)
-    return m?.[1] ?? null
+    return m?.[1] ? decodeHtmlEntities(m[1]) : null
   } catch {
     return null
   }
@@ -46,38 +56,50 @@ interface Args {
   apply: boolean
   limit: number
   sourceFilter: string | null
+  retryBroken: boolean
 }
 
 function parseArgs(): Args {
   const argv = process.argv.slice(2)
   const apply = argv.includes('--apply')
+  const retryBroken = argv.includes('--retry-broken')
   const limitIdx = argv.indexOf('--limit')
   const limit = limitIdx !== -1 ? parseInt(argv[limitIdx + 1] ?? '50', 10) : 50
   const sourceIdx = argv.indexOf('--source')
   const sourceFilter = sourceIdx !== -1 ? argv[sourceIdx + 1] ?? null : null
-  return { apply, limit, sourceFilter }
+  return { apply, limit, sourceFilter, retryBroken }
+}
+
+// An event needs cover-fixing if it has no coverUrl, or (when --retry-broken
+// is set) its coverUrl contains HTML-entity-encoded characters from a buggy
+// earlier extraction pass.
+function needsCoverFix(event: LondonEvent, retryBroken: boolean): boolean {
+  if (!event.coverUrl) return true
+  if (retryBroken && event.coverUrl.includes('&amp;')) return true
+  return false
 }
 
 async function main() {
-  const { apply, limit, sourceFilter } = parseArgs()
+  const { apply, limit, sourceFilter, retryBroken } = parseArgs()
   const mode = apply ? 'apply' : 'dry-run'
-  console.log(`mode: ${mode} · limit: ${limit}${sourceFilter ? ` · source: ${sourceFilter}` : ''}\n`)
+  const retryNote = retryBroken ? ' · retry-broken' : ''
+  console.log(`mode: ${mode} · limit: ${limit}${sourceFilter ? ` · source: ${sourceFilter}` : ''}${retryNote}\n`)
 
   const [london, manual] = await Promise.all([getRawEvents(), getManualEvents()])
 
   const candidates: { event: LondonEvent; from: 'london' | 'manual' }[] = []
   for (const e of london) {
-    if (!e.coverUrl && (!sourceFilter || e.source === sourceFilter)) {
+    if (needsCoverFix(e, retryBroken) && (!sourceFilter || e.source === sourceFilter)) {
       candidates.push({ event: e, from: 'london' })
     }
   }
   for (const e of manual) {
-    if (!e.coverUrl && (!sourceFilter || e.source === sourceFilter)) {
+    if (needsCoverFix(e, retryBroken) && (!sourceFilter || e.source === sourceFilter)) {
       candidates.push({ event: e, from: 'manual' })
     }
   }
 
-  console.log(`found ${candidates.length} events with no cover (${london.filter((e) => !e.coverUrl).length} in london, ${manual.filter((e) => !e.coverUrl).length} in manual)`)
+  console.log(`found ${candidates.length} events needing fix (${london.filter((e) => needsCoverFix(e, retryBroken)).length} in london, ${manual.filter((e) => needsCoverFix(e, retryBroken)).length} in manual)`)
   if (candidates.length === 0) return
 
   const slice = candidates.slice(0, limit)
