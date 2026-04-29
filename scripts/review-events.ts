@@ -57,18 +57,20 @@ async function runRank(limit: number) {
     return
   }
 
-  // Take up to `limit` events. Order: chronological (closest first) — gives natural priority.
-  const slice = pending.slice(0, limit)
-  const ranked = await rankEvents(slice, recentDecisions)
+  // Rank the FULL pending queue (batched internally by the ranker), so the top N
+  // surfaced here are the highest-scoring events across the whole calendar — not
+  // just the chronologically-closest ones (which tend to be filler).
+  console.error(`[rank] ranking all ${pending.length} pending events...`)
+  const ranked = await rankEvents(pending, recentDecisions)
   const rankedById = new Map(ranked.map((r) => [r.eventId, r]))
 
-  // Sort by score desc, falling back to chronological for ties.
-  const annotated = slice
+  const annotated = pending
     .map((event) => {
       const r = rankedById.get(event.id) ?? fallback(event)
       return { ...r, event }
     })
     .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
 
   const output = {
     pendingTotal: pending.length,

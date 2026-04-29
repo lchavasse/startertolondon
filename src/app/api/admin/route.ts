@@ -4,6 +4,7 @@ import {
   updateCommunitySource,
   removeCommunitySource,
   getManualEvents,
+  addManualEvent,
   removeManualEvent,
   updateManualEvent,
   setCuratedOverride,
@@ -14,8 +15,16 @@ import {
   removeFromBlocklist,
   getFailedSources,
   getEvents,
+  getPendingReview,
+  removeFromPendingReview,
+  getRecentDecisions,
+  appendDecision,
+  getEbMeetupAllowlist,
+  addToEbMeetupAllowlist,
+  removeFromEbMeetupAllowlist,
 } from '@/lib/kv'
 import { CALENDAR_SOURCES, USER_SOURCES } from '@/lib/scrapers/sources'
+import type { ReviewDecision, EventDecision } from '@/lib/types'
 
 function isAuthorized(req: NextRequest): boolean {
   return req.headers.get('x-admin-key') === process.env.ADMIN_SECRET
@@ -26,13 +35,26 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const [communitySources, manualEvents, blocklist, failed, events, systemOverrides] = await Promise.all([
+  const [
+    communitySources,
+    manualEvents,
+    blocklist,
+    failed,
+    events,
+    systemOverrides,
+    pendingReview,
+    recentDecisions,
+    ebMeetupAllowlist,
+  ] = await Promise.all([
     getCommunitySources(),
     getManualEvents(),
     getBlocklist(),
     getFailedSources(),
     getEvents(),
     getSystemSourceOverrides(),
+    getPendingReview(),
+    getRecentDecisions(50),
+    getEbMeetupAllowlist(),
   ])
 
   const calendarsWithEffective = CALENDAR_SOURCES.map((s) => ({
@@ -51,6 +73,9 @@ export async function GET(req: NextRequest) {
     blocklist,
     failed,
     events,
+    pendingReview,
+    recentDecisions,
+    ebMeetupAllowlist,
   })
 }
 
@@ -145,6 +170,82 @@ export async function POST(req: NextRequest) {
     const { eventId } = body
     if (!eventId) return NextResponse.json({ error: 'eventId required' }, { status: 400 })
     await addToBlocklist(eventId as string)
+    return NextResponse.json({ ok: true })
+  }
+
+  // ─── EB/Meetup review queue ───────────────────────────────────────────────
+
+  if (action === 'review-decision') {
+    const { id, decision, reason } = body as { id?: string; decision?: ReviewDecision; reason?: string }
+    if (!id || !decision || !['feature', 'list', 'reject'].includes(decision)) {
+      return NextResponse.json({ error: 'id and valid decision required' }, { status: 400 })
+    }
+    const pending = await getPendingReview()
+    const event = pending.find((e) => e.id === id)
+    if (!event) return NextResponse.json({ error: 'event not in pending queue' }, { status: 404 })
+
+    const decisionRecord: EventDecision = {
+      id: event.id,
+      name: event.name,
+      organiser: event.organiserName || event.calendarSlug || '',
+      decision,
+      reason: typeof reason === 'string' && reason.length > 0 ? reason : undefined,
+      timestamp: new Date().toISOString(),
+    }
+
+    if (decision === 'feature') {
+      await addManualEvent({ ...event, curated: true, pending: false })
+    } else if (decision === 'list') {
+      await addManualEvent({ ...event, curated: false, pending: false })
+    } else {
+      await addToBlocklist(event.id)
+    }
+    await Promise.all([
+      removeFromPendingReview(event.id),
+      appendDecision(decisionRecord),
+    ])
+    return NextResponse.json({ ok: true })
+  }
+
+  if (action === 'trust-organiser') {
+    const { id, reason } = body as { id?: string; reason?: string }
+    if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+    const pending = await getPendingReview()
+    const event = pending.find((e) => e.id === id)
+    if (!event) return NextResponse.json({ error: 'event not in pending queue' }, { status: 404 })
+    if (!event.calendarSlug) {
+      return NextResponse.json({ error: 'event has no calendarSlug — cannot allowlist' }, { status: 422 })
+    }
+    const decisionRecord: EventDecision = {
+      id: event.id,
+      name: event.name,
+      organiser: event.organiserName || event.calendarSlug,
+      decision: 'list',
+      reason: typeof reason === 'string' && reason.length > 0 ? reason : 'trust-organiser',
+      timestamp: new Date().toISOString(),
+    }
+    await Promise.all([
+      addToEbMeetupAllowlist(event.calendarSlug),
+      addManualEvent({ ...event, curated: false, pending: false }),
+      removeFromPendingReview(event.id),
+      appendDecision(decisionRecord),
+    ])
+    return NextResponse.json({ ok: true })
+  }
+
+  if (action === 'allowlist-add') {
+    const { key } = body as { key?: string }
+    if (!key || !key.startsWith('meetup:') && !key.startsWith('eventbrite:')) {
+      return NextResponse.json({ error: 'key must start with meetup: or eventbrite:' }, { status: 400 })
+    }
+    await addToEbMeetupAllowlist(key)
+    return NextResponse.json({ ok: true })
+  }
+
+  if (action === 'allowlist-remove') {
+    const { key } = body as { key?: string }
+    if (!key) return NextResponse.json({ error: 'key required' }, { status: 400 })
+    await removeFromEbMeetupAllowlist(key)
     return NextResponse.json({ ok: true })
   }
 
