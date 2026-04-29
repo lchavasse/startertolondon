@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, type KeyboardEvent, type MouseEvent } from 'react'
 import Image from 'next/image'
 import { HighlightCard as HighlightData } from '@/lib/kb'
 
@@ -22,9 +22,12 @@ interface CardHeader {
   pixelArt: string | null
   area: string | null
   access: string | null
+  category: string | null
   strapline: string | null
   website: string | null
   eventsUrl: string | null
+  highlightUrl: string | null
+  accessUrl: string | null
   sectors: string[]
 }
 
@@ -35,13 +38,16 @@ function deriveHeader(card: HighlightData): CardHeader {
       rootKind: 'space',
       slug: space.slug,
       name: space.name,
-      displayName: space.display_name ?? space.name.toUpperCase(),
+      displayName: space.display_name ?? space.name,
       pixelArt: space.pixel_art,
       area: space.area,
       access: space.access_type,
+      category: space.tags?.[0] ?? null,
       strapline: space.strapline,
       website: space.website,
       eventsUrl: space.events_url ?? community?.events_url ?? null,
+      highlightUrl: space.highlight_url ?? community?.highlight_url ?? null,
+      accessUrl: space.access_url ?? community?.access_url ?? null,
       sectors: community?.sectors ?? space.crowd_tags ?? [],
     }
   }
@@ -50,14 +56,29 @@ function deriveHeader(card: HighlightData): CardHeader {
     rootKind: 'community',
     slug: c.slug,
     name: c.name,
-    displayName: c.display_name ?? c.name.toUpperCase(),
+    displayName: c.display_name ?? c.name,
     pixelArt: c.pixel_art,
     area: c.primary_area,
     access: c.exclusivity,
+    category: c.tags?.[0] ?? null,
     strapline: c.strapline,
     website: c.website,
     eventsUrl: c.events_url,
+    highlightUrl: c.highlight_url,
+    accessUrl: c.access_url,
     sectors: c.sectors ?? [],
+  }
+}
+
+function accessLabel(access: string | null): string {
+  if (!access) return 'apply'
+  switch (access.toLowerCase()) {
+    case 'application': return 'apply'
+    case 'members':     return 'trial_day'
+    case 'invite':
+    case 'invitation':  return 'request_invite'
+    case 'open':        return 'visit'
+    default:            return 'apply'
   }
 }
 
@@ -77,8 +98,32 @@ export function HighlightCard({ card }: HighlightCardProps) {
       return next
     })
 
+  const { highlightUrl } = header
+  const openHighlight = () => window.open(highlightUrl!, '_blank', 'noopener,noreferrer')
+  const onCardClick = (e: MouseEvent<HTMLElement>) => {
+    if (!highlightUrl) return
+    if ((e.target as HTMLElement).closest('a, button')) return
+    if (window.getSelection()?.toString()) return
+    openHighlight()
+  }
+  const onCardKey = (e: KeyboardEvent<HTMLElement>) => {
+    if (!highlightUrl) return
+    if (e.target !== e.currentTarget) return
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      openHighlight()
+    }
+  }
+
   return (
-    <article className="kb-card">
+    <article
+      className={`kb-card${highlightUrl ? ' kb-card--highlight' : ''}`}
+      onClick={highlightUrl ? onCardClick : undefined}
+      onKeyDown={highlightUrl ? onCardKey : undefined}
+      tabIndex={highlightUrl ? 0 : undefined}
+      role={highlightUrl ? 'link' : undefined}
+      aria-label={highlightUrl ? `Open feature article about ${header.name}` : undefined}
+    >
       <header className="kb-card__titlebar">
         <span className="kb-card__dots"><i /><i /><i /></span>
         <span className="kb-card__file">[ {header.rootKind} ] {fileLabel(header.slug)}</span>
@@ -102,10 +147,19 @@ export function HighlightCard({ card }: HighlightCardProps) {
         </div>
         <div className="kb-card__meta">
           <h2 className="kb-card__name">{header.displayName}</h2>
-          <p className="kb-card__sub">
-            {header.area && <span>{header.area.toLowerCase()}</span>}
-            {header.access && <span> · {header.access}</span>}
-          </p>
+          <div className="kb-card__badges">
+            {header.category && (
+              <span className="kb-card__badge kb-card__badge--type">[ {header.category} ]</span>
+            )}
+            {header.access && (
+              <span className={`kb-card__badge kb-card__badge--access kb-card__badge--access-${header.access.toLowerCase()}`}>
+                [ {header.access.toLowerCase()} ]
+              </span>
+            )}
+          </div>
+          {header.area && (
+            <p className="kb-card__sub">{header.area.toLowerCase()}</p>
+          )}
           <dl className="kb-card__stats">
             <div>
               <dt>tag</dt>
@@ -161,7 +215,13 @@ export function HighlightCard({ card }: HighlightCardProps) {
           >
             {eventSeries.map((e) => (
               <p key={e.slug} className="kb-section__line">
-                <strong>{e.name}</strong>
+                {e.website ? (
+                  <a href={e.website} target="_blank" rel="noreferrer" className="kb-section__link">
+                    <strong>{e.name}</strong>
+                  </a>
+                ) : (
+                  <strong>{e.name}</strong>
+                )}
                 {e.frequency && <span className="kb-section__pill">{e.frequency}</span>}
                 {e.typical_size != null && <span className="kb-section__pill">~{e.typical_size}</span>}
               </p>
@@ -216,6 +276,11 @@ export function HighlightCard({ card }: HighlightCardProps) {
       </div>
 
       <footer className="kb-card__footer">
+        {header.accessUrl && (
+          <a href={header.accessUrl} target="_blank" rel="noopener noreferrer" className="kb-card__link kb-card__link--apply">
+            [ {accessLabel(header.access)} ]
+          </a>
+        )}
         {header.website && (
           <a href={header.website} target="_blank" rel="noopener noreferrer" className="kb-card__link">
             [ visit_site ]

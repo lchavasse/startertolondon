@@ -23,19 +23,21 @@ npm run seed:kb -- docs/kb-seeds/2026-04-24-east-london-spaces.md --dry-run
 
 ```yaml
 name: Ramen Space
-display_name: RAMEN
+display_name: RAMEN SPACE
 pixel_art: /pixel/ramen.png
 area: Dalston
 address: Unit 6, Sledge Tower, Dalston Square, London E8 3GP
 lat: 51.5456324
 lng: -0.0743644
 website: https://ramenclub.so/ramen-space
-strapline: The home for indie hackers, solopreneurs and more
+strapline: The home for indie hackers, bootstrappers and solopreneurs
 access_type: members
+access_url: https://ramenclub.so/ramen-space
 cost_type: membership
 crowd_tags: [founders, indie-hackers, solopreneurs, saas, developers]
 tags: [coworking, founders]
 featured: true
+highlight_url: https://x.com/lachlanchavasse/status/2049519253049815062
 description: |-
   Founder coworking by Dalston Junction. Run by Ramen Club. Trial days for new members.
 ```
@@ -193,6 +195,7 @@ frequency: monthly
 format: social
 free_or_paid: free
 typical_size: 30
+website: https://www.meetup.com/indie-london/
 meetup_group_ids: [indie-london]
 tags: [indie-hackers, social, monthly]
 strapline: Last-Wednesday pub meetup for indie hackers

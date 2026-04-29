@@ -28,6 +28,8 @@ export interface KBSpace {
   website: string | null
   events_url: string | null
   featured: boolean | null
+  highlight_url: string | null
+  access_url: string | null
 }
 
 export interface KBCommunity {
@@ -48,6 +50,8 @@ export interface KBCommunity {
   website: string | null
   events_url: string | null
   featured: boolean | null
+  highlight_url: string | null
+  access_url: string | null
 }
 
 export interface KBVC {
@@ -95,12 +99,12 @@ export async function fetchAllKBEntities(): Promise<{
   const [spacesRes, communitiesRes, vcsRes, programmesRes] = await Promise.all([
     supabase
       .from('spaces')
-      .select('id, slug, name, display_name, display_order, pixel_art, strapline, description, area, access_type, crowd_tags, tags, cover_image, website, events_url, featured')
+      .select('id, slug, name, display_name, display_order, pixel_art, strapline, description, area, access_type, crowd_tags, tags, cover_image, website, events_url, featured, highlight_url, access_url')
       .or(HIDE_VENUES_FILTER)
       .order('name'),
     supabase
       .from('communities')
-      .select('id, slug, name, display_name, display_order, pixel_art, strapline, description, primary_area, exclusivity, sectors, tags, cover_image, website, events_url, featured')
+      .select('id, slug, name, display_name, display_order, pixel_art, strapline, description, primary_area, exclusivity, sectors, tags, cover_image, website, events_url, featured, highlight_url, access_url')
       .order('name'),
     supabase
       .from('vcs')
@@ -161,6 +165,7 @@ export interface HighlightEventSeries {
   frequency: string | null
   typical_size: number | null
   format: string | null
+  website: string | null
 }
 
 export interface HighlightProgramme {
@@ -190,8 +195,8 @@ export type HighlightCard =
     }
 
 const COMMUNITY_SELECT =
-  'id, slug, name, display_name, display_order, pixel_art, strapline, description, primary_area, exclusivity, sectors, tags, cover_image, website, events_url, featured'
-const EVENT_SERIES_SELECT = 'slug, name, frequency, typical_size, format'
+  'id, slug, name, display_name, display_order, pixel_art, strapline, description, primary_area, exclusivity, sectors, tags, cover_image, website, events_url, featured, highlight_url, access_url'
+const EVENT_SERIES_SELECT = 'slug, name, frequency, typical_size, format, website'
 const PEOPLE_SELECT = 'slug, name, role, twitter, linkedin'
 const PROGRAMME_SELECT = 'slug, name, programme_type, cost_type, applications_open, website'
 
@@ -242,7 +247,7 @@ export async function fetchHighlights(): Promise<HighlightCard[]> {
   const [spacesRes, communitiesRes] = await Promise.all([
     supabase
       .from('spaces')
-      .select('id, slug, name, display_name, display_order, pixel_art, strapline, description, area, access_type, crowd_tags, tags, cover_image, website, events_url, featured')
+      .select('id, slug, name, display_name, display_order, pixel_art, strapline, description, area, access_type, crowd_tags, tags, cover_image, website, events_url, featured, highlight_url, access_url')
       .eq('featured', true)
       .not('pixel_art', 'is', null)
       .order('display_order', { ascending: true, nullsFirst: false })

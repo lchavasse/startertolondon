@@ -157,6 +157,7 @@ export type Database = {
       }
       communities: {
         Row: {
+          access_url: string | null
           cover_image: string | null
           created_at: string | null
           description: string | null
@@ -166,6 +167,7 @@ export type Database = {
           events_url: string | null
           exclusivity: string | null
           featured: boolean | null
+          highlight_url: string | null
           id: string
           location_type: string | null
           luma_cal_ids: string[] | null
@@ -183,6 +185,7 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          access_url?: string | null
           cover_image?: string | null
           created_at?: string | null
           description?: string | null
@@ -192,6 +195,7 @@ export type Database = {
           events_url?: string | null
           exclusivity?: string | null
           featured?: boolean | null
+          highlight_url?: string | null
           id?: string
           location_type?: string | null
           luma_cal_ids?: string[] | null
@@ -209,6 +213,7 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          access_url?: string | null
           cover_image?: string | null
           created_at?: string | null
           description?: string | null
@@ -218,6 +223,7 @@ export type Database = {
           events_url?: string | null
           exclusivity?: string | null
           featured?: boolean | null
+          highlight_url?: string | null
           id?: string
           location_type?: string | null
           luma_cal_ids?: string[] | null
@@ -576,6 +582,7 @@ export type Database = {
           tags: string[] | null
           typical_size: number | null
           updated_at: string | null
+          website: string | null
         }
         Insert: {
           cover_image?: string | null
@@ -598,6 +605,7 @@ export type Database = {
           tags?: string[] | null
           typical_size?: number | null
           updated_at?: string | null
+          website?: string | null
         }
         Update: {
           cover_image?: string | null
@@ -620,6 +628,7 @@ export type Database = {
           tags?: string[] | null
           typical_size?: number | null
           updated_at?: string | null
+          website?: string | null
         }
         Relationships: []
       }
@@ -920,6 +929,7 @@ export type Database = {
       spaces: {
         Row: {
           access_type: string | null
+          access_url: string | null
           address: string | null
           area: string | null
           capacity: number | null
@@ -934,6 +944,7 @@ export type Database = {
           embedding: string | null
           events_url: string | null
           featured: boolean | null
+          highlight_url: string | null
           id: string
           lat: number | null
           lng: number | null
@@ -948,6 +959,7 @@ export type Database = {
         }
         Insert: {
           access_type?: string | null
+          access_url?: string | null
           address?: string | null
           area?: string | null
           capacity?: number | null
@@ -962,6 +974,7 @@ export type Database = {
           embedding?: string | null
           events_url?: string | null
           featured?: boolean | null
+          highlight_url?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
@@ -976,6 +989,7 @@ export type Database = {
         }
         Update: {
           access_type?: string | null
+          access_url?: string | null
           address?: string | null
           area?: string | null
           capacity?: number | null
@@ -990,6 +1004,7 @@ export type Database = {
           embedding?: string | null
           events_url?: string | null
           featured?: boolean | null
+          highlight_url?: string | null
           id?: string
           lat?: number | null
           lng?: number | null
