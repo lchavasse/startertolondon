@@ -70,7 +70,10 @@ export default function AdminPage() {
     }
   }
 
-  async function post(action: string, body: Record<string, string | boolean>) {
+  async function post(
+    action: string,
+    body: Record<string, string | boolean | string[]>,
+  ) {
     await fetch('/api/admin', {
       method: 'POST',
       headers: { 'x-admin-key': key, 'content-type': 'application/json' },
@@ -131,14 +134,17 @@ export default function AdminPage() {
     })
   }
 
-  const filteredEvents = data?.events.filter((e) => {
+  // EB/Meetup events are managed in the Review tab — exclude from the Events tab.
+  const eventsTabSource = data?.events.filter((e) => e.source !== 'eventbrite' && e.source !== 'meetup') ?? []
+
+  const filteredEvents = eventsTabSource.filter((e) => {
     if (eventFilter === 'pending') return e.pending && !e.curated
     if (eventFilter === 'curated') return e.curated
     return true
-  }) ?? []
+  })
 
-  const pendingCount = data?.events.filter((e) => e.pending && !e.curated).length ?? 0
-  const curatedCount = data?.events.filter((e) => e.curated).length ?? 0
+  const pendingCount = eventsTabSource.filter((e) => e.pending && !e.curated).length
+  const curatedCount = eventsTabSource.filter((e) => e.curated).length
 
   const reviewCount = data?.pendingReview.length ?? 0
 
@@ -201,7 +207,7 @@ export default function AdminPage() {
                 <div className="flex items-center gap-2">
                   {([
                     ['pending', `Pending (${pendingCount})`],
-                    ['all', `All (${data.events.length})`],
+                    ['all', `All (${eventsTabSource.length})`],
                     ['curated', `Curated (${curatedCount})`],
                   ] as [EventFilter, string][]).map(([f, label]) => (
                     <button
@@ -354,7 +360,7 @@ function SourceRow({
   post,
 }: {
   source: CommunitySource
-  post: (action: string, body: Record<string, string | boolean>) => Promise<void>
+  post: (action: string, body: Record<string, string | boolean | string[]>) => Promise<void>
 }) {
   return (
     <div className="border border-[#1e1e1e] p-4 space-y-2">
@@ -415,7 +421,7 @@ function SystemSourceRow({
 }: {
   source: SystemSourceWithEffective
   type: 'calendar' | 'user'
-  post: (action: string, body: Record<string, string | boolean>) => Promise<void>
+  post: (action: string, body: Record<string, string | boolean | string[]>) => Promise<void>
 }) {
   return (
     <div className="flex items-center gap-3 px-4 py-2 border border-[#161616]">
@@ -451,16 +457,45 @@ function ReviewTab({
   pendingReview: LondonEvent[]
   allowlist: string[]
   decisions: EventDecision[]
-  post: (action: string, body: Record<string, string | boolean>) => Promise<void>
+  post: (action: string, body: Record<string, string | boolean | string[]>) => Promise<void>
 }) {
   const [sort, setSort] = useState<ReviewSort>('date')
   const [showDecisions, setShowDecisions] = useState(false)
   const [allowlistInput, setAllowlistInput] = useState('')
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkBusy, setBulkBusy] = useState(false)
+  const [bulkReason, setBulkReason] = useState('')
 
   const sorted = [...pendingReview].sort((a, b) => {
     if (sort === 'source') return a.source.localeCompare(b.source) || a.startAt.localeCompare(b.startAt)
     return new Date(a.startAt).getTime() - new Date(b.startAt).getTime()
   })
+
+  const toggleSelected = (id: string) => {
+    setSelected((s) => {
+      const next = new Set(s)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const selectAllVisible = () => setSelected(new Set(sorted.map((e) => e.id)))
+  const clearSelection = () => setSelected(new Set())
+
+  async function bulkReject() {
+    const ids = [...selected]
+    if (ids.length === 0) return
+    if (!confirm(`Reject ${ids.length} event(s) permanently? They'll be added to the blocklist and never resurface.`)) return
+    setBulkBusy(true)
+    try {
+      await post('review-bulk', { ids, decision: 'reject', ...(bulkReason ? { reason: bulkReason } : {}) })
+      setSelected(new Set())
+      setBulkReason('')
+    } finally {
+      setBulkBusy(false)
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -531,15 +566,61 @@ function ReviewTab({
 
       {/* Pending events */}
       <section className="space-y-3">
-        <h2 className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
-          Pending Review ({pendingReview.length})
-        </h2>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h2 className="font-mono text-xs uppercase tracking-widest text-[var(--muted)]">
+            Pending Review ({pendingReview.length}) {selected.size > 0 && <span className="text-amber-400">· {selected.size} selected</span>}
+          </h2>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={selectAllVisible}
+              className="px-2 py-1 font-mono text-[10px] uppercase tracking-widest border border-[var(--line)] text-[var(--muted)] hover:text-[var(--muted-strong)] hover:border-[var(--line-strong)] transition-colors"
+            >
+              Select all
+            </button>
+            <button
+              onClick={clearSelection}
+              disabled={selected.size === 0}
+              className="px-2 py-1 font-mono text-[10px] uppercase tracking-widest border border-[var(--line)] text-[var(--muted)] hover:text-[var(--muted-strong)] hover:border-[var(--line-strong)] transition-colors disabled:opacity-30"
+            >
+              Clear
+            </button>
+          </div>
+        </div>
+
+        {/* Bulk action bar — only shown when there's a selection */}
+        {selected.size > 0 && (
+          <div className="flex items-center gap-2 p-2 border border-amber-500/40 bg-amber-500/5">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-amber-400 px-1">
+              {selected.size} selected
+            </span>
+            <input
+              value={bulkReason}
+              onChange={(e) => setBulkReason(e.target.value)}
+              placeholder="reason for all (optional)"
+              className="flex-1 bg-[rgba(7,9,9,0.64)] border border-[var(--line)] text-[#f0ede6] font-mono text-[10px] px-2 py-1 outline-none focus:border-[var(--line-strong)]"
+            />
+            <button
+              disabled={bulkBusy}
+              onClick={bulkReject}
+              className="px-3 py-1 font-mono text-[10px] uppercase tracking-widest border border-red-500/40 text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-30"
+            >
+              {bulkBusy ? 'Rejecting…' : `Reject ${selected.size}`}
+            </button>
+          </div>
+        )}
+
         {sorted.length === 0 ? (
           <p className="font-mono text-xs text-[#444]">Queue is empty — all caught up.</p>
         ) : (
           <div className="space-y-2">
             {sorted.map((event) => (
-              <ReviewCard key={event.id} event={event} post={post} />
+              <ReviewCard
+                key={event.id}
+                event={event}
+                post={post}
+                selected={selected.has(event.id)}
+                onToggle={() => toggleSelected(event.id)}
+              />
             ))}
           </div>
         )}
@@ -590,9 +671,13 @@ function ReviewTab({
 function ReviewCard({
   event,
   post,
+  selected,
+  onToggle,
 }: {
   event: LondonEvent
-  post: (action: string, body: Record<string, string | boolean>) => Promise<void>
+  post: (action: string, body: Record<string, string | boolean | string[]>) => Promise<void>
+  selected: boolean
+  onToggle: () => void
 }) {
   const [reason, setReason] = useState('')
   const [busy, setBusy] = useState(false)
@@ -611,7 +696,16 @@ function ReviewCard({
   const sourceLabel = event.source === 'eventbrite' ? 'eventbrite' : 'meetup'
 
   return (
-    <div className="flex gap-3 p-3 border border-[#161616]">
+    <div className={`flex gap-3 p-3 border transition-colors ${selected ? 'border-amber-500/40 bg-amber-500/5' : 'border-[#161616]'}`}>
+      {/* Selection checkbox */}
+      <label className="flex-none flex items-start pt-1 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onToggle}
+          className="w-4 h-4 accent-amber-400 cursor-pointer"
+        />
+      </label>
       {/* Cover image (or placeholder) */}
       <div className="flex-none w-24 h-24 bg-[#0a0a0a] border border-[#161616] overflow-hidden">
         {event.coverUrl ? (

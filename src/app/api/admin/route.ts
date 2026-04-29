@@ -207,6 +207,45 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true })
   }
 
+  if (action === 'review-bulk') {
+    const { ids, decision, reason } = body as { ids?: string[]; decision?: ReviewDecision; reason?: string }
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: 'ids array required' }, { status: 400 })
+    }
+    if (!decision || !['feature', 'list', 'reject'].includes(decision)) {
+      return NextResponse.json({ error: 'valid decision required' }, { status: 400 })
+    }
+    const pending = await getPendingReview()
+    const pendingById = new Map(pending.map((e) => [e.id, e]))
+    const ts = new Date().toISOString()
+    let processed = 0
+    for (const id of ids) {
+      const event = pendingById.get(id)
+      if (!event) continue
+      const decisionRecord: EventDecision = {
+        id: event.id,
+        name: event.name,
+        organiser: event.organiserName || event.calendarSlug || '',
+        decision,
+        reason: typeof reason === 'string' && reason.length > 0 ? reason : undefined,
+        timestamp: ts,
+      }
+      if (decision === 'feature') {
+        await addManualEvent({ ...event, curated: true, pending: false })
+      } else if (decision === 'list') {
+        await addManualEvent({ ...event, curated: false, pending: false })
+      } else {
+        await addToBlocklist(event.id)
+      }
+      await Promise.all([
+        removeFromPendingReview(event.id),
+        appendDecision(decisionRecord),
+      ])
+      processed++
+    }
+    return NextResponse.json({ ok: true, processed })
+  }
+
   if (action === 'trust-organiser') {
     const { id, reason } = body as { id?: string; reason?: string }
     if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
