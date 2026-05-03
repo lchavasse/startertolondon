@@ -134,8 +134,9 @@ export default function AdminPage() {
     })
   }
 
-  // EB/Meetup events are managed in the Review tab — exclude from the Events tab.
-  const eventsTabSource = data?.events.filter((e) => e.source !== 'eventbrite' && e.source !== 'meetup') ?? []
+  // Pending EB/Meetup live in the Review tab; allowlisted ones flow through here so
+  // they show up in the source filter and can be managed alongside Luma.
+  const eventsTabSource = data?.events ?? []
 
   const filteredEvents = eventsTabSource.filter((e) => {
     if (eventFilter === 'pending') return e.pending && !e.curated
