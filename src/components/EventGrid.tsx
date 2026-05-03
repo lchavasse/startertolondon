@@ -5,6 +5,7 @@ import { LondonEvent } from '@/lib/types'
 import { EventCard } from './EventCard'
 import { TagFilter } from './TagFilter'
 import { SourceFilter, SourceGroup, getSourceGroup } from './SourceFilter'
+import { DayFilter, londonDay } from './DayFilter'
 
 interface EventGridProps {
   events: LondonEvent[]
@@ -32,20 +33,24 @@ export function EventGrid({ events, tags, forceAdminMode, forceAdminKey, onEvent
 
   // Default to all available sources (no hidden sources)
   const [activeSources, setActiveSources] = useState<SourceGroup[]>(availableSources)
+  const [activeDay, setActiveDay] = useState<string | null>(null)
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
-  const filtered = events
+  const beforeCurated = events
     .filter((e) => activeSources.includes(getSourceGroup(e.source)))
     .filter((e) => activeTags.length === 0 || e.tags.some((t) => activeTags.includes(t)))
-    .filter((e) => !curatedOnly || e.curated)
+    .filter((e) => !activeDay || londonDay(new Date(e.startAt)) === activeDay)
+
+  const filtered = curatedOnly ? beforeCurated.filter((e) => e.curated) : beforeCurated
+  const curatedCount = beforeCurated.filter((e) => e.curated).length
+  const extraFiltersActive =
+    activeTags.length > 0 ||
+    activeDay !== null ||
+    activeSources.length !== availableSources.length
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4 flex-wrap">
-        <SourceFilter
-          available={availableSources}
-          active={activeSources}
-          onChange={setActiveSources}
-        />
         <button
           onClick={() => setCuratedOnly((v) => !v)}
           className={`flex-shrink-0 px-3 py-1 text-[10px] font-mono uppercase tracking-widest border transition-all duration-150 rounded-sm ${
@@ -54,7 +59,35 @@ export function EventGrid({ events, tags, forceAdminMode, forceAdminKey, onEvent
               : 'bg-transparent text-[#555] border-[#2a2a2a] hover:border-[#555] hover:text-[#888]'
           }`}
         >
-          ★ Curated
+          ★ Curated · {curatedCount}/{beforeCurated.length}
+        </button>
+        <button
+          onClick={() => setFiltersOpen((v) => !v)}
+          aria-label={filtersOpen ? 'Hide filters' : 'Show filters'}
+          aria-expanded={filtersOpen}
+          className={`flex-shrink-0 inline-flex items-center justify-center px-2 py-1 border transition-all duration-150 rounded-sm relative ${
+            filtersOpen
+              ? 'bg-[#2a2a2a] text-[#c8ff00] border-[#444]'
+              : 'bg-transparent text-[#555] border-[#2a2a2a] hover:border-[#555] hover:text-[#888]'
+          }`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="square"
+            strokeLinejoin="miter"
+            aria-hidden="true"
+          >
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+          </svg>
+          {extraFiltersActive && !filtersOpen && (
+            <span className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-[#c8ff00]" />
+          )}
         </button>
         {!forceAdminMode && adminKey && (
           <button
@@ -70,9 +103,17 @@ export function EventGrid({ events, tags, forceAdminMode, forceAdminKey, onEvent
         )}
       </div>
 
-      <div className="border-t border-[#1a1a1a] pt-4">
-        <TagFilter tags={tags} active={activeTags} onChange={setActiveTags} />
-      </div>
+      {filtersOpen && (
+        <div className="space-y-4 border-t border-[#1a1a1a] pt-4">
+          <SourceFilter
+            available={availableSources}
+            active={activeSources}
+            onChange={setActiveSources}
+          />
+          <DayFilter activeDay={activeDay} onChange={setActiveDay} />
+          <TagFilter tags={tags} active={activeTags} onChange={setActiveTags} />
+        </div>
+      )}
 
       {filtered.length === 0 ? (
         <div className="py-24 text-center">
