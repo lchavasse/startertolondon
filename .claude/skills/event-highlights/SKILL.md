@@ -28,6 +28,12 @@ Don't draft from memory. Open at least the two most recent posts per platform be
 - **@handles inline** on X. **Bold names + LinkedIn person tags** on LinkedIn — for LinkedIn, use the person's full name in bold; the handles in `linkedin` field of `kbMatch` hosts give you the actual profile slug.
 - **Always** opens with weather/vibe + "all the links are on londoncalling [dot] guide".
 - "First birthday" / "rocket ship" / "incredible!!!" are recurring phrases — riff, don't repeat verbatim.
+- **Brand obfuscation (LinkedIn variant):** sometimes signs off with `london [cough] calling [cough cough] [dot] guide` instead of the straight form. Playful — use when the post leans wry.
+- **LinkedIn lists may be numbered (1. 2. 3.) — not just bullets.** Numbered lists carry short themed picks ("bio-focused events: 1. … 2. … 3. …"); bullets carry mixed-genre weeks.
+- **Theme-stitching one-liners** bridge category jumps mid-post: "and if your biotech is hardware, head down to..." or "but if you have a creative itch to scratch." Use these to pivot, not bullets.
+- **Names + `:o`** as an alternative to `@handles` on LinkedIn: `(Zayd :o)`. Surprise/anticipation flavour, distinct from `!!!`.
+- **Self-deprecating personal asides** scale by platform: "I may be spotted mixing up some concoctions" (X, dialled up) → "experimental bartending" (LinkedIn, compressed).
+- **Three-word minimalist openers** are valid alongside vibe statements: "atoms are in." vs "another big week ahead" — pick whichever the week earns.
 
 ## The 4-step loop
 
