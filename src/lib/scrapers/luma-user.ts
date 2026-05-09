@@ -6,6 +6,10 @@ const API_HEADERS = {
   origin: 'https://luma.com',
 }
 
+// Spacing between user-profile requests. Concurrent bursts trip Luma's per-IP
+// rate limit (manifests as 404, not 429) on /user/profile/events.
+const REQUEST_DELAY_MS = 1000
+
 interface EventObj {
   api_id: string
   name: string
@@ -96,23 +100,21 @@ export class LumaUserScraper implements EventScraper {
   async run(): Promise<LondonEvent[]> {
     const scrapedAt = new Date().toISOString()
     const failed: FailedSource[] = []
-
-    const results = await Promise.allSettled(
-      this.sources.map((u) => fetchUserEvents(u, scrapedAt, this.curated))
-    )
-
     const events: LondonEvent[] = []
-    for (const [i, result] of results.entries()) {
-      if (result.status === 'fulfilled') {
-        events.push(...result.value)
-      } else {
-        const err = result.reason
+
+    for (let i = 0; i < this.sources.length; i++) {
+      const slug = this.sources[i]
+      if (i > 0) await new Promise((r) => setTimeout(r, REQUEST_DELAY_MS))
+      try {
+        const result = await fetchUserEvents(slug, scrapedAt, this.curated)
+        events.push(...result)
+      } catch (err) {
         const statusCode = (err as { statusCode?: number }).statusCode
         const isRateLimit = statusCode === 429
         const statusNote = statusCode === 404 ? `${statusCode} (may be rate limit)` : statusCode ?? 'err'
-        console.warn(`[luma-user] Failed for ${this.sources[i]} (${statusNote}):`, err)
+        console.warn(`[luma-user] Failed for ${slug} (${statusNote}):`, err)
         failed.push({
-          slug: this.sources[i],
+          slug,
           error: err instanceof Error ? err.message : String(err),
           statusCode,
           isRateLimit,

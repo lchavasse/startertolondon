@@ -101,7 +101,10 @@ async function resolveLumaUrl(url: string): Promise<ResolvedSubmission | null> {
 
     if (typeof userObj?.api_id === 'string' && userObj.api_id.startsWith('usr-')) {
       const name = (userObj.username as string | undefined) ?? (userObj.name as string | undefined) ?? slug
-      return { type: 'user', slug, name, url: pageUrl }
+      // luma.com/user/<username> → store just <username> so the scraper's
+      // ?username=<slug> call matches what the API expects.
+      const cleanSlug = slug.startsWith('user/') ? slug.slice('user/'.length) : slug
+      return { type: 'user', slug: cleanSlug, name, url: pageUrl }
     }
 
     return null
