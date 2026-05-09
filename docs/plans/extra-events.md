@@ -1,7 +1,7 @@
 ---
 title: "feat: Manual / non-Luma event ingestion path"
 type: feat
-status: active
+status: done
 date: 2026-04-28
 worktree: .claude/worktrees/extra-events
 branch: worktree-extra-events
