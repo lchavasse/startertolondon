@@ -63,6 +63,19 @@ Past decisions live in `events:decisions` and feed back as few-shot context for 
 
 For events from sources outside the cron pipeline (custom platforms, one-offs), use `/add-events` (skill at `.claude/skills/add-events/SKILL.md`) or `npm run add-event`. Writes to `events:manual` which `getEvents()` merges into the live feed.
 
+## Sector Tagging + KB Ingestion Loop
+
+Curated events are tagged against a fixed 12-sector taxonomy (`src/lib/sectors.ts`: ai, bio, hardware, robotics, climate, fintech, crypto, creative, devtools, science, healthtech, deeptech). The `/events` page filters on these.
+
+Two-stage tagger runs after dedup, before save:
+
+1. **KB inheritance** (`src/lib/scrapers/sector-inheritance.ts`) — match the event's `calendarSlug` / cal-id / luma user-id against `event_series.{luma_cal_ids, luma_user_ids, eventbrite_organiser_ids, meetup_group_ids}` and `communities.events_url`. First hit wins. Free, deterministic.
+2. **LLM fallback** (`src/lib/llm/sector-tagger.ts`) — Haiku with prompt caching. Fetches event description (`luma-event-fetch.ts`, cached 60d) and asks for 1–3 sectors + confidence. Sub-threshold tags drop to `[]`. Cached per-event under `event:sectors:<id>` so re-runs don't re-spend tokens.
+
+Every LLM-tagged event upserts a row into `kb:event-series-candidates`. Drain it via `/promote-organisers` (skill at `.claude/skills/promote-organisers/SKILL.md` or `npm run promote-organisers`) — accepted candidates get a YAML block in `docs/kb-seeds/<date>-promoted-event-series.md`. Run `npm run seed:kb` then `npm run retag-events` to flip past events from LLM tags to deterministic KB inheritance.
+
+Plan + decisions: `docs/plans/event-sector-tagging.md`.
+
 ## Environment Variables
 
 ```

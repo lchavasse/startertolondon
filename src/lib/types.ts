@@ -1,3 +1,5 @@
+import type { Sector } from './sectors'
+
 export interface LondonEvent {
   id: string
   name: string
@@ -16,6 +18,10 @@ export interface LondonEvent {
   scrapedAt: string
   curated: boolean
   pending?: boolean
+  // Sector tags from the fixed taxonomy in src/lib/sectors.ts. Populated for
+  // curated events only — KB inheritance first, LLM fallback for orphans.
+  // Empty array = "uncategorised" (no KB match yet, or LLM low-confidence).
+  sectorTags?: Sector[]
 }
 
 export interface FailedSource {

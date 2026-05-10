@@ -120,10 +120,6 @@ export default function AdminPage() {
   const unreviewed = data?.communitySources.filter((s) => !s.reviewed) ?? []
   const reviewed = data?.communitySources.filter((s) => s.reviewed) ?? []
 
-  const allTags = data
-    ? [...new Set(data.events.flatMap((e) => e.tags))].sort()
-    : []
-
   function handleEventUpdate(id: string, update: Partial<LondonEvent> | 'deleted') {
     if (!data) return
     setData({
@@ -236,7 +232,6 @@ export default function AdminPage() {
                 ) : (
                   <EventGrid
                     events={filteredEvents}
-                    tags={allTags}
                     forceAdminMode={true}
                     forceAdminKey={key}
                     onEventUpdate={handleEventUpdate}

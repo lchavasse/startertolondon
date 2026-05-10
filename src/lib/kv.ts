@@ -1,5 +1,6 @@
 import { Redis } from '@upstash/redis'
 import { LondonEvent, CommunitySource, FailedSource, EventDecision } from '@/lib/types'
+import { isSector, type Sector } from '@/lib/sectors'
 
 const redis = new Redis({
   url: process.env.KV_REST_API_URL!,
@@ -22,10 +23,11 @@ export async function saveEvents(events: LondonEvent[]): Promise<void> {
 }
 
 export async function getEvents(): Promise<LondonEvent[]> {
-  const [rawAuto, rawManual, rawOverrides] = await Promise.all([
+  const [rawAuto, rawManual, rawOverrides, rawSectorOverrides] = await Promise.all([
     redis.get<string>('events:london'),
     redis.get<string>('events:manual'),
     redis.get<string>('events:curated-overrides'),
+    redis.get<string>('events:sector-overrides'),
   ])
 
   const autoEvents: LondonEvent[] = rawAuto
@@ -36,6 +38,9 @@ export async function getEvents(): Promise<LondonEvent[]> {
     : []
   const overrides: Record<string, boolean> = rawOverrides
     ? typeof rawOverrides === 'string' ? JSON.parse(rawOverrides) : rawOverrides
+    : {}
+  const sectorOverrides: Record<string, string[]> = rawSectorOverrides
+    ? typeof rawSectorOverrides === 'string' ? JSON.parse(rawSectorOverrides) : rawSectorOverrides
     : {}
 
   // Merge: manual wins over auto for same id
@@ -55,6 +60,11 @@ export async function getEvents(): Promise<LondonEvent[]> {
   return [...seen.values()]
     .filter((e) => new Date(e.startAt) >= cutoff && !blockSet.has(e.id))
     .map((e) => (e.id in overrides ? { ...e, curated: overrides[e.id] } : e))
+    .map((e) =>
+      e.id in sectorOverrides
+        ? { ...e, sectorTags: sectorOverrides[e.id].filter(isSector) }
+        : e
+    )
     .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
 }
 
@@ -129,6 +139,30 @@ export async function setCuratedOverride(id: string, curated: boolean): Promise<
   const current = await getCuratedOverrides()
   current[id] = curated
   await redis.set('events:curated-overrides', JSON.stringify(current))
+}
+
+// Sector overrides — manual sector-tag edits that survive scrapes and re-tagging.
+// `getEvents()` applies these on top of whatever the cron / LLM stamped.
+export async function getSectorOverrides(): Promise<Record<string, Sector[]>> {
+  const raw = await redis.get<string>('events:sector-overrides')
+  if (!raw) return {}
+  const data = typeof raw === 'string' ? JSON.parse(raw) : (raw as Record<string, string[]>)
+  const out: Record<string, Sector[]> = {}
+  for (const [k, v] of Object.entries(data)) {
+    out[k] = (Array.isArray(v) ? v : []).filter(isSector)
+  }
+  return out
+}
+
+/** Pass `null` to remove the override (event reverts to its scraped/LLM tags). */
+export async function setSectorOverride(id: string, sectors: Sector[] | null): Promise<void> {
+  const current = await getSectorOverrides()
+  if (sectors === null) {
+    delete current[id]
+  } else {
+    current[id] = [...new Set(sectors.filter(isSector))]
+  }
+  await redis.set('events:sector-overrides', JSON.stringify(current))
 }
 
 // EB/Meetup allowlist — source keys (e.g. 'meetup:tech-startups-in-the-pub') whose

@@ -17,6 +17,7 @@ import {
   getManualEvents,
 } from '@/lib/kv'
 import { CALENDAR_SOURCES, USER_SOURCES, CHANNEL_SOURCES, MEETUP_GROUP_SOURCES } from './sources'
+import { applySectorTagging } from './sector-pipeline'
 import { LumaDiscoveryScraper } from './luma-discovery'
 import { LumaCalendarScraper } from './luma-calendar'
 import { LumaUserScraper } from './luma-user'
@@ -323,11 +324,28 @@ export async function runAllScrapers(): Promise<ScraperResult> {
   await setPendingReview(pendingEvents).catch(() => {})
   console.log(`[scrapers] ${liveEvents.length} → events:london, ${pendingEvents.length} → pending review`)
 
+  // Sector tagging: KB inheritance (deterministic) → LLM fallback (Haiku) → candidate queue.
+  // Failure is non-fatal — events still ship without sectorTags if the pipeline errors.
+  let taggedEvents = liveEvents
+  try {
+    const tagging = await applySectorTagging(liveEvents)
+    taggedEvents = tagging.events
+    const s = tagging.stats
+    console.log(
+      `[sectors] ${s.inherited}/${s.total} inherited from KB ` +
+      `(${s.kbStats.eventSeries} series, ${s.kbStats.communities} communities); ` +
+      `${s.cachedFromLLM} cached from LLM, ${s.taggedByLLM} freshly LLM-tagged, ` +
+      `${s.orphansAfterLLM} still orphan`
+    )
+  } catch (err) {
+    console.warn('[sectors] tagging failed, shipping events without sectorTags:', err instanceof Error ? err.message : err)
+  }
+
   return {
-    events: liveEvents,
+    events: taggedEvents,
     failed: allScraperFailed,
     stats: {
-      total: liveEvents.length,
+      total: taggedEvents.length,
       fresh: freshEvents.length,
       cached: fallbackEvents.length + cachedSourceEvents.length,
       failedCount: allScraperFailed.length,

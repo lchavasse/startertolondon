@@ -21,6 +21,7 @@ import {
   updateManualEvent,
 } from '../src/lib/kv'
 import type { LondonEvent } from '../src/lib/types'
+import { isSector, type Sector } from '../src/lib/sectors'
 
 interface EventInput {
   name: string
@@ -32,6 +33,7 @@ interface EventInput {
   organiserName?: string
   organiserAvatarUrl?: string | null
   tags?: string[]
+  sectorTags?: string[]
   timezone?: string
   calendarSlug?: string
   pending?: boolean
@@ -53,6 +55,10 @@ function shape(input: EventInput): LondonEvent {
   if (isNaN(startMs)) throw new Error(`event '${input.name}' has invalid startAt: ${input.startAt}`)
   const endAt = input.endAt ?? new Date(startMs + 2 * 60 * 60 * 1000).toISOString()
 
+  const sectorTags: Sector[] | undefined = input.sectorTags
+    ? [...new Set(input.sectorTags.filter(isSector))]
+    : undefined
+
   return {
     id: mintId(input.url, input.startAt),
     name: input.name,
@@ -71,6 +77,7 @@ function shape(input: EventInput): LondonEvent {
     scrapedAt: new Date().toISOString(),
     curated: input.curated ?? true,
     pending: input.pending ?? false,
+    ...(sectorTags ? { sectorTags } : {}),
   }
 }
 

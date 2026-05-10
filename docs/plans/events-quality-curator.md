@@ -1,7 +1,7 @@
 ---
 title: "feat: Eventbrite/Meetup quality curator"
 type: feat
-status: active
+status: done
 date: 2026-04-29
 origin: docs/brainstorms/2026-04-29-events-quality-curator-requirements.md
 worktree: .claude/worktrees/extra-events
