@@ -8,6 +8,7 @@ import {
   removeManualEvent,
   updateManualEvent,
   setCuratedOverride,
+  setSectorOverride,
   getSystemSourceOverrides,
   setSystemSourceOverride,
   getBlocklist,
@@ -24,6 +25,7 @@ import {
   removeFromEbMeetupAllowlist,
 } from '@/lib/kv'
 import { CALENDAR_SOURCES, USER_SOURCES } from '@/lib/scrapers/sources'
+import { isSector, type Sector } from '@/lib/sectors'
 import type { ReviewDecision, EventDecision } from '@/lib/types'
 
 function isAuthorized(req: NextRequest): boolean {
@@ -84,7 +86,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  let body: Record<string, string | boolean>
+  let body: Record<string, unknown>
   try {
     body = await req.json()
   } catch {
@@ -128,6 +130,27 @@ export async function POST(req: NextRequest) {
       ...(isManual ? [updateManualEvent(id as string, { curated, ...(curated ? { pending: false } : {}) })] : []),
     ])
     return NextResponse.json({ ok: true })
+  }
+
+  if (action === 'set-event-sectors') {
+    const { id, sectors } = body as { id?: string; sectors?: unknown }
+    if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+    // null/undefined sectors = clear override; revert to scraped/LLM tags.
+    let normalised: Sector[] | null = null
+    if (Array.isArray(sectors)) {
+      normalised = sectors.filter((s): s is Sector => typeof s === 'string' && isSector(s))
+    } else if (sectors !== null && sectors !== undefined) {
+      return NextResponse.json({ error: 'sectors must be an array or null' }, { status: 400 })
+    }
+    const manualEvents = await getManualEvents()
+    const isManual = manualEvents.some((e) => e.id === id)
+    await Promise.all([
+      setSectorOverride(id, normalised),
+      ...(isManual && normalised !== null
+        ? [updateManualEvent(id, { sectorTags: normalised })]
+        : []),
+    ])
+    return NextResponse.json({ ok: true, sectorTags: normalised ?? [] })
   }
 
   if (action === 'toggle-system-source') {

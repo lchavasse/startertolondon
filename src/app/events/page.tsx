@@ -7,7 +7,6 @@ export const dynamic = 'force-dynamic'
 
 export default async function EventsPage() {
   const events = await getEvents()
-  const tags = [...new Set(events.flatMap((e) => e.tags))].sort()
 
   return (
     <main className="min-h-screen bg-[#0a0a0a] px-4 py-10 sm:px-6 lg:px-8">
@@ -38,7 +37,7 @@ export default async function EventsPage() {
             </p>
           </div>
         ) : (
-          <EventGrid events={events} tags={tags} />
+          <EventGrid events={events} />
         )}
       </div>
     </main>

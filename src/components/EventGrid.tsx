@@ -1,7 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { LondonEvent } from '@/lib/types'
+import { type Sector } from '@/lib/sectors'
 import { EventCard } from './EventCard'
 import { TagFilter } from './TagFilter'
 import { SourceFilter, SourceGroup, getSourceGroup } from './SourceFilter'
@@ -9,14 +10,14 @@ import { DayFilter, londonDay } from './DayFilter'
 
 interface EventGridProps {
   events: LondonEvent[]
-  tags: string[]
   forceAdminMode?: boolean
   forceAdminKey?: string
   onEventUpdate?: (id: string, update: Partial<LondonEvent> | 'deleted') => void
 }
 
-export function EventGrid({ events, tags, forceAdminMode, forceAdminKey, onEventUpdate }: EventGridProps) {
-  const [activeTags, setActiveTags] = useState<string[]>([])
+export function EventGrid({ events, forceAdminMode, forceAdminKey, onEventUpdate }: EventGridProps) {
+  const [activeSectors, setActiveSectors] = useState<Sector[]>([])
+  const [showUncategorised, setShowUncategorised] = useState(false)
   const [curatedOnly, setCuratedOnly] = useState(forceAdminMode ? false : true)
   const [adminKey, setAdminKey] = useState<string | null>(forceAdminKey ?? null)
   const [adminMode, setAdminMode] = useState(forceAdminMode ?? false)
@@ -31,20 +32,62 @@ export function EventGrid({ events, tags, forceAdminMode, forceAdminKey, onEvent
     ...new Set(events.map((e) => getSourceGroup(e.source))),
   ] as SourceGroup[]
 
+  // Sectors actually present on the current event set — drives chip visibility.
+  const availableSectors = useMemo<readonly Sector[]>(() => {
+    const set = new Set<Sector>()
+    for (const e of events) {
+      for (const s of e.sectorTags ?? []) set.add(s)
+    }
+    return [...set]
+  }, [events])
+
+  const hasUncategorised = useMemo(
+    () => events.some((e) => e.curated && (!e.sectorTags || e.sectorTags.length === 0)),
+    [events]
+  )
+
   // Default to all available sources (no hidden sources)
   const [activeSources, setActiveSources] = useState<SourceGroup[]>(availableSources)
   const [activeDay, setActiveDay] = useState<string | null>(null)
   const [filtersOpen, setFiltersOpen] = useState(false)
 
+  // Admin selection mode — pick a subset of events to view in isolation.
+  const [selectMode, setSelectMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [viewSelectedOnly, setViewSelectedOnly] = useState(false)
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const matchesSectorFilter = (e: LondonEvent): boolean => {
+    if (activeSectors.length === 0 && !showUncategorised) return true
+    const tags = e.sectorTags ?? []
+    if (activeSectors.length > 0 && tags.some((t) => activeSectors.includes(t))) return true
+    if (showUncategorised && tags.length === 0) return true
+    return false
+  }
+
   const beforeCurated = events
     .filter((e) => activeSources.includes(getSourceGroup(e.source)))
-    .filter((e) => activeTags.length === 0 || e.tags.some((t) => activeTags.includes(t)))
+    .filter(matchesSectorFilter)
     .filter((e) => !activeDay || londonDay(new Date(e.startAt)) === activeDay)
 
-  const filtered = curatedOnly ? beforeCurated.filter((e) => e.curated) : beforeCurated
+  const filteredByControls = curatedOnly ? beforeCurated.filter((e) => e.curated) : beforeCurated
+  // When viewing only the selected subset, bypass other filters so the user
+  // sees exactly what they picked.
+  const filtered = viewSelectedOnly
+    ? events.filter((e) => selectedIds.has(e.id))
+    : filteredByControls
   const curatedCount = beforeCurated.filter((e) => e.curated).length
   const extraFiltersActive =
-    activeTags.length > 0 ||
+    activeSectors.length > 0 ||
+    showUncategorised ||
     activeDay !== null ||
     activeSources.length !== availableSources.length
 
@@ -89,10 +132,18 @@ export function EventGrid({ events, tags, forceAdminMode, forceAdminKey, onEvent
             <span className="absolute -top-1 -right-1 w-1.5 h-1.5 rounded-full bg-[#c8ff00]" />
           )}
         </button>
+        {adminMode && !selectMode && !viewSelectedOnly && (
+          <button
+            onClick={() => setSelectMode(true)}
+            className="flex-shrink-0 ml-auto px-3 py-1 text-[10px] font-mono uppercase tracking-widest border border-[#2a2a2a] text-[#888] hover:border-[#c8ff00] hover:text-[#c8ff00] transition-all duration-150 rounded-sm"
+          >
+            Select
+          </button>
+        )}
         {!forceAdminMode && adminKey && (
           <button
             onClick={() => setAdminMode((v) => !v)}
-            className={`flex-shrink-0 ml-auto px-3 py-1 text-[10px] font-mono uppercase tracking-widest border transition-all duration-150 rounded-sm ${
+            className={`flex-shrink-0 ${adminMode && !selectMode && !viewSelectedOnly ? '' : 'ml-auto'} px-3 py-1 text-[10px] font-mono uppercase tracking-widest border transition-all duration-150 rounded-sm ${
               adminMode
                 ? 'bg-[#2a2a2a] text-[#888] border-[#444]'
                 : 'bg-transparent text-[#666] border-[#1e1e1e] hover:border-[#2a2a2a] hover:text-[#555]'
@@ -103,6 +154,67 @@ export function EventGrid({ events, tags, forceAdminMode, forceAdminKey, onEvent
         )}
       </div>
 
+      {/* Selection action bar — shown when actively selecting or viewing a subset */}
+      {adminMode && (selectMode || viewSelectedOnly) && (
+        <div className="flex items-center gap-2 flex-wrap p-2 border border-amber-500/40 bg-amber-500/5">
+          <span className="font-mono text-[10px] uppercase tracking-widest text-amber-400 px-1">
+            {viewSelectedOnly
+              ? `Viewing ${selectedIds.size} selected`
+              : `${selectedIds.size} selected`}
+          </span>
+          {selectMode && !viewSelectedOnly && (
+            <>
+              <button
+                disabled={selectedIds.size === 0}
+                onClick={() => setViewSelectedOnly(true)}
+                className="px-3 py-1 font-mono text-[10px] uppercase tracking-widest border border-[#c8ff00]/40 text-[#c8ff00] hover:bg-[#c8ff00]/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed rounded-sm"
+              >
+                View selected ({selectedIds.size})
+              </button>
+              <button
+                disabled={selectedIds.size === 0}
+                onClick={() => setSelectedIds(new Set())}
+                className="px-3 py-1 font-mono text-[10px] uppercase tracking-widest border border-[#2a2a2a] text-[#888] hover:border-[#555] hover:text-[#aaa] transition-colors disabled:opacity-30 disabled:cursor-not-allowed rounded-sm"
+              >
+                Clear
+              </button>
+              <button
+                onClick={() => {
+                  setSelectMode(false)
+                  setSelectedIds(new Set())
+                }}
+                className="ml-auto px-3 py-1 font-mono text-[10px] uppercase tracking-widest border border-[#2a2a2a] text-[#888] hover:border-[#555] hover:text-[#aaa] transition-colors rounded-sm"
+              >
+                Cancel
+              </button>
+            </>
+          )}
+          {viewSelectedOnly && (
+            <>
+              <button
+                onClick={() => {
+                  setViewSelectedOnly(false)
+                  setSelectMode(true)
+                }}
+                className="px-3 py-1 font-mono text-[10px] uppercase tracking-widest border border-[#2a2a2a] text-[#888] hover:border-[#c8ff00] hover:text-[#c8ff00] transition-colors rounded-sm"
+              >
+                Edit selection
+              </button>
+              <button
+                onClick={() => {
+                  setViewSelectedOnly(false)
+                  setSelectMode(false)
+                  setSelectedIds(new Set())
+                }}
+                className="ml-auto px-3 py-1 font-mono text-[10px] uppercase tracking-widest border border-[#2a2a2a] text-[#888] hover:border-[#555] hover:text-[#aaa] transition-colors rounded-sm"
+              >
+                Show all
+              </button>
+            </>
+          )}
+        </div>
+      )}
+
       {filtersOpen && (
         <div className="space-y-4 border-t border-[#1a1a1a] pt-4">
           <SourceFilter
@@ -111,7 +223,14 @@ export function EventGrid({ events, tags, forceAdminMode, forceAdminKey, onEvent
             onChange={setActiveSources}
           />
           <DayFilter activeDay={activeDay} onChange={setActiveDay} />
-          <TagFilter tags={tags} active={activeTags} onChange={setActiveTags} />
+          <TagFilter
+            available={availableSectors}
+            active={activeSectors}
+            onChange={setActiveSectors}
+            uncategorisedAvailable={hasUncategorised}
+            uncategorisedActive={showUncategorised}
+            onUncategorisedToggle={setShowUncategorised}
+          />
         </div>
       )}
 
@@ -134,6 +253,9 @@ export function EventGrid({ events, tags, forceAdminMode, forceAdminKey, onEvent
                 adminMode={adminMode}
                 adminKey={adminKey}
                 onEventUpdate={onEventUpdate}
+                selectMode={selectMode}
+                selected={selectedIds.has(event.id)}
+                onToggleSelect={() => toggleSelected(event.id)}
               />
             ))}
           </div>

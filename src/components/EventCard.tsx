@@ -4,20 +4,63 @@ import Image from 'next/image'
 import { useState } from 'react'
 import { format } from 'date-fns'
 import { LondonEvent } from '@/lib/types'
+import { SECTORS, SECTOR_LABELS, type Sector } from '@/lib/sectors'
 
 interface EventCardProps {
   event: LondonEvent
   adminMode?: boolean
   adminKey?: string | null
   onEventUpdate?: (id: string, update: Partial<LondonEvent> | 'deleted') => void
+  selectMode?: boolean
+  selected?: boolean
+  onToggleSelect?: () => void
 }
 
-export function EventCard({ event, adminMode, adminKey, onEventUpdate }: EventCardProps) {
+export function EventCard({
+  event,
+  adminMode,
+  adminKey,
+  onEventUpdate,
+  selectMode,
+  selected,
+  onToggleSelect,
+}: EventCardProps) {
   const [curated, setCurated] = useState(event.curated)
   const [pending, setPending] = useState(event.pending ?? false)
   const [deleted, setDeleted] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [sectorTags, setSectorTags] = useState<Sector[]>(event.sectorTags ?? [])
+  const [sectorEditorOpen, setSectorEditorOpen] = useState(false)
   const formattedDate = format(new Date(event.startAt), "EEE d MMM · h:mmaaa")
+
+  async function persistSectors(next: Sector[]) {
+    const previous = sectorTags
+    setSectorTags(next)
+    onEventUpdate?.(event.id, { sectorTags: next })
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-admin-key': adminKey ?? '' },
+        body: JSON.stringify({ action: 'set-event-sectors', id: event.id, sectors: next }),
+      })
+      if (!res.ok) {
+        setSectorTags(previous)
+        onEventUpdate?.(event.id, { sectorTags: previous })
+      }
+    } catch {
+      setSectorTags(previous)
+      onEventUpdate?.(event.id, { sectorTags: previous })
+    }
+  }
+
+  function toggleSector(sector: Sector, e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    const next = sectorTags.includes(sector)
+      ? sectorTags.filter((s) => s !== sector)
+      : [...sectorTags, sector]
+    void persistSectors(next)
+  }
 
   async function toggleCurated(e: React.MouseEvent) {
     e.preventDefault()
@@ -101,13 +144,26 @@ export function EventCard({ event, adminMode, adminKey, onEventUpdate }: EventCa
       borderClass = 'border-[#c8ff00]/50 hover:border-[#c8ff00] shadow-[0_0_12px_rgba(200,255,0,0.1)]'
     }
   }
+  if (selectMode && selected) {
+    borderClass = 'border-amber-400 shadow-[0_0_16px_rgba(245,158,11,0.35)]'
+  } else if (selectMode) {
+    borderClass = 'border-[#1e1e1e] hover:border-amber-400/60'
+  }
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (!selectMode) return
+    e.preventDefault()
+    e.stopPropagation()
+    onToggleSelect?.()
+  }
 
   return (
     <a
       href={event.url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`group relative flex flex-col bg-[#111111] border overflow-hidden transition-colors duration-150 ${borderClass}`}
+      onClick={handleCardClick}
+      className={`group relative flex flex-col bg-[#111111] border overflow-hidden transition-colors duration-150 ${borderClass} ${selectMode ? 'cursor-pointer' : ''}`}
     >
       {/* Cover */}
       <div className="relative aspect-square overflow-hidden bg-[#0a0a0a]">
@@ -129,11 +185,24 @@ export function EventCard({ event, adminMode, adminKey, onEventUpdate }: EventCa
         {adminMode && pending && !curated && (
           <button
             onClick={approvePending}
-            className="absolute top-2 left-2 px-1.5 py-0.5 bg-amber-500/90 hover:bg-green-500 text-black text-[8px] font-mono font-black uppercase tracking-wider transition-colors cursor-pointer"
+            className={`absolute ${selectMode ? 'top-10 left-2' : 'top-2 left-2'} px-1.5 py-0.5 bg-amber-500/90 hover:bg-green-500 text-black text-[8px] font-mono font-black uppercase tracking-wider transition-colors cursor-pointer`}
             title="Click to approve"
           >
             pending
           </button>
+        )}
+
+        {selectMode && (
+          <div
+            className={`absolute top-2 left-2 w-6 h-6 flex items-center justify-center text-xs font-black leading-none select-none transition-colors rounded-sm ${
+              selected
+                ? 'bg-amber-400 text-black'
+                : 'bg-black/60 text-[#888] border border-[#444]'
+            }`}
+            title={selected ? 'Selected' : 'Click card to select'}
+          >
+            {selected ? '✓' : ''}
+          </div>
         )}
 
         {adminMode ? (
@@ -169,15 +238,63 @@ export function EventCard({ event, adminMode, adminKey, onEventUpdate }: EventCa
           </p>
         )}
 
-        {event.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-auto">
-            {event.tags.slice(0, 3).map((tag) => (
-              <span
-                key={tag}
-                className="text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 border border-[#2a2a2a] text-[#777] rounded-full"
+        {(sectorTags.length > 0 || adminMode) && (
+          <div
+            className="flex flex-wrap gap-1 mt-auto"
+            onClick={adminMode ? (e) => { e.preventDefault(); e.stopPropagation() } : undefined}
+          >
+            {sectorTags.map((sector) =>
+              adminMode ? (
+                <button
+                  key={sector}
+                  onClick={(e) => toggleSector(sector, e)}
+                  className="text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 border border-[#c8ff00]/40 bg-[#c8ff00]/10 text-[#c8ff00] rounded-full hover:bg-red-500/20 hover:border-red-500/60 hover:text-red-400 transition-colors"
+                  title={`Remove ${SECTOR_LABELS[sector]}`}
+                >
+                  {SECTOR_LABELS[sector]} ×
+                </button>
+              ) : (
+                <span
+                  key={sector}
+                  className="text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 border border-[#c8ff00]/30 bg-[#c8ff00]/5 text-[#c8ff00]/80 rounded-full"
+                >
+                  {SECTOR_LABELS[sector]}
+                </span>
+              )
+            )}
+            {adminMode && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  setSectorEditorOpen((v) => !v)
+                }}
+                className={`text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 border rounded-full transition-colors ${
+                  sectorEditorOpen
+                    ? 'border-[#c8ff00] text-[#c8ff00] bg-[#c8ff00]/10'
+                    : 'border-[#2a2a2a] text-[#666] hover:border-[#555] hover:text-[#888]'
+                }`}
+                title={sectorEditorOpen ? 'Close picker' : 'Edit sector tags'}
               >
-                {tag}
-              </span>
+                {sectorEditorOpen ? '×' : '+ tag'}
+              </button>
+            )}
+          </div>
+        )}
+
+        {adminMode && sectorEditorOpen && (
+          <div
+            className="flex flex-wrap gap-1 -mt-2 pt-2 border-t border-[#1a1a1a]"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation() }}
+          >
+            {SECTORS.filter((s) => !sectorTags.includes(s)).map((sector) => (
+              <button
+                key={sector}
+                onClick={(e) => toggleSector(sector, e)}
+                className="text-[9px] font-mono uppercase tracking-widest px-2 py-0.5 border border-[#2a2a2a] text-[#888] rounded-full hover:border-[#c8ff00] hover:text-[#c8ff00] transition-colors"
+              >
+                {SECTOR_LABELS[sector]}
+              </button>
             ))}
           </div>
         )}
