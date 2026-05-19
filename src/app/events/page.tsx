@@ -23,7 +23,7 @@ export default async function EventsPage() {
                   {events.length} upcoming events
                 </p>
               )}
-              <p className="text-[#7ea1c4] text-xs font-mono mt-2">There are many events lists. This one is <a href="https://x.com/lachlanchavasse" target="_blank" rel="noopener noreferrer" className="text-[#7ea1c4] hover:text-[#c8ff00] underline">mine</a>.</p>
+              <p className="text-[#7ea1c4] text-xs font-mono mt-2">There are many events lists. This one is <a href="https://x.com/lachlan_xyz" target="_blank" rel="noopener noreferrer" className="text-[#7ea1c4] hover:text-[#c8ff00] underline">mine</a>.</p>
             </div>
             <AppNav />
           </div>
