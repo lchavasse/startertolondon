@@ -1,6 +1,15 @@
 import { nanoid } from 'nanoid'
+import { createHash } from 'node:crypto'
 import { LondonEvent, CommunitySource } from '@/lib/types'
 import { addCommunitySource, addManualEvent } from '@/lib/kv'
+import { extractEventFromHtml } from '@/lib/llm/event-extractor'
+
+const EXTRACTION_CONFIDENCE_THRESHOLD = 0.5
+
+function mintManualId(url: string, startAt: string): string {
+  const hash = createHash('sha1').update(`${url}|${startAt}`).digest('hex').slice(0, 12)
+  return `manual-${hash}`
+}
 
 const PAGE_HEADERS = {
   'User-Agent':
@@ -154,6 +163,35 @@ async function resolveOtherUrl(url: string): Promise<ResolvedSubmission | null> 
     if (!res.ok) return null
     const html = await res.text()
 
+    // First attempt: LLM extraction. Populates the event with real fields
+    // (date, venue, cover) so admin doesn't have to hand-fill via /admin.
+    const extracted = await extractEventFromHtml(url, html)
+    if (extracted && extracted.confidence >= EXTRACTION_CONFIDENCE_THRESHOLD) {
+      const now = new Date().toISOString()
+      const startMs = new Date(extracted.startAt).getTime()
+      const endAt =
+        extracted.endAt ?? new Date(startMs + 2 * 60 * 60 * 1000).toISOString()
+      const eventData: LondonEvent = {
+        id: mintManualId(url, extracted.startAt),
+        name: extracted.name,
+        startAt: extracted.startAt,
+        endAt,
+        timezone: extracted.timezone,
+        url,
+        coverUrl: extracted.coverUrl,
+        locationName: extracted.locationName,
+        city: 'London',
+        organiserName: extracted.organiserName,
+        organiserAvatarUrl: null,
+        tags: [],
+        source: 'other',
+        scrapedAt: now,
+        curated: false,
+      }
+      return { type: 'event', slug: eventData.id, name: extracted.name, url, eventData }
+    }
+
+    // Fallback: og:title stub. Admin fills in the rest via /admin.
     let name = ''
     const ogMatch = html.match(/<meta[^>]+property="og:title"[^>]+content="([^"]+)"/)
     if (ogMatch) {
