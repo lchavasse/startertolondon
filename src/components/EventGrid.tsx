@@ -91,6 +91,79 @@ export function EventGrid({ events, forceAdminMode, forceAdminKey, onEventUpdate
     activeDay !== null ||
     activeSources.length !== availableSources.length
 
+  // Preview mode — render the selection as it would appear on /events,
+  // with only an edit affordance to go back to selection.
+  if (adminMode && viewSelectedOnly) {
+    const curatedTotal = events.filter((e) => e.curated).length
+    return (
+      <div className="space-y-6">
+        <button
+          onClick={() => {
+            setViewSelectedOnly(false)
+            setSelectMode(true)
+          }}
+          title="Edit selection"
+          aria-label="Edit selection"
+          className="fixed top-3 right-3 z-50 inline-flex items-center justify-center w-8 h-8 border border-[#2a2a2a] bg-[#0a0a0a]/80 text-[#888] hover:border-[#c8ff00] hover:text-[#c8ff00] transition-colors rounded-sm"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" />
+          </svg>
+        </button>
+
+        <div>
+          <h1 className="font-mono text-xs uppercase tracking-[0.3em] text-[#c8ff00] mb-2">
+            London Calling
+          </h1>
+          <p className="text-[#f0ede6] text-3xl font-bold">Tech Events</p>
+          {curatedTotal > 0 && (
+            <p className="text-[#666] text-xs font-mono mt-2">
+              {curatedTotal} upcoming events
+            </p>
+          )}
+          <p className="text-[#7ea1c4] text-xs font-mono mt-2">
+            There are many events lists. This one is{' '}
+            <a
+              href="https://x.com/lachlan_xyz"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#7ea1c4] hover:text-[#c8ff00] underline"
+            >
+              mine
+            </a>
+            .
+          </p>
+        </div>
+
+        {filtered.length === 0 ? (
+          <div className="py-24 text-center">
+            <p className="font-mono text-xs uppercase tracking-widest text-[#666]">
+              No events selected
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {filtered.map((event) => (
+              <EventCard key={event.id} event={event} />
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-4 flex-wrap">
