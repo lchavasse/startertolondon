@@ -131,7 +131,23 @@ img: docs/posts/assets/2026-05-31/thu-curated.png
 
 - **Where files live:** `docs/posts/assets/<week-date>/`, descriptive names. Covers every source — Luma covers (paste a URL and the CLI downloads it), `/events`-page screenshots, admin select-and-view collages, past-event photos, London shots.
 - **Native media, not links** — attaching the cover as an image keeps the graphic without the engagement/cost hit of a link.
-- Lachlan makes the `/events` curated-grid and admin-collage screenshots **by hand** for now (he sometimes pads a day's curated list so the grid fills). Multiple `img:` lines = multiple images on one tweet.
+- Multiple `img:` lines = multiple images on one tweet.
+
+**Screenshot helper** (`npm run screenshot`) — automates the two recurring shots by driving the real `/events` UI with Playwright. **Start the dev server first** (`npm run dev`):
+
+```bash
+# Curated /events grid for one day (full page: header + cards) — the "Thursday" shot.
+npm run screenshot -- --week 2026-05-31 --day 2026-06-04
+# → docs/posts/assets/2026-05-31/thu-curated.png
+
+# A hand-picked set as the 4-up card collage (cards only) — the "weekend hacks" shot.
+# Match each event by a distinctive substring of its title. Needs ADMIN_SECRET.
+npm run screenshot -- --week 2026-05-31 \
+  --select "Agent Economy, Pop The Bubble, NVIDIA Hack for Impact, VibeHack" \
+  --out sat-hacks.png
+```
+
+`--day` defaults the filename to `<weekday>-curated.png`; `--out` overrides. The grid fills better when the day has a healthy curated set — Lachlan sometimes pads a thin day in `/admin` first.
 
 ### 6. Push to Typefully
 
@@ -169,8 +185,7 @@ Then, for any handle whose entry only matches itself, add the event's **luma use
 
 ## Future (not v1)
 
-- **Playwright screenshot helper** — auto-capture the `/events` curated-grid (filtered to a day) and the admin select-and-view collage into `docs/posts/assets/<week>/`, replacing the manual screenshots in step 5. Folder convention already matches, so nothing downstream changes.
 - "Already-highlighted" tracking by reading `docs/posts/*.md` event-id lists, so the auto picker excludes repeats
 - Better ranker that uses `people.featured` + attendee count signals
 
-Done (was future): Typefully API posting (step 6), images as native media (step 5), handle registry (step 7).
+Done (was future): Typefully API posting (step 6), images as native media + Playwright screenshot helper (step 5), handle registry (step 7).
