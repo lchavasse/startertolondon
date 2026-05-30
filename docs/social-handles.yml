@@ -1,0 +1,235 @@
+# Social handle registry — auto-maintained by `npm run harvest-handles`.
+#
+# The highlights script fills a host's `twitter` when the host's luma username
+# or name matches an entry's `match` list. Seeded matches only contain the
+# handle itself — add luma usernames / org-name tokens to `match` so future
+# drafts auto-tag. `credit`/`linkedin` are optional display overrides.
+#
+# Hand edits to match/linkedin/credit are preserved on re-harvest.
+
+handles:
+  - x: encodeclub
+    match:
+      - encodeclub
+      - encode club
+    seen: 3
+    last_seen: 2026-05-31
+    contexts:
+      - builders & brews — @nebiusevents + tavily + @encodeclub bringing the
+        friday coworking energy.
+      - poolside don't quit — research hackathon with the nvidia dev community
+        closes the week.
+      - kick off london tech week early at plugged for some coworking
+  - x: dcolaianni
+    match:
+      - dcolaianni
+    seen: 2
+    last_seen: 2026-05-25
+    contexts:
+      - it's i/o day and @gdglondon are doing the one-stop shop — watch party +
+        build-with-ai hack night + AIDevCamp awards.
+      - agents day.
+  - x: nebiusevents
+    match:
+      - nebiusevents
+    seen: 2
+    last_seen: 2026-05-17
+    contexts:
+      - go big or stay home.
+      - builders & brews — @nebiusevents + tavily + @encodeclub bringing the
+        friday coworking energy.
+  - x: sxswlndn
+    match:
+      - sxswlndn
+    seen: 2
+    last_seen: 2026-05-31
+    contexts:
+      - "# X thread"
+      - "@sxswlndn, day 1."
+  - x: gdglondon
+    match:
+      - gdglondon
+    seen: 1
+    last_seen: 2026-05-17
+    contexts:
+      - it's i/o day and @gdglondon are doing the one-stop shop — watch party +
+        build-with-ai hack night + AIDevCamp awards.
+  - x: join_ef
+    match:
+      - join_ef
+    seen: 1
+    last_seen: 2026-05-17
+    contexts:
+      - it's i/o day and @gdglondon are doing the one-stop shop — watch party +
+        build-with-ai hack night + AIDevCamp awards.
+  - x: pubkevin
+    match:
+      - pubkevin
+    seen: 1
+    last_seen: 2026-05-17
+    contexts:
+      - go big or stay home.
+  - x: dusthq
+    match:
+      - dusthq
+    seen: 1
+    last_seen: 2026-05-25
+    contexts:
+      - agents day.
+  - x: charlierward
+    match:
+      - charlierward
+    seen: 1
+    last_seen: 2026-05-25
+    contexts:
+      - agents day.
+  - x: aicollectiveco
+    match:
+      - aicollectiveco
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - "# X thread"
+  - x: tessl_io
+    match:
+      - tessl_io
+      - sammyhep
+      - sam hepburn
+      - tessl
+    credit: Tessl
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - "@tessl_io are kicking things off with their AI native devcon (ping me
+        for a discount code )"
+  - x: superteam_uk
+    match:
+      - superteam_uk
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - "@tessl_io are kicking things off with their AI native devcon (ping me
+        for a discount code )"
+  - x: rarefounders
+    match:
+      - rarefounders
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - "@sxswlndn, day 1."
+  - x: shipfr8
+    match:
+      - shipfr8
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - "@sxswlndn, day 1."
+  - x: alanchanguk
+    match:
+      - alanchanguk
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - "@sxswlndn, day 1."
+  - x: sequoia
+    match:
+      - sequoia
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - "@sxswlndn, day 1."
+  - x: lonlongevity
+    match:
+      - lonlongevity
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - spend the afternoon in the sunshine at Here East
+  - x: localglobevc
+    match:
+      - localglobevc
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - An absolute blockbuster!
+  - x: teloshouse
+    match:
+      - teloshouse
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - An absolute blockbuster!
+  - x: madebymany
+    match:
+      - madebymany
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - An absolute blockbuster!
+  - x: nucleateuk
+    match:
+      - nucleateuk
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - An absolute blockbuster!
+  - x: olivierlegris
+    match:
+      - olivierlegris
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - An absolute blockbuster!
+  - x: meetgranola
+    match:
+      - meetgranola
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - An absolute blockbuster!
+  - x: venturecafelond
+    match:
+      - venturecafelond
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - An absolute blockbuster!
+  - x: foresightinst
+    match:
+      - foresightinst
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - An absolute blockbuster!
+  - x: kickstartldn
+    match:
+      - kickstartldn
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - You can lock in to not one, but three awesome hacks over the weekend
+  - x: manusai
+    match:
+      - manusai
+      - manus_ai
+      - manus ai
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - You can lock in to not one, but three awesome hacks over the weekend
+  - x: nvidia
+    match:
+      - nvidia
+      - nvidiadeveloper
+      - nvidia developer community
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - You can lock in to not one, but three awesome hacks over the weekend
+  - x: zmzlois
+    match:
+      - zmzlois
+    seen: 1
+    last_seen: 2026-05-31
+    contexts:
+      - You can lock in to not one, but three awesome hacks over the weekend
