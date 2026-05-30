@@ -59,7 +59,7 @@ npm run highlights -- --from 2026-05-04 --to 2026-05-11 \
 npm run highlights -- --curated-only --no-handles
 ```
 
-The script prints JSON to stdout: `{ from, to, mode, count, highlights[] }`. Each highlight has `event`, `hosts[]` (with `twitter` / `linkedin` / `kbMatch` / `registryMatch` populated when found), `kbHints[]` (organiser matches in `communities`/`vcs`/`companies`), and `weekday` (e.g. `"Tue 5"`).
+The script prints JSON to stdout: `{ from, to, mode, count, dayCounts[], highlights[] }`. Each highlight has `event`, `hosts[]` (with `twitter` / `linkedin` / `kbMatch` / `registryMatch` populated when found), `kbHints[]` (organiser matches in `communities`/`vcs`/`companies`), and `weekday` (e.g. `"Tue 5"`). `dayCounts[]` is `{ date, weekday, curated, total }` per day across the **whole** range (not just the picks) — this is your density signal for the shot-planning step.
 
 `twitter` is auto-filled from the **handle registry** (`docs/social-handles.yml`, `registryMatch: true`) or the KB people-table (`kbMatch`). Both are safe to use inline. The registry is grown by `npm run harvest-handles`, which scrapes every `@handle` out of past posts — see step 7.
 
@@ -99,6 +99,10 @@ events: [event-id-1, event-id-2, ...]
 
 (single post body, bulleted, **bold names**, sign-off)
 
+# Shots
+
+(screenshot plan — one bullet per shot with rationale + the exact `npm run screenshot` command; omit if the week needs no screenshots. See step 5.)
+
 # Notes
 
 - KB matches: ...
@@ -119,7 +123,29 @@ After drafting, list at the bottom of the file:
 
 Then tell the user the file is drafted and ask if they want edits before they paste.
 
-### 5. Add images (optional)
+### 5. Plan the shots, then add images
+
+**The screenshot decision is not a separate guess — it falls out of the thread structure + `dayCounts`.** A screenshot earns its place when an image carries the content better than text, so the tweet shrinks to a hook + image (not a hook + a long list). Three patterns, decided while you draft:
+
+1. **Dense day → day grid.** If `dayCounts` shows a day at ~6+ curated, that day is the week's centre of gravity. Make its post a `--day` grid: the tweet becomes "𝗧𝗵𝘂 𝟰 is stacked 👀" + the grid image, instead of enumerating all eight in text. A thin-but-important day can be padded to a full grid (8 = two clean rows of 4) in `/admin` first — flag this to Lachlan, don't do it silently.
+2. **Themed cluster → select collage.** When one post bundles a coherent set of 2–4 events (the weekend's three hackathons, a night of three firesides), `--select` exactly those and let the collage talk; keep the text to the theme line.
+3. **Single hero → cover.** One marquee event = just its Luma `coverUrl` via an `img:` URL. No screenshot.
+
+Everything else stays text-only. Don't screenshot a day you're only pulling one event from, and don't collage events that don't share a thread (the image implies they belong together).
+
+**Emit a `# Shots` block.** When the thread calls for screenshots, append a `# Shots` section to the post `.md` — each planned shot with its one-line rationale and the **exact command** — and pre-write the matching `img:` lines in the thread so the files land where they're already referenced. Lachlan runs the commands (after any `/admin` padding); you don't run them. Example:
+
+```
+# Shots
+
+- Thu 4 grid — Thursday is the week's big day (8 curated). → thu-curated.png
+  npm run screenshot -- --week 2026-05-31 --day 2026-06-04
+- Weekend hacks collage — the "three hacks" post bundles them. → sat-hacks.png
+  npm run screenshot -- --week 2026-05-31 \
+    --select "Agent Economy, Pop The Bubble, NVIDIA Hack for Impact, VibeHack" --out sat-hacks.png
+```
+
+Then the mechanics below produce those files.
 
 Images attach to posts via an `img:` line (or `![](...)`) under the relevant post in the `.md`. The line is stripped from the posted text.
 
@@ -131,7 +157,23 @@ img: docs/posts/assets/2026-05-31/thu-curated.png
 
 - **Where files live:** `docs/posts/assets/<week-date>/`, descriptive names. Covers every source — Luma covers (paste a URL and the CLI downloads it), `/events`-page screenshots, admin select-and-view collages, past-event photos, London shots.
 - **Native media, not links** — attaching the cover as an image keeps the graphic without the engagement/cost hit of a link.
-- Lachlan makes the `/events` curated-grid and admin-collage screenshots **by hand** for now (he sometimes pads a day's curated list so the grid fills). Multiple `img:` lines = multiple images on one tweet.
+- Multiple `img:` lines = multiple images on one tweet.
+
+**Screenshot helper** (`npm run screenshot`) — automates the two recurring shots by driving the real `/events` UI with Playwright. **Start the dev server first** (`npm run dev`):
+
+```bash
+# Curated /events grid for one day (full page: header + cards) — the "Thursday" shot.
+npm run screenshot -- --week 2026-05-31 --day 2026-06-04
+# → docs/posts/assets/2026-05-31/thu-curated.png
+
+# A hand-picked set as the 4-up card collage (cards only) — the "weekend hacks" shot.
+# Match each event by a distinctive substring of its title. Needs ADMIN_SECRET.
+npm run screenshot -- --week 2026-05-31 \
+  --select "Agent Economy, Pop The Bubble, NVIDIA Hack for Impact, VibeHack" \
+  --out sat-hacks.png
+```
+
+`--day` defaults the filename to `<weekday>-curated.png`; `--out` overrides. The grid fills better when the day has a healthy curated set — Lachlan sometimes pads a thin day in `/admin` first.
 
 ### 6. Push to Typefully
 
@@ -169,8 +211,7 @@ Then, for any handle whose entry only matches itself, add the event's **luma use
 
 ## Future (not v1)
 
-- **Playwright screenshot helper** — auto-capture the `/events` curated-grid (filtered to a day) and the admin select-and-view collage into `docs/posts/assets/<week>/`, replacing the manual screenshots in step 5. Folder convention already matches, so nothing downstream changes.
 - "Already-highlighted" tracking by reading `docs/posts/*.md` event-id lists, so the auto picker excludes repeats
 - Better ranker that uses `people.featured` + attendee count signals
 
-Done (was future): Typefully API posting (step 6), images as native media (step 5), handle registry (step 7).
+Done (was future): Typefully API posting (step 6), images as native media + Playwright screenshot helper (step 5), handle registry (step 7).

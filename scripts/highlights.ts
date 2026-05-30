@@ -315,6 +315,19 @@ async function main() {
   const ranged = all.filter((e) => inRange(e, args.from, args.to))
   const pool = args.curatedOnly ? ranged.filter((e) => e.curated) : ranged
 
+  // Per-day density across the whole range — drives the "is this a big day?"
+  // screenshot decision (see the skill's shot-planning step), independent of
+  // the top-N picks below.
+  const dayMap = new Map<string, { date: string; weekday: string; curated: number; total: number }>()
+  for (const e of ranged) {
+    const date = e.startAt.slice(0, 10)
+    const row = dayMap.get(date) ?? { date, weekday: weekdayLabel(e.startAt), curated: 0, total: 0 }
+    row.total += 1
+    if (e.curated) row.curated += 1
+    dayMap.set(date, row)
+  }
+  const dayCounts = [...dayMap.values()].sort((a, b) => a.date.localeCompare(b.date))
+
   console.warn(
     `[highlights] ${ranged.length} events in range ${args.from.toISOString().slice(0, 10)}..${args.to.toISOString().slice(0, 10)} (${pool.length} after curated filter)`
   )
@@ -355,6 +368,7 @@ async function main() {
         to: args.to.toISOString().slice(0, 10),
         mode: args.match.length > 0 ? 'directed' : 'auto',
         count: highlights.length,
+        dayCounts,
         highlights,
       },
       null,
