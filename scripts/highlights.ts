@@ -12,6 +12,8 @@
  *                          [--curated-only] [--no-handles]
  */
 
+import { readFileSync, existsSync } from 'node:fs'
+import { parse } from 'yaml'
 import { getEvents } from '../src/lib/kv'
 import { supabase } from '../src/lib/supabase'
 import type { LondonEvent } from '../src/lib/types'
@@ -23,6 +25,52 @@ interface Host {
   twitter?: string
   linkedin?: string
   kbMatch?: 'people' // future: 'companies', 'vcs', etc.
+  registryMatch?: boolean // twitter/linkedin came from docs/social-handles.yml
+}
+
+const REGISTRY_PATH = 'docs/social-handles.yml'
+
+interface RegistryEntry {
+  x: string
+  match: string[]
+  linkedin?: string
+  credit?: string
+}
+
+/** alias (lowercased) → handle entry, from the harvested registry. */
+function loadHandleRegistry(): Map<string, RegistryEntry> {
+  const index = new Map<string, RegistryEntry>()
+  if (!existsSync(REGISTRY_PATH)) return index
+  const parsed = parse(readFileSync(REGISTRY_PATH, 'utf8')) as
+    | { handles?: RegistryEntry[] }
+    | null
+  for (const entry of parsed?.handles ?? []) {
+    for (const alias of entry.match ?? []) {
+      index.set(alias.toLowerCase(), entry)
+    }
+  }
+  return index
+}
+
+/** Fill twitter/linkedin from the registry when KB didn't already. */
+function enrichHostsFromRegistry(
+  hosts: Host[],
+  registry: Map<string, RegistryEntry>
+): Host[] {
+  if (registry.size === 0) return hosts
+  return hosts.map((h) => {
+    if (h.twitter) return h // KB / people-table wins
+    const entry =
+      (h.username && registry.get(h.username.toLowerCase())) ||
+      registry.get(h.name.toLowerCase())
+    if (!entry) return h
+    return {
+      ...h,
+      twitter: entry.x,
+      linkedin: entry.linkedin ?? h.linkedin,
+      registryMatch: true,
+    }
+  })
 }
 
 interface KbHint {
@@ -278,12 +326,16 @@ async function main() {
 
   console.warn(`[highlights] picked ${picks.length} events`)
 
+  const registry = loadHandleRegistry()
+  console.warn(`[highlights] handle registry: ${registry.size} aliases`)
+
   const highlights: Highlight[] = []
   for (const event of picks) {
     let hosts: Host[] = []
     if (!args.noHandles) {
       hosts = await fetchEventHosts(event.url)
       hosts = await enrichHostsFromKb(hosts)
+      hosts = enrichHostsFromRegistry(hosts, registry)
       // Be polite to Luma
       await new Promise((r) => setTimeout(r, 300))
     }

@@ -26,7 +26,9 @@ Don't draft from memory. Open at least the two most recent posts per platform be
 - **Heavy `!!!`**, occasional 🔥 / 🦄 / 👀 / 👋.
 - **Bare lu.ma links** on X (no markdown, no shorteners).
 - **@handles inline** on X. **Bold names + LinkedIn person tags** on LinkedIn — for LinkedIn, use the person's full name in bold; the handles in `linkedin` field of `kbMatch` hosts give you the actual profile slug.
-- **Always** opens with weather/vibe + "all the links are on londoncalling [dot] guide".
+- **Tag aggressively, and tag the *real* host** — not Luma's `organiserName` (often just the calendar owner). The script pre-fills `twitter` from the harvested registry (`registryMatch`) + KB (`kbMatch`); trust those and add any you know. e.g. sauna day → @RareFounders, AI Native DevCon → @tessl_io. Tagging is the post's distribution engine.
+- **Links off by default on X.** Lachlan strips most links — they kill engagement (and cost ~13× more to auto-post). Keep one only when the cover graphic is worth it or to support a friend's event. When used, it's a **bare lu.ma link** (no markdown, no shorteners).
+- **Opener:** weather/vibe is the default, but a big week earns a bolder **value/stakes hook** ("3+ ways you can win 10k cold hard cash this week"). Always include "all the links are on londoncalling [dot] guide".
 - "First birthday" / "rocket ship" / "incredible!!!" are recurring phrases — riff, don't repeat verbatim.
 - **Brand obfuscation (LinkedIn variant):** sometimes signs off with `london [cough] calling [cough cough] [dot] guide` instead of the straight form. Playful — use when the post leans wry.
 - **LinkedIn lists may be numbered (1. 2. 3.) — not just bullets.** Numbered lists carry short themed picks ("bio-focused events: 1. … 2. … 3. …"); bullets carry mixed-genre weeks.
@@ -35,7 +37,7 @@ Don't draft from memory. Open at least the two most recent posts per platform be
 - **Self-deprecating personal asides** scale by platform: "I may be spotted mixing up some concoctions" (X, dialled up) → "experimental bartending" (LinkedIn, compressed).
 - **Three-word minimalist openers** are valid alongside vibe statements: "atoms are in." vs "another big week ahead" — pick whichever the week earns.
 
-## The 4-step loop
+## The loop
 
 ### 1. Clarify the request
 
@@ -57,7 +59,9 @@ npm run highlights -- --from 2026-05-04 --to 2026-05-11 \
 npm run highlights -- --curated-only --no-handles
 ```
 
-The script prints JSON to stdout: `{ from, to, mode, count, highlights[] }`. Each highlight has `event`, `hosts[]` (with `twitter` / `linkedin` / `kbMatch` populated when found), `kbHints[]` (organiser matches in `communities`/`vcs`/`companies`), and `weekday` (e.g. `"Tue 5"`).
+The script prints JSON to stdout: `{ from, to, mode, count, highlights[] }`. Each highlight has `event`, `hosts[]` (with `twitter` / `linkedin` / `kbMatch` / `registryMatch` populated when found), `kbHints[]` (organiser matches in `communities`/`vcs`/`companies`), and `weekday` (e.g. `"Tue 5"`).
+
+`twitter` is auto-filled from the **handle registry** (`docs/social-handles.yml`, `registryMatch: true`) or the KB people-table (`kbMatch`). Both are safe to use inline. The registry is grown by `npm run harvest-handles`, which scrapes every `@handle` out of past posts — see step 7.
 
 If the script logs `no match for: "<term>"`, surface it to the user and ask for a clearer name.
 
@@ -102,9 +106,9 @@ events: [event-id-1, event-id-2, ...]
 - Suggested hooks I didn't use: ...
 ```
 
-Use `---` as the X post separator (it's the standard Typefully thread delimiter — paste-ready).
+Use `---` as the X post separator (it's the standard Typefully thread delimiter, and how `post-thread` splits the thread). One post per day is the default, but **theme-grouping is fine** — e.g. merge the weekend's hackathons into a single "three hacks" post.
 
-For each event, prefer in this order: KB-matched twitter handle → Luma-extracted handle → just the host name (no @). For LinkedIn, prefer KB linkedin → bold name only.
+For each event, prefer in this order: KB-matched twitter handle → registry handle → Luma-extracted handle → just the host name (no @). For LinkedIn, prefer KB linkedin → bold name only.
 
 ### 4. Surface KB and gaps
 
@@ -115,6 +119,39 @@ After drafting, list at the bottom of the file:
 
 Then tell the user the file is drafted and ask if they want edits before they paste.
 
+### 5. Add images (optional)
+
+Images attach to posts via an `img:` line (or `![](...)`) under the relevant post in the `.md`. The line is stripped from the posted text.
+
+```markdown
+**Thu 4**
+... the day's narrative ...
+img: docs/posts/assets/2026-05-31/thu-curated.png
+```
+
+- **Where files live:** `docs/posts/assets/<week-date>/`, descriptive names. Covers every source — Luma covers (paste a URL and the CLI downloads it), `/events`-page screenshots, admin select-and-view collages, past-event photos, London shots.
+- **Native media, not links** — attaching the cover as an image keeps the graphic without the engagement/cost hit of a link.
+- Lachlan makes the `/events` curated-grid and admin-collage screenshots **by hand** for now (he sometimes pads a day's curated list so the grid fills). Multiple `img:` lines = multiple images on one tweet.
+
+### 6. Push to Typefully
+
+```bash
+npm run post-thread -- 2026-05-31            # dry-run: prints the parsed thread + image count
+npm run post-thread -- 2026-05-31 --send     # creates a Typefully DRAFT across X + LinkedIn
+```
+
+Parses the `.md` (X thread split on `---`, LinkedIn block, Notes excluded), uploads images as native media, and creates one Typefully draft spanning both platforms. Default (no `--publish`) saves a **draft** — Lachlan reviews and schedules inside Typefully. A `<week>.typefully.json` sidecar prevents double-pushing. Needs `TYPEFULLY_API_KEY` + `TYPEFULLY_SOCIAL_SET_ID` in `.env.local`.
+
+### 7. Feed the registry
+
+After the post is finalised:
+
+```bash
+npm run harvest-handles    # scrapes @handles from the new post into docs/social-handles.yml
+```
+
+Then, for any handle whose entry only matches itself, add the event's **luma username / org-name tokens** to its `match:` list so next week the script auto-tags it. This is the compounding step — a few aliases each week and drafts arrive pre-tagged.
+
 ## When to stop and ask
 
 - A directed name has 0 matches → ask for clarification, don't guess
@@ -124,7 +161,7 @@ Then tell the user the file is drafted and ask if they want edits before they pa
 
 ## Don'ts
 
-- Don't post anywhere. Drafts only — Lachlan pastes manually.
+- Don't auto-publish. `post-thread` creates a Typefully **draft** (no `--publish`) — Lachlan reviews and schedules in Typefully.
 - Don't fabricate handles. If the script didn't return one, leave the bold name and note it in the gaps section.
 - Don't generate emojis the archive doesn't use. The vocabulary is small: `!!!` `🔥` `🦄` `👀` `👋`.
 - Don't markdown-wrap lu.ma links on X.
@@ -132,7 +169,8 @@ Then tell the user the file is drafted and ask if they want edits before they pa
 
 ## Future (not v1)
 
-- Typefully API for scheduled posting
-- Image collage from `coverUrl`
+- **Playwright screenshot helper** — auto-capture the `/events` curated-grid (filtered to a day) and the admin select-and-view collage into `docs/posts/assets/<week>/`, replacing the manual screenshots in step 5. Folder convention already matches, so nothing downstream changes.
 - "Already-highlighted" tracking by reading `docs/posts/*.md` event-id lists, so the auto picker excludes repeats
 - Better ranker that uses `people.featured` + attendee count signals
+
+Done (was future): Typefully API posting (step 6), images as native media (step 5), handle registry (step 7).
