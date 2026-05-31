@@ -3,6 +3,7 @@
 import { useState, type KeyboardEvent, type MouseEvent } from 'react'
 import Image from 'next/image'
 import { HighlightCard as HighlightData } from '@/lib/kb'
+import { withUtm } from '@/lib/utm'
 
 type SectionKey = 'community' | 'events' | 'people' | 'programmes'
 
@@ -216,7 +217,7 @@ export function HighlightCard({ card }: HighlightCardProps) {
             {eventSeries.map((e) => (
               <p key={e.slug} className="kb-section__line">
                 {e.website ? (
-                  <a href={e.website} target="_blank" rel="noreferrer" className="kb-section__link">
+                  <a href={withUtm(e.website)} target="_blank" rel="noreferrer" className="kb-section__link">
                     <strong>{e.name}</strong>
                   </a>
                 ) : (
@@ -277,22 +278,22 @@ export function HighlightCard({ card }: HighlightCardProps) {
 
       <footer className="kb-card__footer">
         {header.accessUrl && (
-          <a href={header.accessUrl} target="_blank" rel="noopener noreferrer" className="kb-card__link kb-card__link--apply">
+          <a href={withUtm(header.accessUrl)} target="_blank" rel="noopener noreferrer" className="kb-card__link kb-card__link--apply">
             [ {accessLabel(header.access)} ]
           </a>
         )}
         {header.website && (
-          <a href={header.website} target="_blank" rel="noopener noreferrer" className="kb-card__link">
+          <a href={withUtm(header.website)} target="_blank" rel="noopener noreferrer" className="kb-card__link">
             [ visit_site ]
           </a>
         )}
         {header.eventsUrl && (
-          <a href={header.eventsUrl} target="_blank" rel="noopener noreferrer" className="kb-card__link">
+          <a href={withUtm(header.eventsUrl)} target="_blank" rel="noopener noreferrer" className="kb-card__link">
             [ events ]
           </a>
         )}
         {nestedCommunity?.website && nestedCommunity.website !== header.website && (
-          <a href={nestedCommunity.website} target="_blank" rel="noopener noreferrer" className="kb-card__link">
+          <a href={withUtm(nestedCommunity.website)} target="_blank" rel="noopener noreferrer" className="kb-card__link">
             [ community_site ]
           </a>
         )}

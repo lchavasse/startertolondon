@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { KBEntity } from '@/lib/kb'
+import { withUtm } from '@/lib/utm'
 
 interface ExploreCardProps {
   entity: KBEntity
@@ -116,7 +117,7 @@ export function ExploreCard({ entity, adminMode, onEdit }: ExploreCardProps) {
         {entity.website && (
           <div className="pt-3 border-t border-[#1a1a1a]">
             <a
-              href={entity.website}
+              href={withUtm(entity.website)}
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
