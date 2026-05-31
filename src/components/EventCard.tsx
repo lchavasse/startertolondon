@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { format } from 'date-fns'
 import { LondonEvent } from '@/lib/types'
 import { SECTORS, SECTOR_LABELS, type Sector } from '@/lib/sectors'
+import { withUtm } from '@/lib/utm'
 
 interface EventCardProps {
   event: LondonEvent
@@ -159,7 +160,7 @@ export function EventCard({
 
   return (
     <a
-      href={event.url}
+      href={withUtm(event.url)}
       target="_blank"
       rel="noopener noreferrer"
       onClick={handleCardClick}

@@ -5,6 +5,7 @@ import { useMemo, useState } from 'react'
 import { clearStoredOnboarding, loadStoredOnboarding } from '@/lib/profile'
 import { rankGuideItems } from '@/lib/guide-data'
 import { GuideItem, StoredOnboardingState, UserProfile } from '@/lib/types'
+import { withUtm } from '@/lib/utm'
 
 const EMPTY_PROFILE: UserProfile = {
   name: null,
@@ -168,7 +169,7 @@ export function GuidePageClient({ items }: GuidePageClientProps) {
                     </div>
                     {item.href && (
                       <a
-                        href={item.href}
+                        href={withUtm(item.href)}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-[11px] font-mono text-[#666] hover:text-[#c8ff00] transition-colors duration-150 flex-shrink-0"

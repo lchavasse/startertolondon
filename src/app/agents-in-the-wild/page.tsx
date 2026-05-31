@@ -1,9 +1,10 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { withUtm } from '@/lib/utm'
 
-const APPLY_URL = 'https://luma.com/qvvtbdlh'
-const DEMO_URL = 'https://luma.com/awkhqorw'
+const APPLY_URL = withUtm('https://luma.com/qvvtbdlh')
+const DEMO_URL = withUtm('https://luma.com/awkhqorw')
 
 export const metadata: Metadata = {
   title: 'Agents in the Wild — build sprint & demo competition',
