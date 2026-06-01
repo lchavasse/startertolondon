@@ -37,7 +37,9 @@ cost_type: membership
 crowd_tags: [founders, indie-hackers, solopreneurs, saas, developers]
 tags: [coworking, founders]
 featured: true
-highlight_url: https://x.com/lachlanchavasse/status/2049519253049815062
+# Spotlight moved to rare-founders on 2026-06-01 (was the top highlight card).
+# Restore this line to bring back Ramen Space's feature-tweet glow:
+# highlight_url: https://x.com/lachlanchavasse/status/2049519253049815062
 description: |-
   Founder coworking by Dalston Junction. Run by Ramen Club. Trial days for new members.
 ```

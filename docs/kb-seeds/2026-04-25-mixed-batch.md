@@ -21,6 +21,9 @@ Per-entity source notes get appended below as research happens. Format:
 - **vasily-alekseenko** — Founder of Rare Founders (per LinkedIn posts and X profile). LinkedIn `https://www.linkedin.com/in/alekseenkovv/`. Runs the @rarefounders X account himself; bio "Hosting crazy startup events in London | Founder | Angel investor | Community builder | LGBTQ+".
 - **the-ministry** — `https://www.theministry.com` (confirmed). Address 79-81 Borough Road, London SE1 1DN. Geocode: `The Ministry coworking Borough Road Southwark London` → 51.4989914, -0.0983703 (Nominatim). Tagline (theirs): "Converted Victorian printworks in Borough, South London. 50,000 sq ft of workspace meets members club." Access: hot desks, day passes, fixed desks, private offices, club membership.
 - **co-working-fridays** — Confirmed weekly recurring on Luma (events e.g. 2026-04-24, 2026-05-01). £5 per session per user. Hosted at The Ministry, organised by Rare Founders.
+- **open-mic-pitching** — Rare Founders open-mic pitch night. User-confirmed (2026-06-01): runs ~quarterly, free to attend, no fixed venue (varies — no dedicated recurring link), organised by Vasily. X handle for Rare Founders / Vasily: `@rarefounders` (https://x.com/rarefounders). Logo asset → `public/pixel/rare-founders.png` — pixel-art mint wordmark derived from the user-supplied logo (white knockout plate → letter mask via hole-fill + morphological close → recoloured `#c4f3ce` → pixelated at a 96px grid to match the existing pixel-art set). Set as community `pixel_art` so the highlight card renders.
+- **rare-founders-demo-day** — User-supplied (2026-06-01): "London's largest Demo Day", yearly, ~2,000 people. `frequency: yearly` added to the schema enum in migration `20260601100000_feature_rare_founders.sql`. free_or_paid assumed `free` (flag if it's ticketed). No fixed venue captured.
+- **rare-founders (curation, 2026-06-01)** — Promoted to the top highlight card with the neon spotlight (`display_order: 1`, `highlight_url: https://luma.com/user/rarefounders`). The spotlight moved off `ramen-space` (its feature-tweet `highlight_url` was cleared; see `2026-04-24-east-london-spaces.md`). `fetchHighlights` now sorts `display_order` globally across spaces + communities so a community can lead the grid. Order: rare-founders, ramen-space, plugged, encode-hub, opus-house, unicorn-mafia, ignite-london — set in the same migration.
 - **opus-house** — Borough location of the OPUS community (per user-shared Google Maps pin: https://maps.app.goo.gl/RSV9VCmJXix9xzu87). Coords 51.504694, -0.0950768. Address 55 Southwark Street, Borough, SE1 9EU (reverse-geocode via Nominatim). The OPUS community itself was founded 2020 by Sam Tidswell-Norrish (Motive Partners), originally named 20:40, members application + £99/mo (Sifted, Crunchbase). User said: skip the founder/lead, skip the Holborn HQ — Borough only.
 - **the-jellicoe** — Fora King's Cross workspace at 5 Beaconsfield Street, N1C 4EW (foraspace.com/london-workspaces/the-jellicoe). 12 floors / 170k sqft, near Coal Drops Yard. Geocode: `5 Beaconsfield Street King's Cross London N1C 4EW` → 51.5385724, -0.1239090 (Nominatim landed on the street; postcode boundaries fuzz one block).
 - **ignite-london** — Already in DB (legacy seed) at slug `ignite-london` with sectors=[ai, deeptech], size_band=medium, location_type=irl. Site tagline (https://ignite-london.co): "A founder-led AI & deep tech community". User confirms application-only, no Luma URL.
@@ -57,6 +60,9 @@ description: |
 ```yaml
 name: Rare Founders
 primary_area: Borough
+pixel_art: /pixel/rare-founders.png
+display_order: 1
+highlight_url: https://luma.com/user/rarefounders
 website: https://www.rarefounders.com/
 luma_user_ids: [usr-hMqb0XIXoVratXw]
 sectors: [founders, generalist]
@@ -78,6 +84,7 @@ led_by: [vasily-alekseenko]
 ```yaml
 name: Vasily Alekseenko
 role: Founder, Rare Founders
+twitter: https://x.com/rarefounders
 linkedin: https://www.linkedin.com/in/alekseenkovv/
 tags: [founder, community-builder, angel-investor]
 featured: true
@@ -95,13 +102,51 @@ name: Co-Working Fridays
 frequency: weekly
 format: coworking
 free_or_paid: paid
-typical_size: 30
+typical_size: 20
 tags: [founders, coworking, friday]
 strapline: £5 Friday coworking with the Rare Founders crew
 description: |
   Weekly £5 drop-in for founders, every Friday at The Ministry. RSVP via the
   Rare Founders Luma.
 hosted_at: [the-ministry]
+hosted_by: [vasily-alekseenko]
+under: [rare-founders]
+```
+
+---
+
+## event_series: open-mic-pitching
+
+```yaml
+name: Open Mic Pitching
+frequency: quarterly
+format: demo
+free_or_paid: free
+typical_size: 100
+tags: [founders, pitching, demo-day]
+strapline: Grab the mic, pitch your startup to the room
+description: |
+  Rare Founders' open-mic pitch night — anyone can step up and pitch.
+  Runs roughly quarterly. Venue varies; watch the Rare Founders Luma.
+hosted_by: [vasily-alekseenko]
+under: [rare-founders]
+```
+
+---
+
+## event_series: rare-founders-demo-day
+
+```yaml
+name: Demo Day
+frequency: yearly
+format: demo
+free_or_paid: free
+typical_size: 2000
+tags: [founders, demo-day, pitching]
+strapline: London's largest demo day — 2,000 founders, once a year
+description: |
+  Rare Founders' flagship annual demo day, and London's biggest — around
+  2,000 founders, investors and operators in one room.
 hosted_by: [vasily-alekseenko]
 under: [rare-founders]
 ```

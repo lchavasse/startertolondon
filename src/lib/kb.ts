@@ -348,6 +348,13 @@ export async function fetchHighlights(): Promise<HighlightCard[]> {
     })
   }
 
+  // Global ordering across both space- and community-rooted cards by the root
+  // entity's display_order (lower = earlier; NULL falls to the alphabetical tail).
+  const rootOrder = (c: HighlightCard) =>
+    (c.kind === 'space' ? c.space.display_order : c.community.display_order) ?? Number.MAX_SAFE_INTEGER
+  const rootName = (c: HighlightCard) => (c.kind === 'space' ? c.space.name : c.community.name)
+  cards.sort((a, b) => rootOrder(a) - rootOrder(b) || rootName(a).localeCompare(rootName(b)))
+
   return cards
 }
 
