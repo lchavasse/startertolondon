@@ -68,6 +68,27 @@ async function settleImages(page: Page) {
   await page.waitForTimeout(300)
 }
 
+// Bounding box (page coords) enclosing exactly the rendered event cards in the
+// active grid — empty grid tracks have no DOM node, so a 3-event day crops to 3.
+async function cardClip(page: Page) {
+  const clip = await page.evaluate(() => {
+    const grids = Array.from(document.querySelectorAll('.grid'))
+    const grid = grids[grids.length - 1]
+    if (!grid) return null
+    let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity
+    for (const child of Array.from(grid.children)) {
+      const box = child.getBoundingClientRect()
+      if (box.width === 0 || box.height === 0) continue
+      l = Math.min(l, box.left); t = Math.min(t, box.top)
+      r = Math.max(r, box.right); b = Math.max(b, box.bottom)
+    }
+    if (!isFinite(l)) return null
+    return { x: l + window.scrollX, y: t + window.scrollY, width: r - l, height: b - t }
+  })
+  if (!clip) throw new Error('no event cards found to crop to')
+  return clip
+}
+
 async function shootDay(page: Page, baseUrl: string, day: string, outPath: string) {
   await page.goto(`${baseUrl}/events`, { waitUntil: 'domcontentloaded' })
   await page.locator('.grid').first().waitFor({ timeout: 15000 })
@@ -81,7 +102,21 @@ async function shootDay(page: Page, baseUrl: string, day: string, outPath: strin
   await page.waitForTimeout(600) // let the grid settle
   await settleImages(page) // force lazy covers to load before capture
 
-  await page.screenshot({ path: outPath, fullPage: true })
+  // Crop to just the event cards — no "London Calling" page chrome, and tight
+  // to however many events the day has (e.g. a clean 3-card Monday).
+  let clip = await cardClip(page)
+
+  // clip-beyond-viewport is unreliable here, so grow the viewport to fit the
+  // whole grid (multi-row days), then re-measure and capture within it.
+  const needed = Math.ceil(clip.y + clip.height + 40)
+  if (needed > VIEWPORT.height) {
+    await page.setViewportSize({ width: VIEWPORT.width, height: needed })
+    await page.waitForTimeout(300)
+    await settleImages(page)
+    clip = await cardClip(page)
+  }
+
+  await page.screenshot({ path: outPath, clip })
 }
 
 async function shootSelect(
