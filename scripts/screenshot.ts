@@ -39,6 +39,35 @@ function weekdaySlug(day: string): string {
   return wd.toLowerCase()
 }
 
+// Card covers are lazy-loaded, so a naive screenshot captures blank tiles for
+// anything below the fold. Scroll the whole page to trigger every loader, then
+// wait until all images have actually decoded before capturing.
+async function settleImages(page: Page) {
+  // Scroll through the page from Node (not one big in-page function — esbuild's
+  // keepNames helper `__name` isn't defined in the browser context) to trigger
+  // every lazy loader, then wait until all images have decoded.
+  const height = await page.evaluate(() => document.body.scrollHeight)
+  const vh = await page.evaluate(() => window.innerHeight)
+  for (let y = 0; y < height; y += Math.round(vh * 0.8)) {
+    await page.evaluate((yy) => window.scrollTo(0, yy), y)
+    await page.waitForTimeout(120)
+  }
+  await page.evaluate(() => window.scrollTo(0, 0))
+  await page.evaluate(() =>
+    Promise.all(
+      Array.from(document.images).map((img) =>
+        img.complete && img.naturalWidth > 0
+          ? Promise.resolve()
+          : new Promise((res) => {
+              img.addEventListener('load', () => res(null), { once: true })
+              img.addEventListener('error', () => res(null), { once: true })
+            })
+      )
+    ).then(() => undefined)
+  )
+  await page.waitForTimeout(300)
+}
+
 async function shootDay(page: Page, baseUrl: string, day: string, outPath: string) {
   await page.goto(`${baseUrl}/events`, { waitUntil: 'domcontentloaded' })
   await page.locator('.grid').first().waitFor({ timeout: 15000 })
@@ -49,7 +78,8 @@ async function shootDay(page: Page, baseUrl: string, day: string, outPath: strin
   await date.fill(day)
   await date.dispatchEvent('change')
   await page.getByRole('button', { name: 'Hide filters' }).click()
-  await page.waitForTimeout(600) // let the grid settle + images paint
+  await page.waitForTimeout(600) // let the grid settle
+  await settleImages(page) // force lazy covers to load before capture
 
   await page.screenshot({ path: outPath, fullPage: true })
 }
@@ -71,14 +101,18 @@ async function shootSelect(
   await page.getByRole('button', { name: 'Admin', exact: true }).click()
   await page.getByRole('button', { name: 'Select', exact: true }).click()
 
+  // Scope to the card grid — the page header/promo banner can contain the same
+  // text (e.g. an "Agents in the Wild" site banner) and would steal the match.
+  const grid = page.locator('.grid').first()
   for (const title of titles) {
-    const card = page.getByText(title, { exact: false }).first()
+    const card = grid.getByText(title, { exact: false }).first()
     await card.scrollIntoViewIfNeeded()
     await card.click()
   }
 
   await page.getByRole('button', { name: /^View selected/ }).click()
   await page.waitForTimeout(600)
+  await settleImages(page) // force lazy covers to load before capture
 
   // Cards only (no header) — grab just the card grid, like the collage.
   await page.locator('.grid').last().screenshot({ path: outPath })
