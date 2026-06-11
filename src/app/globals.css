@@ -2283,3 +2283,171 @@ body {
     width: 100%;
   }
 }
+
+/* ─── Docs (markdown guides — reuse .aitw-shell background) ──────────────── */
+.docs-inner {
+  position: relative;
+  z-index: 1;
+  width: min(880px, calc(100% - 2.5rem));
+  margin: 0 auto;
+  padding: 1.5rem 0 6rem;
+}
+
+.docs-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.4rem 0 1.6rem;
+}
+
+.docs-brand {
+  font-size: 0.66rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--muted-strong);
+}
+.docs-brand a { color: var(--accent); text-decoration: none; }
+.docs-brand a:hover { color: var(--accent-bright); }
+
+.docs-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-bottom: 2rem;
+  margin-bottom: 2.2rem;
+  border-bottom: 1px solid var(--line);
+}
+.docs-tab {
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-strong);
+  text-decoration: none;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  transition: color 150ms ease, border-color 150ms ease;
+}
+.docs-tab:hover { color: var(--accent-bright); border-color: var(--line-strong); }
+.docs-tab--active {
+  color: #05060a;
+  background: var(--accent-yellow);
+  border-color: var(--accent-yellow);
+  font-weight: 600;
+}
+
+/* ── markdown body ── */
+.docs-body {
+  font-family: var(--font-plex-mono);
+  font-size: 0.92rem;
+  line-height: 1.75;
+  color: var(--muted-strong);
+}
+.docs-body h1 {
+  font-size: clamp(1.6rem, 3.4vw, 2.3rem);
+  line-height: 1.12;
+  color: #fff;
+  margin: 0 0 1.2rem;
+  letter-spacing: -0.01em;
+}
+.docs-body h2 {
+  font-size: clamp(1.2rem, 2.4vw, 1.55rem);
+  color: #fff;
+  margin: 2.6rem 0 0.9rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--line);
+  letter-spacing: -0.01em;
+}
+.docs-body h3 {
+  font-size: 1.02rem;
+  color: var(--accent-bright);
+  margin: 1.8rem 0 0.6rem;
+}
+.docs-body p { margin: 0 0 1rem; }
+.docs-body a {
+  color: var(--accent-yellow);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(200, 255, 0, 0.3);
+}
+.docs-body a:hover { color: var(--accent-bright); border-bottom-color: var(--accent-bright); }
+.docs-body strong { color: var(--accent-bright); font-weight: 600; }
+.docs-body em { color: var(--accent); font-style: italic; }
+.docs-body ul, .docs-body ol { margin: 0 0 1rem; padding-left: 1.4rem; }
+.docs-body li { margin: 0.3rem 0; }
+.docs-body li::marker { color: var(--accent-yellow); }
+.docs-body hr { border: none; border-top: 1px solid var(--line); margin: 2.4rem 0; }
+
+/* inline code */
+.docs-body code {
+  font-family: var(--font-plex-mono);
+  font-size: 0.85em;
+  color: var(--accent-bright);
+  background: rgba(159, 213, 172, 0.08);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 0.1em 0.35em;
+}
+/* fenced code blocks */
+.docs-body pre {
+  margin: 0 0 1.3rem;
+  padding: 1rem 1.1rem;
+  background: var(--panel-strong);
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--line-strong);
+  border-radius: 4px;
+  overflow-x: auto;
+}
+.docs-body pre code {
+  color: var(--accent);
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.82rem;
+  line-height: 1.6;
+}
+
+/* blockquote callouts */
+.docs-body blockquote {
+  margin: 0 0 1.3rem;
+  padding: 0.75rem 1rem;
+  background: rgba(200, 255, 0, 0.05);
+  border-left: 2px solid var(--accent-yellow);
+  border-radius: 0 4px 4px 0;
+  color: var(--accent);
+}
+.docs-body blockquote p { margin: 0.3rem 0; }
+.docs-body blockquote strong { color: var(--accent-yellow); }
+
+/* tables */
+.docs-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 0 1.5rem;
+  font-size: 0.82rem;
+}
+.docs-body th, .docs-body td {
+  text-align: left;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--line);
+  vertical-align: top;
+}
+.docs-body th {
+  color: var(--accent-yellow);
+  text-transform: uppercase;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  background: rgba(159, 213, 172, 0.05);
+}
+.docs-body img { max-width: 100%; height: auto; border-radius: 4px; }
+
+@media (max-width: 640px) {
+  .docs-body { font-size: 0.88rem; }
+  .docs-body pre code { font-size: 0.76rem; }
+}
+
+.aitw-topbar__links {
+  display: flex;
+  align-items: center;
+  gap: 1.1rem;
+}

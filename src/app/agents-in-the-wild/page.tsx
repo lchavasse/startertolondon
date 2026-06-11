@@ -27,6 +27,8 @@ const SPONSORS = [
   { name: 'Partner', src: '/agents/sponsor-gradient.png', ratio: 156 / 184 },
   { name: 'Raspberry Pi', src: '/agents/sponsor-raspberry-pi.png', ratio: 960 / 1226 },
   { name: 'Partner', src: '/agents/sponsor-unicorn.png', ratio: 1, invert: true },
+  { name: 'Lightbringer', src: '/agents/sponsor-lightbringer.png', ratio: 250 / 43, invert: true },
+  { name: 'Partner', src: '/agents/sponsor-v.png', ratio: 1 },
 ]
 
 const SHAPES = [
@@ -103,9 +105,14 @@ export default function AgentsInTheWildPage() {
           <span className="aitw-brand">
             <Link href="/">london calling</Link> / agents in the wild
           </span>
-          <a className="aitw-cta aitw-cta--ghost" href={APPLY_URL} target="_blank" rel="noopener noreferrer">
-            apply <span className="aitw-cta__arrow">→</span>
-          </a>
+          <span className="aitw-topbar__links">
+            <Link className="aitw-demolink" href="/agents-in-the-wild/docs">
+              hackathon guide →
+            </Link>
+            <a className="aitw-cta aitw-cta--ghost" href={APPLY_URL} target="_blank" rel="noopener noreferrer">
+              apply <span className="aitw-cta__arrow">→</span>
+            </a>
+          </span>
         </div>
 
         {/* HERO */}
@@ -305,7 +312,22 @@ export default function AgentsInTheWildPage() {
           <div className="aitw-provide">
             Kickoff at <b>Blue Garage</b> with loan equipment (<b>Raspberry Pis, cameras</b>), 3D
             printers, electronics facilities, and mentors on hand. Continued access throughout the
-            sprint. Small budget for specific components if you need them.
+            sprint. Need a specific component? Speak to the team and we&apos;ll see what we can do.
+            <br />
+            <br />
+            The <b>Raspberry Pis are on loan</b> and must come back at the end of the two weeks —
+            easiest at{' '}
+            <a className="aitw-demolink" href={DEMO_URL} target="_blank" rel="noopener noreferrer">
+              Demo Night at LocalGlobe →
+            </a>{' '}
+            so please sign up to that now.
+            <br />
+            <br />
+            New to this? The{' '}
+            <Link className="aitw-demolink" href="/agents-in-the-wild/docs">
+              hackathon guide →
+            </Link>{' '}
+            walks you from a blank SD card to speech, LLMs and vision running on a Pi.
           </div>
         </section>
 
