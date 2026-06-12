@@ -42,3 +42,6 @@ next-env.d.ts
 
 # event-highlights: per-week Typefully push receipt (local artifact)
 docs/posts/*.typefully.json
+
+# claude code local worktrees
+.claude/worktrees/

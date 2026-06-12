@@ -5,13 +5,19 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { marked } from 'marked'
 
-type DocKey = '' | 'hardware' | 'neutts'
+type DocKey = '' | 'quickstart' | 'hardware' | 'neutts'
 
 const DOCS: Record<DocKey, { file: string; title: string; nav: string; blurb: string }> = {
   '': {
+    file: 'rules.md',
+    title: 'Rules & Prizes — Agents in the Wild',
+    nav: 'rules & prizes',
+    blurb: 'The rules of the sprint, how to submit, how judging works, and the prize tracks.',
+  },
+  quickstart: {
     file: 'hackathon.md',
-    title: 'Hackathon Guide — Edge AI on a Raspberry Pi',
-    nav: 'hackathon guide',
+    title: 'Quickstart — Edge AI on a Raspberry Pi',
+    nav: 'quickstart',
     blurb: 'Go from a blank SD card to running speech, language and vision models on a Pi.',
   },
   hardware: {
@@ -29,16 +35,17 @@ const DOCS: Record<DocKey, { file: string; title: string; nav: string; blurb: st
 }
 
 const BASE = '/agents-in-the-wild/docs'
-const ORDER: DocKey[] = ['', 'hardware', 'neutts']
+const ORDER: DocKey[] = ['', 'quickstart', 'hardware', 'neutts']
 
 function keyFromSlug(slug?: string[]): DocKey | null {
   if (!slug || slug.length === 0) return ''
-  if (slug.length === 1 && (slug[0] === 'hardware' || slug[0] === 'neutts')) return slug[0]
+  if (slug.length === 1 && (slug[0] === 'quickstart' || slug[0] === 'hardware' || slug[0] === 'neutts'))
+    return slug[0]
   return null
 }
 
 export function generateStaticParams() {
-  return [{ slug: [] as string[] }, { slug: ['hardware'] }, { slug: ['neutts'] }]
+  return [{ slug: [] as string[] }, { slug: ['quickstart'] }, { slug: ['hardware'] }, { slug: ['neutts'] }]
 }
 
 export async function generateMetadata({
@@ -57,7 +64,8 @@ function rewriteLinks(md: string): string {
   return md
     .replace(/\]\(HARDWARE_DETAILED\.md\)/g, `](${BASE}/hardware)`)
     .replace(/\]\(NEUTTS_DETAILED\.md\)/g, `](${BASE}/neutts)`)
-    .replace(/\]\(HACKATHON_PI_GUIDE\.md\)/g, `](${BASE})`)
+    .replace(/\]\(HACKATHON_PI_GUIDE\.md\)/g, `](${BASE}/quickstart)`)
+    .replace(/\]\(RULES\.md\)/g, `](${BASE})`)
 }
 
 export default async function DocsPage({ params }: { params: Promise<{ slug?: string[] }> }) {

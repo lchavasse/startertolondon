@@ -18,7 +18,8 @@
     "highlights": "npx tsx --env-file=.env.local scripts/highlights.ts",
     "harvest-handles": "npx tsx scripts/harvest-handles.ts",
     "post-thread": "npx tsx --env-file=.env.local scripts/post-thread.ts",
-    "screenshot": "npx tsx --env-file=.env.local scripts/screenshot.ts"
+    "screenshot": "npx tsx --env-file=.env.local scripts/screenshot.ts",
+    "import-builders": "npx tsx --env-file=.env.local scripts/import-builders.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.1",

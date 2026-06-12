@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "14.4"
   }
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
   public: {
     Tables: {
       accommodation: {
@@ -100,6 +125,74 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      aitw_builders: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone: string | null
+          project_id: string | null
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          phone?: string | null
+          project_id?: string | null
+          source?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          phone?: string | null
+          project_id?: string | null
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aitw_builders_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "aitw_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      aitw_projects: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          submission_url: string | null
+          submitted_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          submission_url?: string | null
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          submission_url?: string | null
+          submitted_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       applications: {
         Row: {
@@ -535,6 +628,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      deeptech_waitlist: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+        }
+        Relationships: []
       }
       error_logs: {
         Row: {
@@ -1285,6 +1396,9 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {},
   },

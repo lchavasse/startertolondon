@@ -1,4 +1,4 @@
-# Edge AI on a Raspberry Pi — Hackathon Guide
+# Quickstart — Edge AI on a Raspberry Pi
 
 Everything you need to go from a blank microSD card to running speech, language,
 and vision models **on the Pi itself** — no cloud, no API keys.
@@ -7,7 +7,9 @@ and vision models **on the Pi itself** — no cloud, no API keys.
 AI HAT+ (26 TOPS)** — see Part 8.
 
 Follow the parts in order. Each command is copy-paste. If you've never touched a
-Pi before, start at Part 1.
+Pi before, start at Part 1. Wiring and component details live in the
+[hardware reference](HARDWARE_DETAILED.md); the rules, submission and prizes are
+on the [rules page](RULES.md).
 
 > **Returning your Pi —** the Raspberry Pis are on loan and must come back at the
 > end of the two weeks. The easiest way is to bring yours to **Demo Night (7 Jul)
@@ -15,12 +17,6 @@ Pi before, start at Part 1.
 >
 > **Need a specific part?** If your project needs a component that isn't in the
 > kit, speak to the team and we'll see what we can do.
-
-**Companion references:**
-[`HARDWARE_DETAILED.md`](HARDWARE_DETAILED.md) — every sensor, servo and board:
-wiring, code and specs.
-[`NEUTTS_DETAILED.md`](NEUTTS_DETAILED.md) — advanced text-to-speech (streaming,
-voice cloning, fine-tuning).
 
 ---
 
@@ -270,7 +266,7 @@ The AI HAT+ is an add-on board with a **Hailo-8 NPU**: a dedicated chip for neur
 networks. **Pi 5 only.** It does not make Llama faster — it accelerates **vision**
 models (object detection, pose, segmentation, face recognition).
 
-**What it gets you:** the same YOLO detection from Part 6, but at **30+ frames per
+**What it gets you:** the same YOLO detection from Part 7, but at **30+ frames per
 second** instead of 1–2, and it can run **several models at once** (e.g. detect
 objects *and* track body pose on the same feed) without slowing down. It also
 frees up the CPU for the rest of your app.

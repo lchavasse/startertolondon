@@ -33,7 +33,8 @@ body {
   font-family: var(--font-plex-mono);
 }
 
-/* ─── Site-wide promo banner (rendered in layout, self-hides per route) ──── */
+/* ─── Site-wide promo banner styles (component currently unused — kept for
+   future banners; render a .promo-banner link in layout.tsx to re-enable) ── */
 .promo-banner {
   position: relative;
   z-index: 50;
@@ -87,6 +88,171 @@ body {
     font-size: 0.72rem;
     gap: 0.45rem;
   }
+}
+
+/* ─── Agents in the Wild — team / submission page ───────────────────────── */
+.aitw-team {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+  max-width: 640px;
+  padding-bottom: 4rem;
+}
+
+.aitw-team__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.aitw-team__whoami {
+  font-size: 0.78rem;
+  color: rgba(159, 213, 172, 0.75);
+}
+
+.aitw-team__lead {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: rgba(159, 213, 172, 0.85);
+}
+
+.aitw-team__panel {
+  padding: 1.1rem 1.2rem;
+  border: 1px solid rgba(159, 213, 172, 0.22);
+  background: linear-gradient(180deg, rgba(8, 12, 9, 0.9), rgba(4, 8, 6, 0.95));
+}
+
+.aitw-team__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.aitw-team__row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.aitw-team__row--save {
+  position: sticky;
+  bottom: 0;
+  padding: 0.7rem 0;
+  background: linear-gradient(180deg, transparent, #030404 35%);
+}
+
+.aitw-team__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.aitw-team__field > span {
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent-yellow);
+}
+
+.aitw-input {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid rgba(159, 213, 172, 0.3);
+  background: rgba(4, 6, 5, 0.85);
+  color: var(--accent-bright);
+  font-family: var(--font-plex-mono);
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 150ms ease;
+}
+
+.aitw-input:focus {
+  border-color: var(--accent-yellow);
+}
+
+.aitw-input--area {
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.aitw-cta--sm {
+  padding: 0.55rem 1.1rem;
+  font-size: 0.76rem;
+  white-space: nowrap;
+}
+
+.aitw-team__result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid rgba(159, 213, 172, 0.18);
+  font-size: 0.82rem;
+}
+
+.aitw-team__result em {
+  font-style: normal;
+  color: rgba(159, 213, 172, 0.55);
+}
+
+.aitw-team__members {
+  margin: 0 0 0.9rem;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--accent-bright);
+}
+
+.aitw-team__members em {
+  font-style: normal;
+  color: var(--accent-yellow);
+}
+
+.aitw-team__link {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: var(--font-plex-mono);
+  font-size: 0.8rem;
+  color: var(--accent-yellow);
+  white-space: nowrap;
+}
+
+.aitw-team__link:hover {
+  text-decoration: underline;
+}
+
+.aitw-team__link--dim {
+  color: rgba(159, 213, 172, 0.6);
+}
+
+.aitw-team__hint {
+  margin: 0 0 0.8rem;
+  font-size: 0.76rem;
+  line-height: 1.55;
+  color: rgba(159, 213, 172, 0.6);
+}
+
+.aitw-team__hint--late {
+  color: #ffb347;
+}
+
+.aitw-team__status {
+  font-size: 0.76rem;
+  color: rgba(159, 213, 172, 0.7);
+}
+
+.aitw-team__error {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #ff7a7a;
 }
 
 .scrollbar-none {
@@ -1682,6 +1848,57 @@ body {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--muted);
+}
+
+/* kickoff countdown */
+.aitw-countdown {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.9rem;
+  margin: 0 0 1.4rem;
+}
+
+.aitw-countdown__label {
+  font-size: 0.66rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--accent-yellow);
+}
+
+.aitw-countdown__label::before {
+  content: "[ ";
+  color: var(--accent);
+  opacity: 0.6;
+}
+
+.aitw-countdown__label::after {
+  content: " ]";
+  color: var(--accent);
+  opacity: 0.6;
+}
+
+.aitw-countdown__digits {
+  font-family: var(--font-plex-mono);
+  font-size: 1.3rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-bright);
+  text-shadow: 0 0 14px rgba(196, 243, 206, 0.3);
+  line-height: 1;
+}
+
+.aitw-countdown__sep {
+  margin: 0 0.3rem;
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.aitw-countdown__unit {
+  margin-left: 0.15rem;
+  font-size: 0.7rem;
+  font-weight: 400;
+  color: var(--muted-strong);
 }
 
 .aitw-ctarow {

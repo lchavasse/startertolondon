@@ -2,6 +2,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { withUtm } from '@/lib/utm'
+import Countdown from './Countdown'
 
 const APPLY_URL = withUtm('https://luma.com/qvvtbdlh')
 const DEMO_URL = withUtm('https://luma.com/awkhqorw')
@@ -54,7 +55,7 @@ const RHYTHM = [
   },
   { phase: 'Days 1–7 — Build', desc: 'Get a deployable v0 working. **Don’t polish.**' },
   { phase: 'Days 7–13 — Deploy', desc: 'Put it in the wild. Watch it break. Iterate.' },
-  { phase: 'Day 14 — Submit', desc: 'A short video and a written reflection. Slides also fine.' },
+  { phase: 'Day 14 — Submit', desc: 'A report (doc or slides) and a video of the agent in action.' },
   { phase: 'Demo Night · 7 Jul', desc: 'Top five projects present live to win the prize pool.' },
 ]
 
@@ -81,7 +82,7 @@ const FAQ = [
   },
   {
     q: 'What does the submission look like?',
-    a: 'A short video and a written reflection — what you set out to do, what you learned. Slides or notes are fine. The top five present at Demo Night — live demos preferred.',
+    a: 'A report — doc or slides covering your project’s scope, purpose and what you actually achieved — plus a video showing the build process and the agent in action. The top five present at Demo Night — live demos preferred.',
   },
 ]
 
@@ -106,12 +107,12 @@ export default function AgentsInTheWildPage() {
             <Link href="/">london calling</Link> / agents in the wild
           </span>
           <span className="aitw-topbar__links">
-            <Link className="aitw-demolink" href="/agents-in-the-wild/docs">
-              hackathon guide →
-            </Link>
-            <a className="aitw-cta aitw-cta--ghost" href={APPLY_URL} target="_blank" rel="noopener noreferrer">
-              apply <span className="aitw-cta__arrow">→</span>
+            <a className="aitw-demolink" href={APPLY_URL} target="_blank" rel="noopener noreferrer">
+              apply →
             </a>
+            <Link className="aitw-cta aitw-cta--ghost" href="/agents-in-the-wild/docs">
+              rules &amp; docs <span className="aitw-cta__arrow">→</span>
+            </Link>
           </span>
         </div>
 
@@ -159,10 +160,12 @@ export default function AgentsInTheWildPage() {
               </div>
             </div>
 
+            <Countdown />
+
             <div className="aitw-ctarow">
-              <a className="aitw-cta" href={APPLY_URL} target="_blank" rel="noopener noreferrer">
-                apply now <span className="aitw-cta__arrow">→</span>
-              </a>
+              <Link className="aitw-cta" href="/agents-in-the-wild/docs">
+                rules &amp; docs <span className="aitw-cta__arrow">→</span>
+              </Link>
               <a className="aitw-demolink" href={DEMO_URL} target="_blank" rel="noopener noreferrer">
                 demo night at LocalGlobe →
               </a>
@@ -324,8 +327,8 @@ export default function AgentsInTheWildPage() {
             <br />
             <br />
             New to this? The{' '}
-            <Link className="aitw-demolink" href="/agents-in-the-wild/docs">
-              hackathon guide →
+            <Link className="aitw-demolink" href="/agents-in-the-wild/docs/quickstart">
+              quickstart →
             </Link>{' '}
             walks you from a blank SD card to speech, LLMs and vision running on a Pi.
           </div>
