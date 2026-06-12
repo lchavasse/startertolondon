@@ -58,7 +58,7 @@ async function main() {
   if (!url || !key) throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY')
   const supabase = createClient<Database>(url, key)
 
-  const rows = parseCsv(readFileSync(csvPath, 'utf8'))
+  const rows = parseCsv(readFileSync(csvPath, 'utf8').replace(/^\uFEFF/, ''))
   if (rows.length < 2) throw new Error('CSV has no data rows')
   const header = rows[0]
 
