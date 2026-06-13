@@ -6,6 +6,8 @@ import Countdown from './Countdown'
 
 const APPLY_URL = withUtm('https://luma.com/qvvtbdlh')
 const DEMO_URL = withUtm('https://luma.com/awkhqorw')
+const COFFEE_URL = withUtm('https://luma.com/t178lfyt')
+const COWORK_URL = withUtm('https://luma.com/31kei9li')
 
 export const metadata: Metadata = {
   title: 'Agents in the Wild — build sprint & demo competition',
@@ -15,6 +17,15 @@ export const metadata: Metadata = {
 
 const TIMELINE = [
   { date: '13.06', event: 'Kickoff Day @ Blue Garage', note: 'access equipment' },
+  {
+    date: '18.06',
+    event: 'Builder coffee & cowork',
+    note: 'optional',
+    links: [
+      { label: 'coffee', href: COFFEE_URL },
+      { label: 'cowork', href: COWORK_URL },
+    ],
+  },
   { date: '21.06', event: 'Check In Day @ Blue Garage', note: 'optional · equipment' },
   { date: '28.06', event: 'Project submission deadline', note: 'submit' },
   { date: '07.07', event: 'Demo Night @ LocalGlobe', note: 'top five present', href: DEMO_URL },
@@ -191,10 +202,30 @@ export default function AgentsInTheWildPage() {
         {/* TIMELINE */}
         <section className="aitw-section">
           <p className="aitw-eyebrow">timeline</p>
-          <h2 className="aitw-section__title">Two weeks, four checkpoints</h2>
+          <h2 className="aitw-section__title">Two weeks, five checkpoints</h2>
           <div className="aitw-timeline">
             {TIMELINE.map((t) =>
-              t.href ? (
+              t.links ? (
+                <div className="aitw-timeline__row" key={t.date}>
+                  <span className="aitw-timeline__date">{t.date}</span>
+                  <span className="aitw-timeline__event">{t.event}</span>
+                  <span className="aitw-timeline__note">
+                    {t.links.map((l, i) => (
+                      <span key={l.href}>
+                        {i > 0 ? ' · ' : ''}
+                        <a
+                          className="aitw-timeline__link"
+                          href={l.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {l.label} →
+                        </a>
+                      </span>
+                    ))}
+                  </span>
+                </div>
+              ) : t.href ? (
                 <a
                   className="aitw-timeline__row aitw-timeline__row--link"
                   key={t.date}

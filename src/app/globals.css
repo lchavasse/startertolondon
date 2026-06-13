@@ -2107,6 +2107,16 @@ body {
   white-space: nowrap;
 }
 
+.aitw-timeline__link {
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+
+.aitw-timeline__link:hover {
+  color: var(--accent-yellow);
+}
+
 /* ── generic card grid (shapes + rhythm) ── */
 .aitw-grid {
   display: grid;

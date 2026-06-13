@@ -6,6 +6,19 @@ the deadline. Here it is in full — if anything is still unclear, ask the team.
 
 ---
 
+## TL;DR
+
+1. **Sign up to Demo Night, 7 Jul.** Top five present live at LocalGlobe — and
+   it's where loan kit comes back. **[Sign up →](https://luma.com/awkhqorw)**
+2. **Sign up to the check-in day, Sun 21 Jun.** Optional, but it's your shot to
+   get unstuck and swap notes. *Signup link coming soon.*
+3. **Find teammates and register your project** on **[your team page
+   →](/agents-in-the-wild/team)** — solo is fine too.
+4. **Get hacking** — and document the build as you go. Footage and notes from
+   the messy middle are exactly what the report and video want.
+
+---
+
 ## The rules
 
 1. **Build window: 13 Jun → 28 Jun.** You're judged on what you achieve during
