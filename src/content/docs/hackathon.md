@@ -146,7 +146,11 @@ scp my_voice.pt  pi@raspberrypi.local:~/neutts/samples/
 # On the Pi: pass --ref_codes my_voice.pt to the command above
 ```
 
-**Going further** — streaming (lower latency), the encode-off-Pi workflow, voice cloning,
+**Want it fast + a typed/voice assistant?** Follow the validated, copy-paste
+[NeuTTS on a Pi — fast setup recipe](NEUTTS_PI.md) (performance tuning, the ALSA
+gotchas, a resident speak/chat harness, and honest latency expectations).
+
+**Going further** — streaming, the encode-off-Pi workflow, voice cloning,
 and fine-tuning are covered in the companion reference:
 [`NEUTTS_DETAILED.md`](NEUTTS_DETAILED.md).
 

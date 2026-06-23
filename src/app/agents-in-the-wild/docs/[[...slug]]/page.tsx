@@ -5,7 +5,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { marked } from 'marked'
 
-type DocKey = '' | 'quickstart' | 'hardware' | 'neutts'
+type DocKey = '' | 'quickstart' | 'hardware' | 'neutts' | 'neutts-pi'
 
 const DOCS: Record<DocKey, { file: string; title: string; nav: string; blurb: string }> = {
   '': {
@@ -32,20 +32,26 @@ const DOCS: Record<DocKey, { file: string; title: string; nav: string; blurb: st
     nav: 'text-to-speech',
     blurb: 'Streaming, voice cloning and fine-tuning.',
   },
+  'neutts-pi': {
+    file: 'neutts-pi.md',
+    title: 'NeuTTS on a Pi — fast setup recipe',
+    nav: 'neutts on pi',
+    blurb: 'Validated copy-paste recipe to run NeuTTS well on a Raspberry Pi 5.',
+  },
 }
 
 const BASE = '/agents-in-the-wild/docs'
-const ORDER: DocKey[] = ['', 'quickstart', 'hardware', 'neutts']
+const ORDER: DocKey[] = ['', 'quickstart', 'hardware', 'neutts', 'neutts-pi']
 
 function keyFromSlug(slug?: string[]): DocKey | null {
   if (!slug || slug.length === 0) return ''
-  if (slug.length === 1 && (slug[0] === 'quickstart' || slug[0] === 'hardware' || slug[0] === 'neutts'))
-    return slug[0]
+  if (slug.length === 1 && (slug[0] === 'quickstart' || slug[0] === 'hardware' || slug[0] === 'neutts' || slug[0] === 'neutts-pi'))
+    return slug[0] as DocKey
   return null
 }
 
 export function generateStaticParams() {
-  return [{ slug: [] as string[] }, { slug: ['quickstart'] }, { slug: ['hardware'] }, { slug: ['neutts'] }]
+  return [{ slug: [] as string[] }, { slug: ['quickstart'] }, { slug: ['hardware'] }, { slug: ['neutts'] }, { slug: ['neutts-pi'] }]
 }
 
 export async function generateMetadata({
@@ -64,6 +70,7 @@ function rewriteLinks(md: string): string {
   return md
     .replace(/\]\(HARDWARE_DETAILED\.md\)/g, `](${BASE}/hardware)`)
     .replace(/\]\(NEUTTS_DETAILED\.md\)/g, `](${BASE}/neutts)`)
+    .replace(/\]\(NEUTTS_PI\.md\)/g, `](${BASE}/neutts-pi)`)
     .replace(/\]\(HACKATHON_PI_GUIDE\.md\)/g, `](${BASE}/quickstart)`)
     .replace(/\]\(RULES\.md\)/g, `](${BASE})`)
 }
