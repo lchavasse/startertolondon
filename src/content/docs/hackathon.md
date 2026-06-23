@@ -76,33 +76,52 @@ You're now ready to run AI models. Pick any of the parts below.
 Turns text into a natural voice, and can clone a voice from a short clip. Runs on
 the CPU. Repo and full docs: https://github.com/neuphonic/neutts
 
+> **Two things make this fast on a Pi** — skip them and it crawls:
+> 1. Use the **quantised GGUF** backbone `neuphonic/neutts-nano-q4-gguf` — *not* the
+>    PyTorch default, which is ~5–6× slower on the Pi's CPU.
+> 2. Use the **ONNX decoder + a pre-encoded reference** so the Pi never pulls the hidden
+>    2.3 GB voice **encoder**. Cuts the model download from ~3 GB to ~0.9 GB.
+
 **Install:**
 
 ```bash
-sudo apt install -y espeak libopenblas-dev python3-venv ffmpeg
+sudo apt install -y espeak-ng libopenblas-dev python3-venv python3-full cmake build-essential ffmpeg
 python3 -m venv ~/tts
 source ~/tts/bin/activate
-CMAKE_ARGS="-DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS" pip install "neutts[llama]" soundfile
+
+# Build temp files go to the real disk, not the small /tmp RAM-disk
+mkdir -p ~/tmp_build && export TMPDIR=~/tmp_build
+
+# CPU-only PyTorch FIRST, or pip pulls ~1.5 GB of unusable CUDA wheels and fills the disk
+pip install torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+# GGUF backbone (llama-cpp) + ONNX decoder. Compiles llama-cpp — 5–15 min.
+CMAKE_ARGS="-DGGML_BLAS=ON -DGGML_BLAS_VENDOR=OpenBLAS" pip install "neutts[llama,onnx]" soundfile
 ```
 
-> The install compiles code and can take 5–15 minutes. `espeak` is required —
-> don't skip it.
+> `cmake` / `build-essential` are needed to compile `llama-cpp-python`; `espeak-ng` is
+> required by the phonemizer — don't skip them. On flaky Wi-Fi, downloads can stall on
+> power-save: `sudo nmcli connection modify "<wifi>" 802-11-wireless.powersave 2`.
 
-**Get the code and a sample voice:**
+**Get the code** (ships sample voices, including the pre-encoded `samples/jo.pt`):
 
 ```bash
 git clone https://github.com/neuphonic/neutts.git
 cd neutts
 ```
 
-**Make it talk:**
+**Make it talk** — GGUF backbone + ONNX decoder + pre-encoded reference:
 
 ```bash
-python -m examples.basic_example \
+python -m examples.onnx_example \
   --input_text "Hello hackathon, I am running on a Raspberry Pi." \
-  --ref_audio samples/jo.wav \
-  --ref_text samples/jo.txt
+  --ref_codes samples/jo.pt \
+  --ref_text samples/jo.txt \
+  --backbone neuphonic/neutts-nano-q4-gguf
 ```
+
+> **First run downloads ~0.9 GB** of models (one-time). Don't add `HF_HUB_OFFLINE=1`
+> with a GGUF backbone — the loader still pings Hugging Face and errors out offline.
 
 Play the result:
 
@@ -116,12 +135,20 @@ aplay output.wav
 > reaches HDMI/wired). For a wired option, use the **MAX98357 amp + speaker** in
 > the kit — see the [hardware guide](HARDWARE_DETAILED.md).
 
-**Use your own voice:** record a clean mono `.wav`, 3–15 seconds long, and a
-`.txt` file with the exact words spoken. Pass them as `--ref_audio` and
-`--ref_text`. The model is `neuphonic/neutts-nano-q4-gguf` (already the default).
+**Use your own voice:** record a clean mono `.wav`, 3–15 seconds long, and a `.txt` file
+with the exact words spoken. The voice→codes **encoding** step needs the big 2.3 GB
+encoder, so **do it on your laptop, not the Pi**, then copy the tiny (~4 KB) result over:
 
-**Going further** — streaming, better voice cloning, and fine-tuning are covered
-in the companion reference: [`NEUTTS_DETAILED.md`](NEUTTS_DETAILED.md).
+```bash
+# On your laptop (once per voice):
+python -m examples.encode_reference --ref_audio my_voice.wav --output_path my_voice.pt
+scp my_voice.pt  pi@raspberrypi.local:~/neutts/samples/
+# On the Pi: pass --ref_codes my_voice.pt to the command above
+```
+
+**Going further** — streaming (lower latency), the encode-off-Pi workflow, voice cloning,
+and fine-tuning are covered in the companion reference:
+[`NEUTTS_DETAILED.md`](NEUTTS_DETAILED.md).
 
 ---
 
@@ -368,7 +395,8 @@ move — and let them talk to each other.
 | Problem | Fix |
 |---|---|
 | Pi won't boot / no display | Use the **micro-HDMI port nearest USB-C**; re-seat the microSD card. |
-| `espeak` / phonemizer error in NeuTTS | `sudo apt install espeak` |
+| `espeak` / phonemizer error in NeuTTS | `sudo apt install espeak-ng` |
+| NeuTTS painfully slow / not real-time | You're on the PyTorch backbone — add `--backbone neuphonic/neutts-nano-q4-gguf` and use `examples.onnx_example` (see Part 4). |
 | LLM is slow or crashes | Use `llama3.2:1b` instead of `3b`; close other apps. |
 | `rpicam-hello` shows no camera | Power off, re-seat the ribbon cable (contacts facing the USB ports). |
 | `hailortcli` not found / no device | Re-run `sudo apt install hailo-all`, reboot, check the PCIe cable. |

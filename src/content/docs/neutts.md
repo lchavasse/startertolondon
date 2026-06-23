@@ -7,6 +7,23 @@ Official repo: https://github.com/neuphonic/neutts
 
 ---
 
+## The fast, lean path (read this first)
+
+Three independent choices make NeuTTS go from "unfeasibly slow + 3 GB" to "real-time +
+0.9 GB" on a Pi:
+
+1. **Backbone:** `neuphonic/neutts-nano-q4-gguf` (GGUF/llama.cpp) — *not* the PyTorch
+   default. Measured ~5–6× faster on CPU (M2: warm RTF **0.46×** vs **2.56×** for torch).
+2. **Decoder:** `neuphonic/neucodec-onnx-decoder` — the codec *decoder* alone, exported to
+   ONNX. Pair it with a pre-encoded reference and the 2.3 GB voice **encoder** is never
+   loaded on the device.
+3. **Reference:** pre-encode the voice **on a laptop**, copy the tiny `.pt` to the Pi.
+
+The drop-in command is `examples.onnx_example` (see Part 4 of the quickstart). The rest of
+this page is the detail behind those choices.
+
+---
+
 ## Choosing a model
 
 Set as `backbone_repo` in Python. On a 4GB Pi, stick to the **nano GGUF** models.
@@ -19,7 +36,17 @@ Set as `backbone_repo` in Python. On a 4GB Pi, stick to the **nano GGUF** models
 | `neuphonic/neutts-air` | ~360M params, best overall quality, heavy for a Pi. |
 
 Other languages exist, e.g. `neuphonic/neutts-nano-french-q4-gguf` and
-`neuphonic/neutts-nano-german-q8-gguf`. The codec is always `neuphonic/neucodec`.
+`neuphonic/neutts-nano-german-q8-gguf`.
+
+> ⚠️ The repo's default backbone in `examples/basic_example.py` is the **PyTorch**
+> `neuphonic/neutts-nano` — the slow one. Always pass `--backbone ...-q4-gguf`.
+
+**Codec (the decoder):** two options.
+
+| Codec repo | Use when |
+|---|---|
+| `neuphonic/neucodec-onnx-decoder` | **Default for the Pi.** Decoder-only ONNX graph; needs a *pre-encoded* reference, never loads the 2.3 GB encoder. Use with `examples.onnx_example`. |
+| `neuphonic/neucodec` | Full codec (encoder + decoder). Only needed when you must encode a reference *on this machine* (`examples.basic_example`). |
 
 ---
 
@@ -34,26 +61,36 @@ Reference clip rules (follow these or quality drops a lot):
 
 The `.txt` file must contain **exactly** the words spoken in the clip.
 
-### Pre-encode the reference for speed
+### Encode the reference OFF the Pi
 
-Encoding the reference takes time. Do it once, save it, reuse it:
+Encoding (voice → codes) is the *only* step that needs the big 2.3 GB `w2v-bert` encoder —
+and its output is a **~4 KB tensor of integers** that decodes identically on any machine.
+So do it once on a laptop/Mac/GPU box and copy the `.pt` over; the Pi then never downloads
+or loads the encoder at all.
 
 ```bash
-python -m examples.encode_reference --ref_audio myvoice.wav   # makes myvoice.pt
+# On your laptop (once per voice):
+python -m examples.encode_reference --ref_audio my_voice.wav --output_path my_voice.pt
+scp my_voice.pt  pi@raspberrypi.local:~/neutts/samples/
 ```
 
-Then pass `--ref_codes myvoice.pt` instead of `--ref_audio` — every later
-generation is faster because it skips re-encoding.
+On the Pi, pass `--ref_codes my_voice.pt` (with `examples.onnx_example`) — generation skips
+re-encoding *and* the encoder never has to exist on the device. The repo already ships
+pre-encoded refs (`samples/jo.pt`, `dave.pt`, …) so you can start with zero encoding.
+
+> Building a fleet? Bake the `.pt` files into your Pi image or a shared repo — new Pis need
+> only `neutts-nano-q4-gguf` (~190 MB) + `neucodec-onnx-decoder` (~750 MB), no encoder setup.
 
 ---
 
 ## Streaming (play audio as it generates)
 
 Non-streaming waits for the whole clip, then plays it. Streaming plays in chunks
-so speech *starts* sooner — better for assistants and live demos. On a Pi 5 the
-nano model is near real-time; if it stutters, fall back to non-streaming.
+so speech *starts* sooner — better for assistants and live demos. Only the first
+~0.5 s chunk is on the critical path instead of the whole clip.
 
-Streaming needs a GGUF model, a pre-encoded `.pt` reference, and live audio out:
+Streaming **requires a GGUF backbone** (it's asserted — PyTorch can't stream), a
+pre-encoded `.pt` reference, and live audio out:
 
 ```bash
 sudo apt install -y portaudio19-dev
@@ -62,11 +99,23 @@ pip install pyaudio
 python -m examples.basic_streaming_example \
   --input_text "I am speaking to you in real time from a Raspberry Pi." \
   --ref_codes samples/jo.pt \
-  --ref_text  samples/jo.txt
+  --ref_text  samples/jo.txt \
+  --backbone  neuphonic/neutts-nano-q4-gguf \
+  --prefill   3
 ```
 
-(Make `samples/jo.pt` first if it doesn't exist:
-`python -m examples.encode_reference --ref_audio samples/jo.wav`)
+> `samples/jo.pt` already ships in the repo. The **first chunk carries the model warmup
+> cost**, so keep one process resident for an assistant rather than spawning per utterance.
+
+**If streaming stutters / crackles** on the Pi, per-chunk generation is lagging playback.
+`--prefill N` buffers N chunks before playback starts — trading a little startup delay for
+gapless audio. Start at `3` and lower it if startup feels sluggish; or drop to `q4` / shorten
+the input.
+
+> `--prefill` is a small local patch to `examples/basic_streaming_example.py` — the player
+> thread already accepts `prefill_chunks`, it just isn't exposed as a CLI flag yet. Three
+> edits: add `prefill=0` to `main(...)`, pass it into the `audio_player_thread(...)` call,
+> and add the `--prefill` argparse arg. (Upstream PR welcome.)
 
 ---
 
