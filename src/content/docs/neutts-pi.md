@@ -4,9 +4,10 @@ A tested, copy-paste path to get **Neuphonic NeuTTS** running well on a Raspberr
 Follow top to bottom — every step here was actually needed; the gotchas are inline.
 Safe to hand to an AI agent: the commands are sequential and deterministic.
 
-> **What to expect (be realistic).** On a Pi 5, `nano-q4` runs at **~1.3–1.6× real-time**
-> (≈1.3–1.6 s of compute per 1 s of audio) with **~1.2–1.4 s to first audio**. It is **not**
-> faster than real-time, but it's responsive enough for short replies. Keep responses short.
+> **What to expect (be realistic).** On a Pi 5, `nano-q4` runs at **~1.3× real-time** once
+> tuned (cooler + overclock + int8 decoder + all 4 cores). It is **not** faster than real-time,
+> but short replies turn around in **~4–5 s** (most of which is a fixed ~3 s per-utterance cost
+> of re-reading the voice reference — see §9). Keep responses short for the best feel.
 
 ---
 
@@ -63,6 +64,11 @@ python -m examples.onnx_example \
 > First run downloads ~0.9 GB of models (one-time). **Don't** set `HF_HUB_OFFLINE=1` with a
 > GGUF backbone — the loader still pings Hugging Face and errors out offline.
 
+> **Faster decoder (small win):** swap `neucodec-onnx-decoder` for **`neucodec-onnx-decoder-int8`**
+> — an 8-bit-quantized decoder, ~7–8 % faster and lower-memory. The decode is only a slice of the
+> total, so the overall gain is modest, and int8 can add slight quantization artifacts — **listen
+> and confirm the audio quality is acceptable** before relying on it.
+
 ## 5. Audio output — the ALSA card-numbering trap
 
 `aplay -l` shows your cards. **Card *numbers* are not stable across reboots** (a USB speaker can
@@ -91,22 +97,43 @@ aplay output.wav
 
 ## 6. Performance tuning (the changes that actually helped)
 
+In rough order of impact: **active cooler** (biggest — keeps it from throttling over a session) >
+**overclock** > **performance governor** > **all 4 cores**. Combined, these took a tuned turn from
+~1.8× RTF to **~1.3×**.
+
+**Governor — pin all cores to max clock** (default `ondemand` idles at 1.8 GHz and ramps with lag):
 ```bash
-# Pin all cores to max clock (default 'ondemand' idles at 1.8 GHz and ramps with lag).
-# NOTE: resets on reboot — see "make persistent" below.
 echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 ```
+Make it **persistent across reboots** with a tiny systemd service (the `cpufrequtils` package is
+unreliable on Debian 13 / Pi OS trixie — its service may not exist):
+```bash
+sudo tee /etc/systemd/system/cpu-performance.service >/dev/null <<'EOF'
+[Unit]
+Description=Set CPU governor to performance
+After=multi-user.target
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c "echo performance | tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor"
+[Install]
+WantedBy=multi-user.target
+EOF
+sudo systemctl enable cpu-performance.service
+```
+
+**Overclock to 2.8 GHz** (~17 %, the single biggest software lever — *only* with the active cooler):
+```bash
+# append under the [all] section of /boot/firmware/config.txt
+printf '\narm_freq=2800\n' | sudo tee -a /boot/firmware/config.txt
+sudo reboot
+```
+After reboot, confirm: `vcgencmd measure_clock arm` (~2.8 GHz) and `vcgencmd get_throttled` (`0x0`).
+2.8 GHz is a conservative, well-tested Pi 5 OC; with the cooler, temps stayed ~50 °C under load.
+(3.0 GHz is possible but verify thermals.)
 
 **Threads:** `llama-cpp-python` defaults to `cpu_count()//2` = **2 of 4 cores**, and NeuTTS doesn't
 override it. Force all cores from your own script with a tiny monkeypatch (no need to edit the
 installed package) — included in the harness below.
-
-**Make the governor persistent (optional):**
-```bash
-sudo apt install -y cpufrequtils
-echo 'GOVERNOR="performance"' | sudo tee /etc/default/cpufrequtils
-sudo systemctl restart cpufrequtils
-```
 
 ## 7. A resident speak/chat harness
 
@@ -177,6 +204,39 @@ scp my_voice.{pt,txt} pi@raspberrypi.local:~/neutts/samples/
 Reference clip rules: mono `.wav`, 16–44 kHz, **3–15 s**, clean speech; the `.txt` must be the
 exact words spoken.
 
+## 9. Optional: a fully on-device typed voice assistant (LLM → speech)
+
+Add a tiny local LLM to get *type → spoken reply*, no cloud:
+
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+ollama pull qwen2.5:0.5b      # ~0.4 GB
+```
+
+> **Model choice on 4 GB matters.** Llama 3.2 1B (~1.8 GB resident) + NeuTTS pushes the Pi into
+> **swap**, which roughly *doubles* TTS time. **`qwen2.5:0.5b` (~0.6 GB) co-resides without
+> swapping** — the LLM stays fast (~0.5–1 s) *and* TTS keeps full speed. The 1 B model's quality is
+> nicer but not worth the swap penalty here.
+
+Pattern (extend the §7 harness): keep NeuTTS resident, call Ollama's chat API with `keep_alive`
+(so the model doesn't unload between turns), a **strict "one short sentence" system prompt**, a
+`num_predict` cap (~48), and a safety truncation to one sentence — because **TTS time scales with
+reply length**, so a rambling reply means a long wait. Speak each reply via `aplay` as in §7.
+
+**Latency floor (why turns are ~4–5 s, not instant):** every utterance re-reads the ~650-token
+voice reference through the LLM (the "prefill") before generating — a fixed **~3 s** cost on the
+Pi, *on top of* the actual speech generation. It **can't be cached**, because NeuTTS's prompt puts
+your (changing) input text *before* the constant reference codes, so the cache is invalidated each
+turn. So even a one-word reply costs ~3–4 s. Tuned warm numbers:
+
+```
+"Paris."  → LLM 0.5s | TTS 3.7s  (0.8s audio)   ~4.2s total
+"Four."   → LLM 0.6s | TTS 3.0s  (0.5s audio)   ~3.6s total
+```
+
+This is about the realistic best for a fully-local Pi 5 voice stack. For truly snappy conversation
+you'd want faster hardware (more memory bandwidth / an accelerator) or a lighter TTS.
+
 ---
 
 ## What we tried that did NOT help (so you can skip it)
@@ -196,5 +256,8 @@ exact words spoken.
 | `espeak` / phonemizer error | `sudo apt install espeak-ng`. |
 | Gets slower over a long session | Thermal throttling — fit an active cooler; check `vcgencmd get_throttled` (`0x0` = healthy). |
 | Offline run errors on a GGUF repo | Don't set `HF_HUB_OFFLINE=1` with GGUF backbones. |
+| Won't boot / unstable after overclock | Remove the `arm_freq` line (restore `/boot/firmware/config.txt.bak`), or lower it. Only overclock with the active cooler. |
+| Assistant slow / Pi swapping | LLM too big for 4 GB — use `qwen2.5:0.5b`, not Llama 1B (§9). |
+| LLM stalls for ~14 s between turns | Ollama unloaded the model — set `keep_alive` in the request (§9). |
 
 See also the [NeuTTS reference](NEUTTS_DETAILED.md) for models, voice cloning and fine-tuning.
