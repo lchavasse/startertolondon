@@ -12,14 +12,23 @@ handles:
     match:
       - encodeclub
       - encode club
-    seen: 3
-    last_seen: 2026-05-31
+    seen: 6
+    last_seen: 2026-06-15
     contexts:
       - builders & brews — @nebiusevents + tavily + @encodeclub bringing the
         friday coworking energy.
       - poolside don't quit — research hackathon with the nvidia dev community
         closes the week.
       - kick off london tech week early at plugged for some coworking
+  - x: vercel
+    match:
+      - vercel
+    seen: 3
+    last_seen: 2026-06-15
+    contexts:
+      - wind down (sort of).
+      - "@vercel day zero — the warm-up before the big ship 🚢"
+      - "@vercel ship lands in london — demos, agents, the whole show 🔥"
   - x: dcolaianni
     match:
       - dcolaianni
@@ -46,6 +55,48 @@ handles:
     contexts:
       - "# X thread"
       - "@sxswlndn, day 1."
+  - x: dusthq
+    match:
+      - dusthq
+    seen: 2
+    last_seen: 2026-06-08
+    contexts:
+      - agents day.
+      - day two — and the parties ramp up.
+  - x: charlierward
+    match:
+      - charlierward
+    seen: 2
+    last_seen: 2026-06-22
+    contexts:
+      - agents day.
+      - the week's big one — wed is stacked 👀
+  - x: rarefounders
+    match:
+      - rarefounders
+    seen: 2
+    last_seen: 2026-06-15
+    contexts:
+      - "@sxswlndn, day 1."
+      - "ease in: hardware builder coffee, 8am, granary square ☕️ come say hi 👋"
+  - x: kickstartldn
+    match:
+      - kickstartldn
+    seen: 2
+    last_seen: 2026-06-15
+    contexts:
+      - You can lock in to not one, but three awesome hacks over the weekend
+      - not one, not two, but FOUR awesome hacks to lock into this weekend 🛠️
+  - x: nvidia
+    match:
+      - nvidia
+      - nvidiadeveloper
+      - nvidia developer community
+    seen: 2
+    last_seen: 2026-06-08
+    contexts:
+      - You can lock in to not one, but three awesome hacks over the weekend
+      - the stacked one. 👀
   - x: gdglondon
     match:
       - gdglondon
@@ -69,20 +120,6 @@ handles:
     last_seen: 2026-05-17
     contexts:
       - go big or stay home.
-  - x: dusthq
-    match:
-      - dusthq
-    seen: 1
-    last_seen: 2026-05-25
-    contexts:
-      - agents day.
-  - x: charlierward
-    match:
-      - charlierward
-    seen: 1
-    last_seen: 2026-05-25
-    contexts:
-      - agents day.
   - x: aicollectiveco
     match:
       - aicollectiveco
@@ -110,13 +147,6 @@ handles:
     contexts:
       - "@tessl_io are kicking things off with their AI native devcon (ping me
         for a discount code )"
-  - x: rarefounders
-    match:
-      - rarefounders
-    seen: 1
-    last_seen: 2026-05-31
-    contexts:
-      - "@sxswlndn, day 1."
   - x: shipfr8
     match:
       - shipfr8
@@ -201,27 +231,11 @@ handles:
     last_seen: 2026-05-31
     contexts:
       - An absolute blockbuster!
-  - x: kickstartldn
-    match:
-      - kickstartldn
-    seen: 1
-    last_seen: 2026-05-31
-    contexts:
-      - You can lock in to not one, but three awesome hacks over the weekend
   - x: manusai
     match:
       - manusai
       - manus_ai
       - manus ai
-    seen: 1
-    last_seen: 2026-05-31
-    contexts:
-      - You can lock in to not one, but three awesome hacks over the weekend
-  - x: nvidia
-    match:
-      - nvidia
-      - nvidiadeveloper
-      - nvidia developer community
     seen: 1
     last_seen: 2026-05-31
     contexts:
@@ -233,3 +247,39 @@ handles:
     last_seen: 2026-05-31
     contexts:
       - You can lock in to not one, but three awesome hacks over the weekend
+  - x: stripe
+    match:
+      - stripe
+    seen: 1
+    last_seen: 2026-06-08
+    contexts:
+      - the stacked one. 👀
+  - x: notionhq
+    match:
+      - notionhq
+    seen: 1
+    last_seen: 2026-06-08
+    contexts:
+      - the stacked one. 👀
+  - x: anthropicai
+    match:
+      - anthropicai
+    seen: 1
+    last_seen: 2026-06-08
+    contexts:
+      - the stacked one. 👀
+  - x: openai
+    match:
+      - openai
+    seen: 1
+    last_seen: 2026-06-08
+    contexts:
+      - wind down (sort of).
+  - x: elevenlabsio
+    match:
+      - elevenlabsio
+    seen: 1
+    last_seen: 2026-06-22
+    contexts:
+      - and the hacks begin — ai in government with @elevenlabsio & i.AI kicks
+        off the run.

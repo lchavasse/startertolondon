@@ -15,11 +15,13 @@
     "retag-events": "npx tsx --env-file=.env.local scripts/retag-events.ts",
     "promote-organisers": "npx tsx --env-file=.env.local scripts/promote-organisers.ts",
     "fix-covers": "npx tsx --env-file=.env.local scripts/fix-covers.ts",
+    "audit-covers": "npx tsx --env-file=.env.local scripts/audit-covers.ts",
     "highlights": "npx tsx --env-file=.env.local scripts/highlights.ts",
     "harvest-handles": "npx tsx scripts/harvest-handles.ts",
     "post-thread": "npx tsx --env-file=.env.local scripts/post-thread.ts",
     "screenshot": "npx tsx --env-file=.env.local scripts/screenshot.ts",
-    "import-builders": "npx tsx --env-file=.env.local scripts/import-builders.ts"
+    "import-builders": "npx tsx --env-file=.env.local scripts/import-builders.ts",
+    "aitw:teams": "npx tsx --env-file=.env.local scripts/list-teams.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.1",
@@ -47,5 +49,6 @@
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
     "typescript": "^5"
-  }
+  },
+  "packageManager": "pnpm@9.14.2"
 }

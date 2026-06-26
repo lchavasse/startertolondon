@@ -32,6 +32,7 @@ export function EventCard({
   const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [sectorTags, setSectorTags] = useState<Sector[]>(event.sectorTags ?? [])
   const [sectorEditorOpen, setSectorEditorOpen] = useState(false)
+  const [coverError, setCoverError] = useState(false)
   const formattedDate = format(new Date(event.startAt), "EEE d MMM · h:mmaaa")
 
   async function persistSectors(next: Sector[]) {
@@ -168,12 +169,13 @@ export function EventCard({
     >
       {/* Cover */}
       <div className="relative aspect-square overflow-hidden bg-[#0a0a0a]">
-        {event.coverUrl ? (
+        {event.coverUrl && !coverError ? (
           <Image
             src={event.coverUrl}
             alt={event.name}
             fill
             unoptimized
+            onError={() => setCoverError(true)}
             className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
           />

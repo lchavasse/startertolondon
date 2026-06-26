@@ -1,0 +1,25 @@
+Google Sheet created:
+https://docs.google.com/spreadsheets/d/1WkQSb0QA7B_uSiPXH_IXsNpt6Am0q26_OLD6Sv45Bmk/edit
+
+Columns:
+- Name
+- Chat JID
+- Invite sent at
+- Auto status
+- Response summary
+- Last inbound excerpt
+- Suggested action
+- Manual status
+- Chase?
+- Notes
+
+Auto-status buckets used:
+- coming
+- no
+- maybe
+- no_response
+
+Suggested action defaults:
+- leave for coming/no
+- chase for no_response
+- review for maybe
