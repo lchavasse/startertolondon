@@ -12,8 +12,8 @@ handles:
     match:
       - encodeclub
       - encode club
-    seen: 6
-    last_seen: 2026-06-15
+    seen: 7
+    last_seen: 2026-06-28
     contexts:
       - builders & brews — @nebiusevents + tavily + @encodeclub bringing the
         friday coworking energy.
@@ -97,6 +97,15 @@ handles:
     contexts:
       - You can lock in to not one, but three awesome hacks over the weekend
       - the stacked one. 👀
+  - x: elevenlabsio
+    match:
+      - elevenlabsio
+    seen: 2
+    last_seen: 2026-06-28
+    contexts:
+      - and the hacks begin — ai in government with @elevenlabsio & i.AI kicks
+        off the run.
+      - a couple of hacks to round off the week 🔥
   - x: gdglondon
     match:
       - gdglondon
@@ -275,11 +284,53 @@ handles:
     last_seen: 2026-06-08
     contexts:
       - wind down (sort of).
-  - x: elevenlabsio
+  - x: framoira
     match:
-      - elevenlabsio
+      - framoira
     seen: 1
-    last_seen: 2026-06-22
+    last_seen: 2026-06-28
     contexts:
-      - and the hacks begin — ai in government with @elevenlabsio & i.AI kicks
-        off the run.
+      - AGIBOT bring their humanoid robot out to greenwich for a uk launch 👀
+  - x: todepond
+    match:
+      - todepond
+    seen: 1
+    last_seen: 2026-06-28
+    contexts:
+      - the week's busiest — wed's got options 👀
+  - x: portalaura
+    match:
+      - portalaura
+    seen: 1
+    last_seen: 2026-06-28
+    contexts:
+      - the week's busiest — wed's got options 👀
+  - x: vb_oai
+    match:
+      - vb_oai
+    seen: 1
+    last_seen: 2026-06-28
+    contexts:
+      - the week's busiest — wed's got options 👀
+  - x: pawlean
+    match:
+      - pawlean
+    seen: 1
+    last_seen: 2026-06-28
+    contexts:
+      - the week's busiest — wed's got options 👀
+  - x: joinef
+    match:
+      - joinef
+    seen: 1
+    last_seen: 2026-06-28
+    contexts:
+      - "@joinef sit down with nir eyal — the 'hooked' author — for a fireside
+        on habits, focus & belief."
+  - x: plugged
+    match:
+      - plugged
+    seen: 1
+    last_seen: 2026-06-28
+    contexts:
+      - a couple of hacks to round off the week 🔥
