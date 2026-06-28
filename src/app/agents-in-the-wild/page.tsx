@@ -4,7 +4,6 @@ import type { Metadata } from 'next'
 import { withUtm } from '@/lib/utm'
 import Countdown from './Countdown'
 
-const APPLY_URL = withUtm('https://luma.com/qvvtbdlh')
 const DEMO_URL = withUtm('https://luma.com/awkhqorw')
 const COFFEE_URL = withUtm('https://luma.com/t178lfyt')
 const COWORK_URL = withUtm('https://luma.com/31kei9li')
@@ -118,9 +117,9 @@ export default function AgentsInTheWildPage() {
             <Link href="/">london calling</Link> / agents in the wild
           </span>
           <span className="aitw-topbar__links">
-            <a className="aitw-demolink" href={APPLY_URL} target="_blank" rel="noopener noreferrer">
-              apply →
-            </a>
+            <Link className="aitw-demolink" href="/agents-in-the-wild/team">
+              submit →
+            </Link>
             <Link className="aitw-cta aitw-cta--ghost" href="/agents-in-the-wild/docs">
               rules &amp; docs <span className="aitw-cta__arrow">→</span>
             </Link>
@@ -174,7 +173,10 @@ export default function AgentsInTheWildPage() {
             <Countdown />
 
             <div className="aitw-ctarow">
-              <Link className="aitw-cta" href="/agents-in-the-wild/docs">
+              <Link className="aitw-cta" href="/agents-in-the-wild/team">
+                submit your project <span className="aitw-cta__arrow">→</span>
+              </Link>
+              <Link className="aitw-cta aitw-cta--ghost" href="/agents-in-the-wild/docs">
                 rules &amp; docs <span className="aitw-cta__arrow">→</span>
               </Link>
               <a className="aitw-demolink" href={DEMO_URL} target="_blank" rel="noopener noreferrer">
@@ -388,9 +390,9 @@ export default function AgentsInTheWildPage() {
               demo night at LocalGlobe →
             </a>
           </p>
-          <a className="aitw-cta" href={APPLY_URL} target="_blank" rel="noopener noreferrer">
-            apply now <span className="aitw-cta__arrow">→</span>
-          </a>
+          <Link className="aitw-cta" href="/agents-in-the-wild/team">
+            submit your project <span className="aitw-cta__arrow">→</span>
+          </Link>
         </section>
       </div>
     </main>

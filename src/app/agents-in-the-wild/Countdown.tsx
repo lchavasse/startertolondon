@@ -1,9 +1,12 @@
 'use client'
 
 import { useSyncExternalStore } from 'react'
+import Link from 'next/link'
 
-// Kickoff Day @ Blue Garage — Sat 13 June, 10:00 London (BST)
-const KICKOFF = new Date('2026-06-13T10:00:00+01:00').getTime()
+// Submission deadline — end of Sunday 28 June, London (BST).
+// Mirrors SUBMISSION_DEADLINE in src/lib/aitw.ts (kept local to keep the
+// Supabase client out of the browser bundle).
+const DEADLINE = new Date('2026-06-28T23:59:59+01:00').getTime()
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
@@ -19,14 +22,14 @@ export default function Countdown() {
   // server snapshot is null → placeholder digits until hydration completes
   const now = useSyncExternalStore(subscribe, getNow, () => null)
 
-  const diff = now === null ? null : KICKOFF - now
+  const diff = now === null ? null : DEADLINE - now
 
   if (diff !== null && diff <= 0) {
     return (
-      <div className="aitw-countdown">
-        <span className="aitw-countdown__label">kickoff</span>
-        <span className="aitw-countdown__digits">live now @ blue garage</span>
-      </div>
+      <Link className="aitw-countdown" href="/agents-in-the-wild/team">
+        <span className="aitw-countdown__label">deadline passed</span>
+        <span className="aitw-countdown__digits">submit late →</span>
+      </Link>
     )
   }
 
@@ -46,8 +49,8 @@ export default function Countdown() {
         ]
 
   return (
-    <div className="aitw-countdown">
-      <span className="aitw-countdown__label">kickoff · sat 13.06 · 10:00</span>
+    <Link className="aitw-countdown" href="/agents-in-the-wild/team">
+      <span className="aitw-countdown__label">submit by · sun 28.06 · 23:59</span>
       <span className="aitw-countdown__digits">
         {units.map(([value, unit], i) => (
           <span className="aitw-countdown__seg" key={unit}>
@@ -57,6 +60,6 @@ export default function Countdown() {
           </span>
         ))}
       </span>
-    </div>
+    </Link>
   )
 }
