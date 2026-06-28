@@ -1,0 +1,106 @@
+# People registry — name → LinkedIn / X, auto-grown by `npm run highlights`.
+#
+# Fills host socials when Luma doesn't expose them, and is the manual-tagging
+# cheat sheet for LinkedIn (no API can @mention people there). Hand edits to
+# linkedin / x / name are preserved on re-run; luma / seen / last_seen refresh.
+
+people:
+  - name: Francesco Moiraghi
+    linkedin: https://www.linkedin.com/in/francesco-moiraghi
+    x: framoira
+    luma:
+      - framoira
+      - usr-q0rutCN4K2tHaAM
+    seen: 3
+    last_seen: 2026-06-28
+  - name: Subaita Rahman
+    linkedin: https://www.linkedin.com/in/subaita-rahman
+    x: subaita_rahman
+    luma:
+      - usr-zCJRK6vofpjv5Cb
+    seen: 3
+    last_seen: 2026-06-28
+  - name: Solana Foundation
+    linkedin: https://www.linkedin.com/in/calilyliu
+    luma:
+      - usr-LeXQZYBGv26yBfK
+    seen: 3
+    last_seen: 2026-06-28
+  - name: Geoffrey from Pitchless
+    linkedin: https://www.linkedin.com/in/geoffreyrolinjacquemyns
+    luma:
+      - geoffrey
+      - usr-e1FapuDOvdVhet7
+    seen: 3
+    last_seen: 2026-06-28
+  - name: Sarah Malinowski
+    linkedin: https://www.linkedin.com/in/sarah-malinowski
+    luma:
+      - sarahmalino
+      - usr-YUh6UEdrlwHj9ZH
+    seen: 3
+    last_seen: 2026-06-28
+  - name: Javier Mateache
+    linkedin: https://www.linkedin.com/in/javier-mateache
+    luma:
+      - usr-Di8J3kEL3EfMk9H
+    seen: 3
+    last_seen: 2026-06-28
+  - name: Giulia acchioni
+    linkedin: https://www.linkedin.com/in/giulia-acchioni-mena
+    luma:
+      - usr-aGXqQ84LhILpZ4V
+    seen: 3
+    last_seen: 2026-06-28
+  - name: Andy Tyler
+    linkedin: https://www.linkedin.com/in/andrewjtyler
+    x: andy_ajt
+    luma:
+      - andy_ajt
+      - usr-g2e6Kk4JKRhMnc1
+    seen: 3
+    last_seen: 2026-06-28
+  - name: Pauline P. Narvas
+    linkedin: https://www.linkedin.com/in/pnarvas
+    x: paw_lean
+    luma:
+      - pawlean
+      - usr-4HvhGeuyHuGbOpj
+    seen: 3
+    last_seen: 2026-06-28
+  - name: Vaibhav Srivastav
+    linkedin: https://www.linkedin.com/in/vaibhavs10
+    x: reach_vb
+    luma:
+      - vb_oai
+      - usr-dUjEATDUKZRuqoh
+    seen: 3
+    last_seen: 2026-06-28
+  - name: Lu Wilson
+    linkedin: https://www.linkedin.com/in/TodePond
+    x: TodePond
+    luma:
+      - TodePond
+      - usr-A7Ro7BOUOeWYpbi
+    seen: 3
+    last_seen: 2026-06-28
+  - name: Laura Porta
+    linkedin: https://www.linkedin.com/in/portalaura
+    luma:
+      - portalaura
+      - usr-H7XGutu9krpjvaF
+    seen: 3
+    last_seen: 2026-06-28
+  - name: Lottie Richards
+    linkedin: https://www.linkedin.com/in/lottie-richards-84ba45178
+    luma:
+      - novabook
+      - usr-pmdiYPHHAE621iQ
+    seen: 3
+    last_seen: 2026-06-28
+  - name: Phoenix Court
+    linkedin: https://www.linkedin.com/in/ambimistry
+    luma:
+      - usr-zE7wHHu021qx8v3
+    seen: 3
+    last_seen: 2026-06-28

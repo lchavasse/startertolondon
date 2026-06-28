@@ -12,8 +12,8 @@
  *                          [--curated-only] [--no-handles]
  */
 
-import { readFileSync, existsSync } from 'node:fs'
-import { parse } from 'yaml'
+import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { parse, stringify } from 'yaml'
 import { getEvents } from '../src/lib/kv'
 import { supabase } from '../src/lib/supabase'
 import type { LondonEvent } from '../src/lib/types'
@@ -23,12 +23,57 @@ interface Host {
   username?: string
   lumaUserId?: string
   twitter?: string
-  linkedin?: string
+  linkedin?: string // always a full https://linkedin.com/... URL once resolved
+  isOrg?: boolean // a company/community host, not a taggable human
   kbMatch?: 'people' // future: 'companies', 'vcs', etc.
   registryMatch?: boolean // twitter/linkedin came from docs/social-handles.yml
+  lumaMatch?: boolean // socials came straight off the Luma host node
+  peopleMatch?: boolean // socials came from docs/people-handles.yml
 }
 
 const REGISTRY_PATH = 'docs/social-handles.yml'
+const PEOPLE_PATH = 'docs/people-handles.yml'
+
+/** Luma exposes linkedin as a path fragment ("/in/foo" | "/company/bar"); make it a URL. */
+function linkedinUrl(handle?: string | null): string | undefined {
+  if (!handle) return undefined
+  const h = handle.trim()
+  if (!h) return undefined
+  if (h.startsWith('http')) return h
+  return `https://www.linkedin.com/${h.replace(/^\/+/, '')}`
+}
+
+/** A "/company/" or "/school/" linkedin = org, not a human to tag. */
+function looksLikeOrg(linkedinHandle?: string | null): boolean {
+  return !!linkedinHandle && (linkedinHandle.includes('/company/') || linkedinHandle.includes('/school/'))
+}
+
+/** strip to lowercase alphanumerics for loose name/slug comparison. */
+const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '')
+
+/**
+ * Mark hosts whose name is really the organiser/calendar account as orgs — even
+ * when Luma maps them to an admin's personal "/in/" profile (Fifty Years →
+ * /in/drewmoxon). Keeps the org out of the human tagging worksheet.
+ */
+function markOrgHosts(hosts: Host[], event: LondonEvent): Host[] {
+  const orgTokens = [event.organiserName, event.calendarSlug, ...(event.tags ?? [])]
+    .filter(Boolean)
+    .map((s) => norm(s as string))
+    .filter((s) => s.length > 2 && s !== 'personal')
+  return hosts.map((h) => {
+    if (h.isOrg) return h
+    const n = norm(h.name)
+    const isOrg = orgTokens.some((t) => t === n || t.includes(n) || n.includes(t))
+    return isOrg ? { ...h, isOrg: true } : h
+  })
+}
+
+/** https://lu.ma/<slug> → <slug> (for the api.lu.ma/url lookup). */
+function lumaSlug(url: string): string | undefined {
+  const m = url.match(/lu\.ma\/([A-Za-z0-9-]+)/)
+  return m ? m[1] : undefined
+}
 
 interface RegistryEntry {
   x: string
@@ -67,10 +112,96 @@ function enrichHostsFromRegistry(
     return {
       ...h,
       twitter: entry.x,
-      linkedin: entry.linkedin ?? h.linkedin,
+      linkedin: linkedinUrl(entry.linkedin) ?? h.linkedin,
       registryMatch: true,
     }
   })
+}
+
+// ── People registry (docs/people-handles.yml) ────────────────────────────────
+// A compounding cache of name → LinkedIn/X, grown automatically from Luma host
+// data on every run. Its job: fill socials for people Luma *doesn't* expose
+// (and let you hand-correct ones it gets wrong). LinkedIn @mentions can't be
+// pushed by any API, so this is what makes the manual tagging step fast.
+interface PersonEntry {
+  name: string
+  linkedin?: string
+  x?: string
+  luma?: string[] // luma usernames + usr- ids seen for this person
+  seen?: number
+  last_seen?: string
+}
+
+/** Index people by lowercased name + each luma alias. */
+function loadPeopleRegistry(): { list: PersonEntry[]; index: Map<string, PersonEntry> } {
+  const list: PersonEntry[] = existsSync(PEOPLE_PATH)
+    ? (parse(readFileSync(PEOPLE_PATH, 'utf8')) as { people?: PersonEntry[] } | null)?.people ?? []
+    : []
+  const index = new Map<string, PersonEntry>()
+  for (const p of list) {
+    index.set(p.name.toLowerCase(), p)
+    for (const alias of p.luma ?? []) index.set(alias.toLowerCase(), p)
+  }
+  return { list, index }
+}
+
+/** Fill twitter/linkedin gaps from the people registry (Luma + KB take priority). */
+function enrichHostsFromPeople(hosts: Host[], index: Map<string, PersonEntry>): Host[] {
+  if (index.size === 0) return hosts
+  return hosts.map((h) => {
+    if (h.twitter && h.linkedin) return h
+    const p =
+      (h.username && index.get(h.username.toLowerCase())) ||
+      (h.lumaUserId && index.get(h.lumaUserId.toLowerCase())) ||
+      index.get(h.name.toLowerCase())
+    if (!p) return h
+    const twitter = h.twitter ?? p.x
+    const linkedin = h.linkedin ?? linkedinUrl(p.linkedin)
+    if (twitter === h.twitter && linkedin === h.linkedin) return h
+    return { ...h, twitter, linkedin, peopleMatch: true }
+  })
+}
+
+/**
+ * Non-destructively merge resolved humans back into docs/people-handles.yml so
+ * next week they arrive pre-tagged. Hand-edited linkedin/x are preserved; only
+ * luma aliases, seen, and last_seen refresh, and brand-new people get appended.
+ */
+function writePeopleRegistry(list: PersonEntry[], hosts: Host[], week: string): number {
+  const byName = new Map(list.map((p) => [p.name.toLowerCase(), p]))
+  let added = 0
+  for (const h of hosts) {
+    if (h.isOrg || !h.name) continue
+    if (!h.twitter && !h.linkedin) continue // need a resolved social to be useful
+    const aliases = [h.username, h.lumaUserId].filter((x): x is string => !!x)
+    const existing = byName.get(h.name.toLowerCase())
+    if (existing) {
+      existing.linkedin = existing.linkedin ?? h.linkedin // hand edit wins
+      existing.x = existing.x ?? h.twitter
+      existing.luma = [...new Set([...(existing.luma ?? []), ...aliases])]
+      existing.seen = (existing.seen ?? 0) + 1
+      existing.last_seen = week
+    } else {
+      byName.set(h.name.toLowerCase(), {
+        name: h.name,
+        linkedin: h.linkedin,
+        x: h.twitter,
+        luma: aliases.length ? aliases : undefined,
+        seen: 1,
+        last_seen: week,
+      })
+      added += 1
+    }
+  }
+  const header =
+    '# People registry — name → LinkedIn / X, auto-grown by `npm run highlights`.\n' +
+    '#\n' +
+    '# Fills host socials when Luma doesn\'t expose them, and is the manual-tagging\n' +
+    '# cheat sheet for LinkedIn (no API can @mention people there). Hand edits to\n' +
+    '# linkedin / x / name are preserved on re-run; luma / seen / last_seen refresh.\n\n'
+  const out = { people: [...byName.values()].sort((a, b) => (b.seen ?? 0) - (a.seen ?? 0)) }
+  writeFileSync(PEOPLE_PATH, header + stringify(out))
+  return added
 }
 
 interface KbHint {
@@ -181,65 +312,46 @@ function weekdayLabel(iso: string): string {
   return `${days[d.getUTCDay()]} ${d.getUTCDate()}`
 }
 
-/** Walk a JSON object and collect anything that looks like a Luma user host. */
-function findHostsInJson(json: unknown): Host[] {
-  const found = new Map<string, Host>() // dedupe by username or name
-  const visit = (node: unknown, parentKey?: string) => {
-    if (!node) return
-    if (Array.isArray(node)) {
-      for (const item of node) visit(item, parentKey)
-      return
-    }
-    if (typeof node !== 'object') return
-    const obj = node as Record<string, unknown>
-
-    // Heuristic: a host node has a name + (api_id starting usr- OR a username)
-    const apiId = typeof obj.api_id === 'string' ? obj.api_id : undefined
-    const username = typeof obj.username === 'string' ? obj.username : undefined
-    const name = typeof obj.name === 'string' ? obj.name : undefined
-    const isHostContext =
-      parentKey === 'hosts' ||
-      parentKey === 'host_info' ||
-      parentKey === 'admins' ||
-      parentKey === 'calendar_admins' ||
-      obj.is_host === true ||
-      obj.is_admin === true
-
-    if (
-      isHostContext &&
-      name &&
-      (apiId?.startsWith('usr-') || username)
-    ) {
-      const key = username ?? apiId ?? name
-      if (!found.has(key)) {
-        found.set(key, { name, username, lumaUserId: apiId })
-      }
-    }
-
-    for (const [k, v] of Object.entries(obj)) visit(v, k)
-  }
-  visit(json)
-  return [...found.values()]
+interface LumaHostNode {
+  name?: string
+  api_id?: string
+  username?: string
+  twitter_handle?: string | null
+  linkedin_handle?: string | null
 }
 
+/**
+ * Resolve hosts (with socials) off the public Luma API. The `data.hosts` array
+ * carries `twitter_handle` + `linkedin_handle` directly — so every host arrives
+ * pre-tagged for X *and* LinkedIn, no scraping or per-profile fetch needed.
+ * Non-Luma events (Eventbrite/Meetup) have no slug → no hosts.
+ */
 async function fetchEventHosts(eventUrl: string): Promise<Host[]> {
-  // eventUrl is https://lu.ma/<slug>
+  const slug = lumaSlug(eventUrl)
+  if (!slug) return []
   try {
-    const res = await fetch(eventUrl, {
+    const res = await fetch(`https://api.lu.ma/url?url=${encodeURIComponent(slug)}`, {
       headers: PAGE_HEADERS,
       signal: AbortSignal.timeout(10000),
     })
     if (!res.ok) return []
-    const html = await res.text()
-    const match = html.match(/<script id="__NEXT_DATA__"[^>]*>([\s\S]*?)<\/script>/)
-    if (!match) return []
-    let data: unknown
-    try {
-      data = JSON.parse(match[1])
-    } catch {
-      return []
-    }
-    return findHostsInJson(data)
+    const body = (await res.json()) as { data?: { hosts?: LumaHostNode[] } }
+    const nodes = body.data?.hosts ?? []
+    return nodes
+      .filter((n): n is LumaHostNode & { name: string } => typeof n.name === 'string')
+      .map((n) => {
+        const linkedin = linkedinUrl(n.linkedin_handle)
+        const twitter = n.twitter_handle?.trim() || undefined
+        return {
+          name: n.name,
+          username: n.username,
+          lumaUserId: n.api_id?.startsWith('usr-') ? n.api_id : undefined,
+          twitter,
+          linkedin,
+          isOrg: looksLikeOrg(n.linkedin_handle),
+          lumaMatch: !!(twitter || linkedin),
+        }
+      })
   } catch (err) {
     console.warn(`[highlights] host fetch failed for ${eventUrl}:`, err)
     return []
@@ -276,10 +388,12 @@ async function enrichHostsFromKb(hosts: Host[]): Promise<Host[]> {
         (h.name && p.name.toLowerCase() === h.name.toLowerCase())
     )
     if (!m) return h
+    // KB is hand-curated truth → it overrides, but only where it actually has a
+    // value. A KB row with no twitter must not wipe a Luma-resolved handle.
     return {
       ...h,
-      twitter: m.twitter ?? undefined,
-      linkedin: m.linkedin ?? undefined,
+      twitter: m.twitter ?? h.twitter,
+      linkedin: linkedinUrl(m.linkedin) ?? h.linkedin,
       kbMatch: 'people' as const,
     }
   })
@@ -340,15 +454,22 @@ async function main() {
   console.warn(`[highlights] picked ${picks.length} events`)
 
   const registry = loadHandleRegistry()
-  console.warn(`[highlights] handle registry: ${registry.size} aliases`)
+  const people = loadPeopleRegistry()
+  console.warn(
+    `[highlights] registries: ${registry.size} org handles, ${people.list.length} people`
+  )
 
   const highlights: Highlight[] = []
   for (const event of picks) {
     let hosts: Host[] = []
     if (!args.noHandles) {
+      // Luma host node first (carries twitter + linkedin), then hand-curated
+      // overrides/gap-fills from KB, the org registry, and the people registry.
       hosts = await fetchEventHosts(event.url)
+      hosts = markOrgHosts(hosts, event)
       hosts = await enrichHostsFromKb(hosts)
       hosts = enrichHostsFromRegistry(hosts, registry)
+      hosts = enrichHostsFromPeople(hosts, people.index)
       // Be polite to Luma
       await new Promise((r) => setTimeout(r, 300))
     }
@@ -361,6 +482,29 @@ async function main() {
     })
   }
 
+  // Tagging worksheet — the manual-tag cheat sheet. Per featured event, the
+  // human hosts that have at least one social, in Luma's host order.
+  const tagging = highlights
+    .map((h) => ({
+      event: h.event.name,
+      weekday: h.weekday,
+      people: h.hosts
+        .filter((host) => !host.isOrg && (host.linkedin || host.twitter))
+        .map((host) => ({
+          name: host.name,
+          linkedin: host.linkedin,
+          x: host.twitter,
+        })),
+    }))
+    .filter((t) => t.people.length > 0)
+
+  if (!args.noHandles) {
+    const week = args.from.toISOString().slice(0, 10)
+    const allHosts = highlights.flatMap((h) => h.hosts)
+    const added = writePeopleRegistry(people.list, allHosts, week)
+    console.warn(`[highlights] people registry: +${added} new → ${PEOPLE_PATH}`)
+  }
+
   console.log(
     JSON.stringify(
       {
@@ -370,6 +514,7 @@ async function main() {
         count: highlights.length,
         dayCounts,
         highlights,
+        tagging,
       },
       null,
       2

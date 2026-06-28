@@ -25,10 +25,12 @@ Don't draft from memory. Open at least the two most recent posts per platform be
 - **Personal asides** when relevant ("would it be disingenuous to plug my own salon..?"). Lachlan often appears in his own posts.
 - **Heavy `!!!`**, occasional 🔥 / 🦄 / 👀 / 👋.
 - **Bare lu.ma links** on X (no markdown, no shorteners).
-- **@handles inline** on X. **Bold names + LinkedIn person tags** on LinkedIn — for LinkedIn, use the person's full name in bold; the handles in `linkedin` field of `kbMatch` hosts give you the actual profile slug.
-- **Tag aggressively, and tag the *real* host** — not Luma's `organiserName` (often just the calendar owner). The script pre-fills `twitter` from the harvested registry (`registryMatch`) + KB (`kbMatch`); trust those and add any you know. e.g. sauna day → @RareFounders, AI Native DevCon → @tessl_io. Tagging is the post's distribution engine.
+- **Tag the *humans*, not the org.** This is the single biggest lever and where Lachlan re-does the most work. For each featured event, name 2–3 individual hosts — not the calendar/org account. The script now resolves each host's **X handle *and* LinkedIn URL straight off Luma** (`hosts[].twitter` / `hosts[].linkedin`, `lumaMatch: true`), so they arrive pre-tagged for both platforms. Orgs are flagged `isOrg: true` — mention them flatly, don't person-tag them. e.g. Labs After Dark → Francesco + Subaita (not "Wilbe"); future.bio hack → Jonty, Isabel & Nelli.
+- **@handles inline** on X (from `hosts[].twitter`). On LinkedIn, person-mentions can't be pushed by the API — you write the **bold full name + `:o` flavour** in the body, and the manual @mention is done by hand in LinkedIn's composer using the `# Tagging` worksheet (see step 4b). Per-person emoji is on-voice: `(Jonty, Isabel & Nelli 🧪)`, `(Charlie Ward 😍)`.
+- **Trust the resolved socials, add what you know.** Precedence is KB (`kbMatch`) → org registry (`registryMatch`) → Luma (`lumaMatch`) → people registry (`peopleMatch`). All are safe inline. If a host has no handle anywhere, leave the bold name and list it in the gaps.
 - **Links off by default on X.** Lachlan strips most links — they kill engagement (and cost ~13× more to auto-post). Keep one only when the cover graphic is worth it or to support a friend's event. When used, it's a **bare lu.ma link** (no markdown, no shorteners).
-- **Opener:** weather/vibe is the default, but a big week earns a bolder **value/stakes hook** ("3+ ways you can win 10k cold hard cash this week"). Always include "all the links are on londoncalling [dot] guide".
+- **Opener:** a weather/vibe **question** is the strongest default — "has the heat got to the events scene..?", "is it too hot to network?" — alongside the vibe statement ("easing into july") and the three-word minimalist ("atoms are in."). A big week earns a bolder **value/stakes hook** ("3+ ways you can win 10k cold hard cash this week"). Before drafting, skim the last 3–4 openers in `docs/posts/` so you don't repeat one. On **X**, always include "all the links are on londoncalling [dot] guide".
+- **LinkedIn sign-off is a free riff — don't default to the same line.** Lachlan rewrites it every week: "available on all good events lists 👇", "london [cough] calling [cough cough] [dot] guide", "all on london calling [dot] guide 👇". Pick one that fits the week's tone; the literal URL goes in the first comment, never the body.
 - "First birthday" / "rocket ship" / "incredible!!!" are recurring phrases — riff, don't repeat verbatim.
 - **Brand obfuscation (LinkedIn variant):** sometimes signs off with `london [cough] calling [cough cough] [dot] guide` instead of the straight form. Playful — use when the post leans wry.
 - **LinkedIn lists may be numbered (1. 2. 3.) — not just bullets.** Numbered lists carry short themed picks ("bio-focused events: 1. … 2. … 3. …"); bullets carry mixed-genre weeks.
@@ -59,9 +61,11 @@ npm run highlights -- --from 2026-05-04 --to 2026-05-11 \
 npm run highlights -- --curated-only --no-handles
 ```
 
-The script prints JSON to stdout: `{ from, to, mode, count, dayCounts[], highlights[] }`. Each highlight has `event`, `hosts[]` (with `twitter` / `linkedin` / `kbMatch` / `registryMatch` populated when found), `kbHints[]` (organiser matches in `communities`/`vcs`/`companies`), and `weekday` (e.g. `"Tue 5"`). `dayCounts[]` is `{ date, weekday, curated, total }` per day across the **whole** range (not just the picks) — this is your density signal for the shot-planning step.
+The script prints JSON to stdout: `{ from, to, mode, count, dayCounts[], highlights[], tagging[] }`. Each highlight has `event`, `hosts[]` (with `twitter` / `linkedin` / `isOrg` / `kbMatch` / `registryMatch` / `lumaMatch` / `peopleMatch` populated when found), `kbHints[]` (organiser matches in `communities`/`vcs`/`companies`), and `weekday` (e.g. `"Tue 5"`). `dayCounts[]` is `{ date, weekday, curated, total }` per day across the **whole** range — your density signal for shot-planning.
 
-`twitter` is auto-filled from the **handle registry** (`docs/social-handles.yml`, `registryMatch: true`) or the KB people-table (`kbMatch`). Both are safe to use inline. The registry is grown by `npm run harvest-handles`, which scrapes every `@handle` out of past posts — see step 7.
+**`tagging[]` is the worksheet** — `{ event, weekday, people[] }` where each person is `{ name, linkedin, x }`, humans only (orgs filtered out), in Luma's host order. Drop this almost verbatim into the post's `# Tagging` block (step 4b). It's the manual-tagging cheat sheet: LinkedIn @mentions can't be API-posted, so Lachlan works down this list by hand in LinkedIn's composer — having every profile URL pre-resolved is what turns a 20-minute hunt into 2.
+
+**Socials resolve in this order:** Luma host node (`lumaMatch` — carries both X *and* LinkedIn now, the broad default) → KB people-table (`kbMatch`, hand-curated, wins) → org handle registry (`docs/social-handles.yml`, `registryMatch`) → people registry (`docs/people-handles.yml`, `peopleMatch`). The **people registry auto-grows every run** — each resolved human is cached name→LinkedIn/X so next week they arrive pre-tagged; hand-edits to it are preserved. The org registry is grown by `npm run harvest-handles` (step 7).
 
 If the script logs `no match for: "<term>"`, surface it to the user and ask for a clearer name.
 
@@ -97,7 +101,11 @@ events: [event-id-1, event-id-2, ...]
 
 # LinkedIn
 
-(single post body, bulleted, **bold names**, sign-off)
+(single post body, bulleted, **bold names** + `:o`/emoji flavour, free-riff sign-off)
+
+# Tagging
+
+(manual-tag cheat sheet from the script's `tagging[]` — every human to @mention, in post order, each with LinkedIn URL + X handle. Stripped from the posted text; it's Lachlan's worksheet for the by-hand LinkedIn/X tagging.)
 
 # Shots
 
@@ -113,6 +121,26 @@ events: [event-id-1, event-id-2, ...]
 Use `---` as the X post separator (it's the standard Typefully thread delimiter, and how `post-thread` splits the thread). One post per day is the default, but **theme-grouping is fine** — e.g. merge the weekend's hackathons into a single "three hacks" post.
 
 For each event, prefer in this order: KB-matched twitter handle → registry handle → Luma-extracted handle → just the host name (no @). For LinkedIn, prefer KB linkedin → bold name only.
+
+### 4b. Build the `# Tagging` worksheet
+
+This is the highest-leverage output — it kills the slowest manual step. Take the script's `tagging[]` and render it under `# Tagging` as a per-event checklist, **in the order the people appear in your post**, e.g.:
+
+```
+# Tagging
+
+LinkedIn @mentions (type by hand in the composer — no API can do this):
+
+Tue — Labs After Dark
+- [ ] Francesco Moiraghi — linkedin.com/in/francesco-moiraghi  (X: @framoira)
+- [ ] Subaita Rahman — linkedin.com/in/subaita-rahman  (X: @subaita_rahman)
+
+Weekend — Building an AI Scientist
+- [ ] Jonty Corrin — linkedin.com/in/jontycorrin
+- [ ] Isabel Zhang — linkedin.com/in/isabel-zhang
+```
+
+Only include people you actually named in the post. If a host you want has no LinkedIn in `tagging[]`, flag it in gaps so Lachlan can hand-add it to `docs/people-handles.yml` (it'll stick for next week). This block is stripped by `post-thread`, so it never posts — it's purely the worksheet.
 
 ### 4. Surface KB and gaps
 
