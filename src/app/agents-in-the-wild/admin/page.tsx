@@ -15,7 +15,19 @@ type Project = {
   archived: boolean
   members: Member[]
 }
-type AdminData = { projects: Project[]; solo: Member[]; deadline: string }
+type JudgeProgress = { name: string; slug: string; completed: number; partial: number }
+type LeaderRow = {
+  projectId: string
+  judgeCount: number
+  avgTotal: number
+  criteria: Record<string, number | null>
+}
+type Judging = {
+  criteria: { key: string; label: string }[]
+  judges: JudgeProgress[]
+  leaderboard: LeaderRow[]
+}
+type AdminData = { projects: Project[]; solo: Member[]; deadline: string; judging: Judging }
 
 const KEY = 'admin-key'
 
@@ -160,6 +172,7 @@ export default function AitwAdminPage() {
             {data && (() => {
               const active = data.projects.filter((p) => !p.archived)
               const archived = data.projects.filter((p) => p.archived)
+              const nameById = new Map(data.projects.map((p) => [p.id, p.name]))
               return (
               <>
                 <p className="aitw-team__hint">
@@ -168,6 +181,8 @@ export default function AitwAdminPage() {
                   {fmt(data.deadline)}
                   {archived.length > 0 && ` · ${archived.length} archived`}
                 </p>
+
+                <JudgingSection judging={data.judging} nameById={nameById} />
 
                 {active.map((p) => (
                   <ProjectCard key={p.id} project={p} acting={acting === p.id} act={act} />
@@ -199,6 +214,87 @@ export default function AitwAdminPage() {
         )}
       </div>
     </main>
+  )
+}
+
+function JudgingSection({
+  judging,
+  nameById,
+}: {
+  judging: Judging
+  nameById: Map<string, string>
+}) {
+  const scored = judging.leaderboard.filter((r) => r.judgeCount > 0)
+  const judged = judging.judges.length
+
+  return (
+    <div className="aitw-team__panel">
+      <div className="aitw-team__header">
+        <h2 className="aitw-section__title">Judging</h2>
+        <span className="aitw-team__status">
+          {judged === 0
+            ? 'no judges yet'
+            : `${judged} judge${judged === 1 ? '' : 's'} · ${scored.length} scored`}
+        </span>
+      </div>
+
+      {judged === 0 ? (
+        <p className="aitw-team__hint">
+          No scores submitted yet. Live totals appear here as judges score at{' '}
+          <Link className="aitw-team__link" href="/agents-in-the-wild/judge">
+            /judge
+          </Link>
+          .
+        </p>
+      ) : (
+        <>
+          <div className="aitw-judge__board">
+            <table className="aitw-board">
+              <thead>
+                <tr>
+                  <th className="aitw-board__rank">#</th>
+                  <th className="aitw-board__name">project</th>
+                  {judging.criteria.map((c) => (
+                    <th key={c.key} className="aitw-board__num">
+                      {c.label.slice(0, 4).toLowerCase()}
+                    </th>
+                  ))}
+                  <th className="aitw-board__num">avg / 100</th>
+                  <th className="aitw-board__num">judges</th>
+                </tr>
+              </thead>
+              <tbody>
+                {judging.leaderboard.map((r, i) => (
+                  <tr key={r.projectId} className={r.judgeCount === 0 ? 'aitw-board__empty' : undefined}>
+                    <td className="aitw-board__rank">{r.judgeCount ? i + 1 : '–'}</td>
+                    <td className="aitw-board__name">{nameById.get(r.projectId) ?? r.projectId}</td>
+                    {judging.criteria.map((c) => (
+                      <td key={c.key} className="aitw-board__num">
+                        {r.criteria[c.key] == null ? '–' : r.criteria[c.key]!.toFixed(1)}
+                      </td>
+                    ))}
+                    <td className="aitw-board__num aitw-board__total">
+                      {r.judgeCount ? r.avgTotal.toFixed(1) : '–'}
+                    </td>
+                    <td className="aitw-board__num">{r.judgeCount || '–'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="aitw-eyebrow">judges</p>
+          <ul className="aitw-team__members">
+            {judging.judges.map((j) => (
+              <li key={j.slug}>
+                {j.name} — {j.completed} done
+                {j.partial > 0 && `, ${j.partial} partial`}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+    </div>
   )
 }
 

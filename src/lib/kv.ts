@@ -309,6 +309,21 @@ export async function getJudgeScores(slug: string): Promise<JudgeScores> {
   return parseJudgeHash(hash)
 }
 
+export type JudgeRecord = { slug: string; name: string; scores: JudgeScores }
+
+// Every judge's scorecard, for the admin tally. One Redis read per judge.
+export async function getAllJudgeScores(): Promise<JudgeRecord[]> {
+  const slugs = await redis.smembers('aitw:judges')
+  const hashes = await Promise.all(
+    slugs.map((slug) => redis.hgetall<Record<string, unknown>>(judgeKey(slug)))
+  )
+  return slugs.map((slug, i) => ({
+    slug,
+    name: typeof hashes[i]?.__name === 'string' ? (hashes[i]!.__name as string) : slug,
+    scores: parseJudgeHash(hashes[i]),
+  }))
+}
+
 export async function saveJudgeScore(
   slug: string,
   name: string,

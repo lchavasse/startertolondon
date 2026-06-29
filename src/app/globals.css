@@ -174,6 +174,57 @@ body {
   text-align: center;
 }
 
+/* admin leaderboard — compact score table */
+.aitw-judge__board {
+  margin: 0.9rem 0 0.4rem;
+  overflow-x: auto;
+}
+
+.aitw-board {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.aitw-board th,
+.aitw-board td {
+  padding: 0.4rem 0.55rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+}
+
+.aitw-board th {
+  text-align: left;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.aitw-board__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.aitw-board__rank {
+  width: 1.6rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.aitw-board__name {
+  width: 99%;
+}
+
+.aitw-board__total {
+  color: #c8ff00;
+  font-weight: 600;
+}
+
+.aitw-board__empty td {
+  color: rgba(255, 255, 255, 0.35);
+}
+
 .aitw-input {
   width: 100%;
   padding: 0.65rem 0.8rem;
