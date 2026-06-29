@@ -3,8 +3,9 @@ import { getAitwClient } from '@/lib/aitw'
 import { getAitwArchived, getJudgeScores, saveJudgeScore } from '@/lib/kv'
 import { CRITERION_KEYS, MAX_SCORE, judgeSlug } from '@/lib/aitw-judging'
 
+// Judges sign in with the shared admin secret (same key as /admin).
 function isAuthorized(req: NextRequest): boolean {
-  const secret = process.env.JUDGE_SECRET
+  const secret = process.env.ADMIN_SECRET
   return Boolean(secret) && req.headers.get('x-judge-key') === secret
 }
 
