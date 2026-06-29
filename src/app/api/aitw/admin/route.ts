@@ -62,7 +62,6 @@ export async function GET(req: NextRequest) {
 // Admin actions on a single project:
 //   archive   — soft hide from the roster (reversible, KV-only)
 //   unarchive — restore
-//   delete    — permanent: detach members, then drop the project row
 export async function POST(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -79,22 +78,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: true })
     }
     if (action === 'unarchive') {
-      await removeAitwArchived(projectId)
-      return NextResponse.json({ ok: true })
-    }
-    if (action === 'delete') {
-      const supabase = getAitwClient()
-      // Detach members first — project_id has no ON DELETE behaviour set.
-      const { error: detachError } = await supabase
-        .from('aitw_builders')
-        .update({ project_id: null })
-        .eq('project_id', projectId)
-      if (detachError) throw detachError
-      const { error: delError } = await supabase
-        .from('aitw_projects')
-        .delete()
-        .eq('id', projectId)
-      if (delError) throw delError
       await removeAitwArchived(projectId)
       return NextResponse.json({ ok: true })
     }

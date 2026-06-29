@@ -71,10 +71,7 @@ export default function AitwAdminPage() {
     fetchData(inputKey)
   }
 
-  const act = async (action: 'archive' | 'unarchive' | 'delete', project: Project) => {
-    if (action === 'delete' && !confirm(`Permanently delete "${project.name}"? Its ${project.members.length} member(s) keep their accounts but lose this team. This can't be undone.`)) {
-      return
-    }
+  const act = async (action: 'archive' | 'unarchive', project: Project) => {
     setActing(project.id)
     try {
       const res = await fetch('/api/aitw/admin', {
@@ -215,7 +212,7 @@ function ProjectCard({
 }: {
   project: Project
   acting: boolean
-  act: (action: 'archive' | 'unarchive' | 'delete', project: Project) => void
+  act: (action: 'archive' | 'unarchive', project: Project) => void
 }) {
   return (
     <div className="aitw-team__panel" style={p.archived ? { opacity: 0.55 } : undefined}>
@@ -262,13 +259,6 @@ function ProjectCard({
             {acting ? '…' : 'archive'}
           </button>
         )}
-        <button
-          className="aitw-team__link aitw-team__link--dim"
-          disabled={acting}
-          onClick={() => act('delete', p)}
-        >
-          delete
-        </button>
       </div>
     </div>
   )
