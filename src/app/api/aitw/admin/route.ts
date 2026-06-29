@@ -6,8 +6,8 @@ function isAuthorized(req: NextRequest): boolean {
   return req.headers.get('x-admin-key') === process.env.ADMIN_SECRET
 }
 
-// Read-only roster of every team, its members (with contact details) and
-// submission status. Admin-only — members' emails/phones are exposed here.
+// Read-only roster of every team, its members and submission status.
+// Names only — contact details are deliberately not sent to the browser.
 export async function GET(req: NextRequest) {
   if (!isAuthorized(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -19,12 +19,12 @@ export async function GET(req: NextRequest) {
       supabase
         .from('aitw_projects')
         .select(
-          'id, name, description, submission_url, submitted_at, created_at, aitw_builders(id, name, email, phone)'
+          'id, name, description, submission_url, submitted_at, created_at, aitw_builders(id, name)'
         )
         .order('created_at'),
       supabase
         .from('aitw_builders')
-        .select('id, name, email, phone')
+        .select('id, name')
         .is('project_id', null)
         .order('created_at'),
       getAitwArchived(),
@@ -43,14 +43,9 @@ export async function GET(req: NextRequest) {
         late: p.submitted_at != null && new Date(p.submitted_at) > SUBMISSION_DEADLINE,
         createdAt: p.created_at,
         archived: archivedSet.has(p.id),
-        members: (p.aitw_builders ?? []).map((b) => ({
-          id: b.id,
-          name: b.name,
-          email: b.email,
-          phone: b.phone,
-        })),
+        members: (p.aitw_builders ?? []).map((b) => ({ id: b.id, name: b.name })),
       })),
-      solo: (solo ?? []).map((b) => ({ id: b.id, name: b.name, email: b.email, phone: b.phone })),
+      solo: (solo ?? []).map((b) => ({ id: b.id, name: b.name })),
       deadline: SUBMISSION_DEADLINE.toISOString(),
     })
   } catch (err) {

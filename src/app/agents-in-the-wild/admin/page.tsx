@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 
-type Member = { id: string; name: string; email: string; phone: string | null }
+type Member = { id: string; name: string }
 type Project = {
   id: string
   name: string
@@ -187,10 +187,7 @@ export default function AitwAdminPage() {
                     <p className="aitw-eyebrow">not on a team ({data.solo.length})</p>
                     <ul className="aitw-team__members">
                       {data.solo.map((b) => (
-                        <li key={b.id}>
-                          {b.name} — <a className="aitw-team__link" href={`mailto:${b.email}`}>{b.email}</a>
-                          {b.phone && ` · ${b.phone}`}
-                        </li>
+                        <li key={b.id}>{b.name}</li>
                       ))}
                     </ul>
                   </div>
@@ -235,10 +232,7 @@ function ProjectCard({
       <ul className="aitw-team__members">
         {p.members.length === 0 && <li>(no members)</li>}
         {p.members.map((m) => (
-          <li key={m.id}>
-            {m.name} — <a className="aitw-team__link" href={`mailto:${m.email}`}>{m.email}</a>
-            {m.phone && ` · ${m.phone}`}
-          </li>
+          <li key={m.id}>{m.name}</li>
         ))}
       </ul>
       <div className="aitw-team__row">
