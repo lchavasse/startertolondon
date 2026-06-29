@@ -12,6 +12,7 @@ type Project = {
   submittedAt: string | null
   late: boolean
   createdAt: string
+  archived: boolean
   members: Member[]
 }
 type AdminData = { projects: Project[]; solo: Member[]; deadline: string }
@@ -33,6 +34,7 @@ export default function AitwAdminPage() {
   const [data, setData] = useState<AdminData | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [acting, setActing] = useState('')
 
   const fetchData = useCallback(async (adminKey: string) => {
     setLoading(true)
@@ -67,6 +69,29 @@ export default function AitwAdminPage() {
     sessionStorage.setItem(KEY, inputKey)
     setKey(inputKey)
     fetchData(inputKey)
+  }
+
+  const act = async (action: 'archive' | 'unarchive' | 'delete', project: Project) => {
+    if (action === 'delete' && !confirm(`Permanently delete "${project.name}"? Its ${project.members.length} member(s) keep their accounts but lose this team. This can't be undone.`)) {
+      return
+    }
+    setActing(project.id)
+    try {
+      const res = await fetch('/api/aitw/admin', {
+        method: 'POST',
+        headers: { 'x-admin-key': key, 'content-type': 'application/json' },
+        body: JSON.stringify({ action, projectId: project.id }),
+      })
+      if (!res.ok) {
+        setError('action failed')
+        return
+      }
+      await fetchData(key)
+    } catch {
+      setError('action failed')
+    } finally {
+      setActing('')
+    }
   }
 
   return (
@@ -135,50 +160,30 @@ export default function AitwAdminPage() {
             {loading && <p className="aitw-team__status">loading…</p>}
             {error && <p className="aitw-team__error">{error}</p>}
 
-            {data && (
+            {data && (() => {
+              const active = data.projects.filter((p) => !p.archived)
+              const archived = data.projects.filter((p) => p.archived)
+              return (
               <>
                 <p className="aitw-team__hint">
-                  {data.projects.length} team{data.projects.length === 1 ? '' : 's'} ·{' '}
-                  {data.projects.filter((p) => p.submittedAt).length} submitted · deadline{' '}
+                  {active.length} team{active.length === 1 ? '' : 's'} ·{' '}
+                  {active.filter((p) => p.submittedAt).length} submitted · deadline{' '}
                   {fmt(data.deadline)}
+                  {archived.length > 0 && ` · ${archived.length} archived`}
                 </p>
 
-                {data.projects.map((p) => (
-                  <div className="aitw-team__panel" key={p.id}>
-                    <div className="aitw-team__header">
-                      <h2 className="aitw-section__title">{p.name}</h2>
-                      <span
-                        className={`aitw-team__status${p.late ? ' aitw-team__hint--late' : ''}`}
-                      >
-                        {p.submittedAt
-                          ? `${p.late ? '⚠ late · ' : '✓ '}submitted ${fmt(p.submittedAt)}`
-                          : 'not submitted'}
-                      </span>
-                    </div>
-                    {p.description && <p className="aitw-team__lead">{p.description}</p>}
-                    {p.submissionUrl && (
-                      <p className="aitw-team__hint">
-                        <a
-                          className="aitw-team__link"
-                          href={p.submissionUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          open submission →
-                        </a>
-                      </p>
-                    )}
-                    <ul className="aitw-team__members">
-                      {p.members.length === 0 && <li>(no members)</li>}
-                      {p.members.map((m) => (
-                        <li key={m.id}>
-                          {m.name} — <a className="aitw-team__link" href={`mailto:${m.email}`}>{m.email}</a>
-                          {m.phone && ` · ${m.phone}`}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                {active.map((p) => (
+                  <ProjectCard key={p.id} project={p} acting={acting === p.id} act={act} />
                 ))}
+
+                {archived.length > 0 && (
+                  <>
+                    <p className="aitw-eyebrow">archived ({archived.length})</p>
+                    {archived.map((p) => (
+                      <ProjectCard key={p.id} project={p} acting={acting === p.id} act={act} />
+                    ))}
+                  </>
+                )}
 
                 {data.solo.length > 0 && (
                   <div className="aitw-team__panel">
@@ -194,10 +199,77 @@ export default function AitwAdminPage() {
                   </div>
                 )}
               </>
-            )}
+              )
+            })()}
           </section>
         )}
       </div>
     </main>
+  )
+}
+
+function ProjectCard({
+  project: p,
+  acting,
+  act,
+}: {
+  project: Project
+  acting: boolean
+  act: (action: 'archive' | 'unarchive' | 'delete', project: Project) => void
+}) {
+  return (
+    <div className="aitw-team__panel" style={p.archived ? { opacity: 0.55 } : undefined}>
+      <div className="aitw-team__header">
+        <h2 className="aitw-section__title">{p.name}</h2>
+        <span className={`aitw-team__status${p.late ? ' aitw-team__hint--late' : ''}`}>
+          {p.submittedAt
+            ? `${p.late ? '⚠ late · ' : '✓ '}submitted ${fmt(p.submittedAt)}`
+            : 'not submitted'}
+        </span>
+      </div>
+      {p.description && <p className="aitw-team__lead">{p.description}</p>}
+      {p.submissionUrl && (
+        <p className="aitw-team__hint">
+          <a className="aitw-team__link" href={p.submissionUrl} target="_blank" rel="noopener noreferrer">
+            open submission →
+          </a>
+        </p>
+      )}
+      <ul className="aitw-team__members">
+        {p.members.length === 0 && <li>(no members)</li>}
+        {p.members.map((m) => (
+          <li key={m.id}>
+            {m.name} — <a className="aitw-team__link" href={`mailto:${m.email}`}>{m.email}</a>
+            {m.phone && ` · ${m.phone}`}
+          </li>
+        ))}
+      </ul>
+      <div className="aitw-team__row">
+        {p.archived ? (
+          <button
+            className="aitw-team__link aitw-team__link--dim"
+            disabled={acting}
+            onClick={() => act('unarchive', p)}
+          >
+            {acting ? '…' : 'restore'}
+          </button>
+        ) : (
+          <button
+            className="aitw-team__link aitw-team__link--dim"
+            disabled={acting}
+            onClick={() => act('archive', p)}
+          >
+            {acting ? '…' : 'archive'}
+          </button>
+        )}
+        <button
+          className="aitw-team__link aitw-team__link--dim"
+          disabled={acting}
+          onClick={() => act('delete', p)}
+        >
+          delete
+        </button>
+      </div>
+    </div>
   )
 }

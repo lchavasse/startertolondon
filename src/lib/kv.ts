@@ -258,6 +258,28 @@ export async function removeFromBlocklist(id: string): Promise<void> {
   await redis.set('events:blocklist', JSON.stringify(current.filter((i) => i !== id)))
 }
 
+// AITW — admin-archived projects. Soft, reversible declutter for the admin
+// roster only (the /team page is members-only, so this has no public effect).
+// Project data itself stays in Supabase; this just holds the hidden ids.
+export async function getAitwArchived(): Promise<string[]> {
+  const raw = await redis.get<string>('aitw:archived-projects')
+  if (!raw) return []
+  return typeof raw === 'string' ? JSON.parse(raw) : raw
+}
+
+export async function addAitwArchived(id: string): Promise<void> {
+  const current = await getAitwArchived()
+  if (!current.includes(id)) {
+    current.push(id)
+    await redis.set('aitw:archived-projects', JSON.stringify(current))
+  }
+}
+
+export async function removeAitwArchived(id: string): Promise<void> {
+  const current = await getAitwArchived()
+  await redis.set('aitw:archived-projects', JSON.stringify(current.filter((i) => i !== id)))
+}
+
 // Failed sources
 export async function getFailedSources(): Promise<FailedSource[]> {
   const raw = await redis.get<string>('sources:failed')
