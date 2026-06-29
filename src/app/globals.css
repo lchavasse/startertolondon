@@ -156,6 +156,24 @@ body {
   color: var(--accent-yellow);
 }
 
+/* judging — four score inputs in a row, wrapping to 2-up on narrow screens */
+.aitw-judge__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.8rem;
+  margin-top: 0.9rem;
+}
+
+@media (max-width: 640px) {
+  .aitw-judge__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.aitw-judge__cell .aitw-input {
+  text-align: center;
+}
+
 .aitw-input {
   width: 100%;
   padding: 0.65rem 0.8rem;

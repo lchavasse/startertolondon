@@ -280,6 +280,46 @@ export async function removeAitwArchived(id: string): Promise<void> {
   await redis.set('aitw:archived-projects', JSON.stringify(current.filter((i) => i !== id)))
 }
 
+// AITW — judging scores. One Redis hash per judge keyed by slug, with one
+// field per `<projectId>:<criterion>`. hset is atomic per field, so concurrent
+// judges (and fast tabbing) never clobber each other's saves. A `__name` field
+// holds the display name; `aitw:judges` indexes every judge slug for tallying.
+const judgeKey = (slug: string) => `aitw:scores:${slug}`
+
+export type JudgeScores = Record<string, Record<string, number>> // projectId -> criterion -> score
+
+function parseJudgeHash(hash: Record<string, unknown> | null): JudgeScores {
+  const scores: JudgeScores = {}
+  if (!hash) return scores
+  for (const [field, value] of Object.entries(hash)) {
+    if (field === '__name') continue
+    const sep = field.indexOf(':')
+    if (sep < 0) continue
+    const projectId = field.slice(0, sep)
+    const criterion = field.slice(sep + 1)
+    const n = Number(value)
+    if (!Number.isFinite(n)) continue
+    ;(scores[projectId] ??= {})[criterion] = n
+  }
+  return scores
+}
+
+export async function getJudgeScores(slug: string): Promise<JudgeScores> {
+  const hash = await redis.hgetall<Record<string, unknown>>(judgeKey(slug))
+  return parseJudgeHash(hash)
+}
+
+export async function saveJudgeScore(
+  slug: string,
+  name: string,
+  projectId: string,
+  criterion: string,
+  score: number
+): Promise<void> {
+  await redis.hset(judgeKey(slug), { [`${projectId}:${criterion}`]: score, __name: name })
+  await redis.sadd('aitw:judges', slug)
+}
+
 // Failed sources
 export async function getFailedSources(): Promise<FailedSource[]> {
   const raw = await redis.get<string>('sources:failed')
