@@ -225,6 +225,16 @@ body {
   color: rgba(255, 255, 255, 0.35);
 }
 
+.aitw-judge__breakdown {
+  margin-top: 1rem;
+}
+
+.aitw-board__heading {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
 .aitw-input {
   width: 100%;
   padding: 0.65rem 0.8rem;

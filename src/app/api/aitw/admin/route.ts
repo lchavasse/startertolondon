@@ -31,6 +31,8 @@ function tallyJudging(
   const judges = judgeRecords.map((rec) => {
     let completed = 0 // projects with all 4 criteria scored
     let partial = 0 // projects with some but not all
+    // Per-project raw scorecard for this judge, active projects only.
+    const scores: Record<string, { criteria: Record<string, number | null>; total: number }> = {}
     for (const id of activeProjectIds) {
       const row = rec.scores[id]
       if (!row) continue
@@ -38,16 +40,22 @@ function tallyJudging(
       if (present.length === 0) continue
       const slot = board.get(id)!
       let judgeTotal = 0
-      for (const k of present) {
-        slot.criteria[k].sum += row[k]
-        slot.criteria[k].count += 1
-        judgeTotal += row[k]
+      const criteria: Record<string, number | null> = {}
+      for (const k of CRITERION_KEYS) {
+        const v = typeof row[k] === 'number' ? row[k] : null
+        criteria[k] = v
+        if (v != null) {
+          slot.criteria[k].sum += v
+          slot.criteria[k].count += 1
+          judgeTotal += v
+        }
       }
+      scores[id] = { criteria, total: judgeTotal }
       slot.judgeTotals.push(judgeTotal)
       if (present.length === CRITERION_KEYS.length) completed += 1
       else partial += 1
     }
-    return { name: rec.name, slug: rec.slug, completed, partial }
+    return { name: rec.name, slug: rec.slug, completed, partial, scores }
   })
 
   const leaderboard = activeProjectIds

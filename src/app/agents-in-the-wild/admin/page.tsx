@@ -15,7 +15,14 @@ type Project = {
   archived: boolean
   members: Member[]
 }
-type JudgeProgress = { name: string; slug: string; completed: number; partial: number }
+type JudgeCard = { criteria: Record<string, number | null>; total: number }
+type JudgeProgress = {
+  name: string
+  slug: string
+  completed: number
+  partial: number
+  scores: Record<string, JudgeCard>
+}
 type LeaderRow = {
   projectId: string
   judgeCount: number
@@ -292,6 +299,51 @@ function JudgingSection({
               </li>
             ))}
           </ul>
+
+          <p className="aitw-eyebrow">scores by judge</p>
+          {judging.leaderboard
+            .filter((r) => r.judgeCount > 0)
+            .map((r) => {
+              const rows = judging.judges
+                .map((j) => ({ judge: j, card: j.scores[r.projectId] }))
+                .filter((x) => x.card)
+              return (
+                <div className="aitw-judge__breakdown" key={r.projectId}>
+                  <div className="aitw-team__header">
+                    <h3 className="aitw-board__heading">{nameById.get(r.projectId) ?? r.projectId}</h3>
+                    <span className="aitw-team__status">avg {r.avgTotal.toFixed(1)} / 100</span>
+                  </div>
+                  <div className="aitw-judge__board">
+                    <table className="aitw-board">
+                      <thead>
+                        <tr>
+                          <th className="aitw-board__name">judge</th>
+                          {judging.criteria.map((c) => (
+                            <th key={c.key} className="aitw-board__num">
+                              {c.label.slice(0, 4).toLowerCase()}
+                            </th>
+                          ))}
+                          <th className="aitw-board__num">total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rows.map(({ judge, card }) => (
+                          <tr key={judge.slug}>
+                            <td className="aitw-board__name">{judge.name}</td>
+                            {judging.criteria.map((c) => (
+                              <td key={c.key} className="aitw-board__num">
+                                {card!.criteria[c.key] == null ? '–' : card!.criteria[c.key]}
+                              </td>
+                            ))}
+                            <td className="aitw-board__num aitw-board__total">{card!.total}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )
+            })}
         </>
       )}
     </div>
