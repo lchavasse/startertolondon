@@ -225,21 +225,6 @@ body {
   color: rgba(255, 255, 255, 0.35);
 }
 
-.aitw-judge__breakdown {
-  margin-top: 1rem;
-}
-
-.aitw-board__heading {
-  margin: 0;
-  font-size: 0.95rem;
-  font-weight: 600;
-}
-
-.aitw-board__rankin {
-  color: rgba(255, 255, 255, 0.4);
-  font-weight: 500;
-}
-
 .aitw-board__avg td {
   border-top: 1px solid rgba(255, 255, 255, 0.18);
   border-bottom: none;

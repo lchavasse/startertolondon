@@ -34,6 +34,12 @@ type Judging = {
   leaderboard: LeaderRow[]
 }
 type AdminData = { projects: Project[]; solo: Member[]; deadline: string; judging: Judging }
+type ProjectJudging = {
+  rows: { name: string; slug: string; card: JudgeCard }[]
+  avgTotal: number
+  criteria: Record<string, number | null>
+  judgeCount: number
+}
 
 const KEY = 'admin-key'
 
@@ -179,6 +185,21 @@ export default function AitwAdminPage() {
               const active = data.projects.filter((p) => !p.archived)
               const archived = data.projects.filter((p) => p.archived)
               const nameById = new Map(data.projects.map((p) => [p.id, p.name]))
+              const j = data.judging
+              // Per-project judging, keyed by project id, for each ProjectCard.
+              const judgingByProject = new Map<string, ProjectJudging>(
+                j.leaderboard.map((r) => [
+                  r.projectId,
+                  {
+                    rows: j.judges
+                      .map((jd) => ({ name: jd.name, slug: jd.slug, card: jd.scores[r.projectId] }))
+                      .filter((x): x is { name: string; slug: string; card: JudgeCard } => !!x.card),
+                    avgTotal: r.avgTotal,
+                    criteria: r.criteria,
+                    judgeCount: r.judgeCount,
+                  },
+                ])
+              )
               return (
               <>
                 <p className="aitw-team__hint">
@@ -188,17 +209,31 @@ export default function AitwAdminPage() {
                   {archived.length > 0 && ` · ${archived.length} archived`}
                 </p>
 
-                <JudgingSection judging={data.judging} nameById={nameById} />
+                <JudgingSection judging={j} nameById={nameById} />
 
                 {active.map((p) => (
-                  <ProjectCard key={p.id} project={p} acting={acting === p.id} act={act} />
+                  <ProjectCard
+                    key={p.id}
+                    project={p}
+                    acting={acting === p.id}
+                    act={act}
+                    judging={judgingByProject.get(p.id)}
+                    criteria={j.criteria}
+                  />
                 ))}
 
                 {archived.length > 0 && (
                   <>
                     <p className="aitw-eyebrow">archived ({archived.length})</p>
                     {archived.map((p) => (
-                      <ProjectCard key={p.id} project={p} acting={acting === p.id} act={act} />
+                      <ProjectCard
+                        key={p.id}
+                        project={p}
+                        acting={acting === p.id}
+                        act={act}
+                        judging={judgingByProject.get(p.id)}
+                        criteria={j.criteria}
+                      />
                     ))}
                   </>
                 )}
@@ -254,6 +289,41 @@ function JudgingSection({
         </p>
       ) : (
         <>
+          <div className="aitw-judge__board">
+            <table className="aitw-board">
+              <thead>
+                <tr>
+                  <th className="aitw-board__rank">#</th>
+                  <th className="aitw-board__name">project</th>
+                  {judging.criteria.map((c) => (
+                    <th key={c.key} className="aitw-board__num">
+                      {c.label.slice(0, 4).toLowerCase()}
+                    </th>
+                  ))}
+                  <th className="aitw-board__num">avg / 100</th>
+                  <th className="aitw-board__num">judges</th>
+                </tr>
+              </thead>
+              <tbody>
+                {judging.leaderboard.map((r, i) => (
+                  <tr key={r.projectId} className={r.judgeCount === 0 ? 'aitw-board__empty' : undefined}>
+                    <td className="aitw-board__rank">{r.judgeCount ? i + 1 : '–'}</td>
+                    <td className="aitw-board__name">{nameById.get(r.projectId) ?? r.projectId}</td>
+                    {judging.criteria.map((c) => (
+                      <td key={c.key} className="aitw-board__num">
+                        {r.criteria[c.key] == null ? '–' : r.criteria[c.key]!.toFixed(1)}
+                      </td>
+                    ))}
+                    <td className="aitw-board__num aitw-board__total">
+                      {r.judgeCount ? r.avgTotal.toFixed(1) : '–'}
+                    </td>
+                    <td className="aitw-board__num">{r.judgeCount || '–'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
           <p className="aitw-eyebrow">judges</p>
           <ul className="aitw-team__members">
             {judging.judges.map((j) => (
@@ -262,68 +332,56 @@ function JudgingSection({
               </li>
             ))}
           </ul>
-
-          {judging.leaderboard.map((r, i) => {
-            const rows = judging.judges
-              .map((j) => ({ judge: j, card: j.scores[r.projectId] }))
-              .filter((x) => x.card)
-            return (
-              <div className="aitw-judge__breakdown" key={r.projectId}>
-                <div className="aitw-team__header">
-                  <h3 className="aitw-board__heading">
-                    <span className="aitw-board__rankin">{r.judgeCount ? `#${i + 1}` : '–'}</span>{' '}
-                    {nameById.get(r.projectId) ?? r.projectId}
-                  </h3>
-                  <span className="aitw-team__status">
-                    {r.judgeCount
-                      ? `avg ${r.avgTotal.toFixed(1)} / 100 · ${r.judgeCount} judge${r.judgeCount === 1 ? '' : 's'}`
-                      : 'not scored'}
-                  </span>
-                </div>
-                {r.judgeCount > 0 && (
-                  <div className="aitw-judge__board">
-                    <table className="aitw-board">
-                      <thead>
-                        <tr>
-                          <th className="aitw-board__name">judge</th>
-                          {judging.criteria.map((c) => (
-                            <th key={c.key} className="aitw-board__num">
-                              {c.label.slice(0, 4).toLowerCase()}
-                            </th>
-                          ))}
-                          <th className="aitw-board__num">total</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {rows.map(({ judge, card }) => (
-                          <tr key={judge.slug}>
-                            <td className="aitw-board__name">{judge.name}</td>
-                            {judging.criteria.map((c) => (
-                              <td key={c.key} className="aitw-board__num">
-                                {card!.criteria[c.key]}
-                              </td>
-                            ))}
-                            <td className="aitw-board__num aitw-board__total">{card!.total}</td>
-                          </tr>
-                        ))}
-                        <tr className="aitw-board__avg">
-                          <td className="aitw-board__name">average</td>
-                          {judging.criteria.map((c) => (
-                            <td key={c.key} className="aitw-board__num">
-                              {r.criteria[c.key] == null ? '–' : r.criteria[c.key]!.toFixed(1)}
-                            </td>
-                          ))}
-                          <td className="aitw-board__num aitw-board__total">{r.avgTotal.toFixed(1)}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )
-          })}
         </>
       )}
+    </div>
+  )
+}
+
+function ProjectScores({
+  judging,
+  criteria,
+}: {
+  judging: ProjectJudging
+  criteria: { key: string; label: string }[]
+}) {
+  return (
+    <div className="aitw-judge__board">
+      <table className="aitw-board">
+        <thead>
+          <tr>
+            <th className="aitw-board__name">judge</th>
+            {criteria.map((c) => (
+              <th key={c.key} className="aitw-board__num">
+                {c.label.slice(0, 4).toLowerCase()}
+              </th>
+            ))}
+            <th className="aitw-board__num">total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {judging.rows.map(({ name, slug, card }) => (
+            <tr key={slug}>
+              <td className="aitw-board__name">{name}</td>
+              {criteria.map((c) => (
+                <td key={c.key} className="aitw-board__num">
+                  {card.criteria[c.key]}
+                </td>
+              ))}
+              <td className="aitw-board__num aitw-board__total">{card.total}</td>
+            </tr>
+          ))}
+          <tr className="aitw-board__avg">
+            <td className="aitw-board__name">average</td>
+            {criteria.map((c) => (
+              <td key={c.key} className="aitw-board__num">
+                {judging.criteria[c.key] == null ? '–' : judging.criteria[c.key]!.toFixed(1)}
+              </td>
+            ))}
+            <td className="aitw-board__num aitw-board__total">{judging.avgTotal.toFixed(1)}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   )
 }
@@ -332,10 +390,14 @@ function ProjectCard({
   project: p,
   acting,
   act,
+  judging,
+  criteria,
 }: {
   project: Project
   acting: boolean
   act: (action: 'archive' | 'unarchive', project: Project) => void
+  judging?: ProjectJudging
+  criteria: { key: string; label: string }[]
 }) {
   return (
     <div className="aitw-team__panel" style={p.archived ? { opacity: 0.55 } : undefined}>
@@ -361,6 +423,11 @@ function ProjectCard({
           <li key={m.id}>{m.name}</li>
         ))}
       </ul>
+      {judging && judging.judgeCount > 0 ? (
+        <ProjectScores judging={judging} criteria={criteria} />
+      ) : (
+        !p.archived && <p className="aitw-team__hint">no scores yet</p>
+      )}
       <div className="aitw-team__row">
         {p.archived ? (
           <button
