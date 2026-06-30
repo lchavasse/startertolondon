@@ -29,33 +29,29 @@ function tallyJudging(
   }
 
   const judges = judgeRecords.map((rec) => {
-    let completed = 0 // projects with all 4 criteria scored
-    let partial = 0 // projects with some but not all
-    // Per-project raw scorecard for this judge, active projects only.
-    const scores: Record<string, { criteria: Record<string, number | null>; total: number }> = {}
+    let done = 0 // projects fully scored (all 4 criteria)
+    // Per-project scorecard, active projects only. Partial cards are ignored
+    // entirely — a project counts only once every criterion has a score.
+    const scores: Record<string, { criteria: Record<string, number>; total: number }> = {}
     for (const id of activeProjectIds) {
       const row = rec.scores[id]
       if (!row) continue
-      const present = CRITERION_KEYS.filter((k) => typeof row[k] === 'number')
-      if (present.length === 0) continue
+      if (!CRITERION_KEYS.every((k) => typeof row[k] === 'number')) continue // skip partial
       const slot = board.get(id)!
       let judgeTotal = 0
-      const criteria: Record<string, number | null> = {}
+      const criteria: Record<string, number> = {}
       for (const k of CRITERION_KEYS) {
-        const v = typeof row[k] === 'number' ? row[k] : null
+        const v = row[k]
         criteria[k] = v
-        if (v != null) {
-          slot.criteria[k].sum += v
-          slot.criteria[k].count += 1
-          judgeTotal += v
-        }
+        slot.criteria[k].sum += v
+        slot.criteria[k].count += 1
+        judgeTotal += v
       }
       scores[id] = { criteria, total: judgeTotal }
       slot.judgeTotals.push(judgeTotal)
-      if (present.length === CRITERION_KEYS.length) completed += 1
-      else partial += 1
+      done += 1
     }
-    return { name: rec.name, slug: rec.slug, completed, partial, scores }
+    return { name: rec.name, slug: rec.slug, done, scores }
   })
 
   const leaderboard = activeProjectIds
@@ -77,7 +73,7 @@ function tallyJudging(
 
   return {
     criteria: JUDGING_CRITERIA.map((c) => ({ key: c.key, label: c.label })),
-    judges: judges.sort((a, b) => b.completed - a.completed),
+    judges: judges.sort((a, b) => b.done - a.done),
     leaderboard,
   }
 }

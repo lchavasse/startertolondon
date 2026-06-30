@@ -15,12 +15,11 @@ type Project = {
   archived: boolean
   members: Member[]
 }
-type JudgeCard = { criteria: Record<string, number | null>; total: number }
+type JudgeCard = { criteria: Record<string, number>; total: number }
 type JudgeProgress = {
   name: string
   slug: string
-  completed: number
-  partial: number
+  done: number
   scores: Record<string, JudgeCard>
 }
 type LeaderRow = {
@@ -255,64 +254,33 @@ function JudgingSection({
         </p>
       ) : (
         <>
-          <div className="aitw-judge__board">
-            <table className="aitw-board">
-              <thead>
-                <tr>
-                  <th className="aitw-board__rank">#</th>
-                  <th className="aitw-board__name">project</th>
-                  {judging.criteria.map((c) => (
-                    <th key={c.key} className="aitw-board__num">
-                      {c.label.slice(0, 4).toLowerCase()}
-                    </th>
-                  ))}
-                  <th className="aitw-board__num">avg / 100</th>
-                  <th className="aitw-board__num">judges</th>
-                </tr>
-              </thead>
-              <tbody>
-                {judging.leaderboard.map((r, i) => (
-                  <tr key={r.projectId} className={r.judgeCount === 0 ? 'aitw-board__empty' : undefined}>
-                    <td className="aitw-board__rank">{r.judgeCount ? i + 1 : '–'}</td>
-                    <td className="aitw-board__name">{nameById.get(r.projectId) ?? r.projectId}</td>
-                    {judging.criteria.map((c) => (
-                      <td key={c.key} className="aitw-board__num">
-                        {r.criteria[c.key] == null ? '–' : r.criteria[c.key]!.toFixed(1)}
-                      </td>
-                    ))}
-                    <td className="aitw-board__num aitw-board__total">
-                      {r.judgeCount ? r.avgTotal.toFixed(1) : '–'}
-                    </td>
-                    <td className="aitw-board__num">{r.judgeCount || '–'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
           <p className="aitw-eyebrow">judges</p>
           <ul className="aitw-team__members">
             {judging.judges.map((j) => (
               <li key={j.slug}>
-                {j.name} — {j.completed} done
-                {j.partial > 0 && `, ${j.partial} partial`}
+                {j.name} — {j.done} scored
               </li>
             ))}
           </ul>
 
-          <p className="aitw-eyebrow">scores by judge</p>
-          {judging.leaderboard
-            .filter((r) => r.judgeCount > 0)
-            .map((r) => {
-              const rows = judging.judges
-                .map((j) => ({ judge: j, card: j.scores[r.projectId] }))
-                .filter((x) => x.card)
-              return (
-                <div className="aitw-judge__breakdown" key={r.projectId}>
-                  <div className="aitw-team__header">
-                    <h3 className="aitw-board__heading">{nameById.get(r.projectId) ?? r.projectId}</h3>
-                    <span className="aitw-team__status">avg {r.avgTotal.toFixed(1)} / 100</span>
-                  </div>
+          {judging.leaderboard.map((r, i) => {
+            const rows = judging.judges
+              .map((j) => ({ judge: j, card: j.scores[r.projectId] }))
+              .filter((x) => x.card)
+            return (
+              <div className="aitw-judge__breakdown" key={r.projectId}>
+                <div className="aitw-team__header">
+                  <h3 className="aitw-board__heading">
+                    <span className="aitw-board__rankin">{r.judgeCount ? `#${i + 1}` : '–'}</span>{' '}
+                    {nameById.get(r.projectId) ?? r.projectId}
+                  </h3>
+                  <span className="aitw-team__status">
+                    {r.judgeCount
+                      ? `avg ${r.avgTotal.toFixed(1)} / 100 · ${r.judgeCount} judge${r.judgeCount === 1 ? '' : 's'}`
+                      : 'not scored'}
+                  </span>
+                </div>
+                {r.judgeCount > 0 && (
                   <div className="aitw-judge__board">
                     <table className="aitw-board">
                       <thead>
@@ -332,18 +300,28 @@ function JudgingSection({
                             <td className="aitw-board__name">{judge.name}</td>
                             {judging.criteria.map((c) => (
                               <td key={c.key} className="aitw-board__num">
-                                {card!.criteria[c.key] == null ? '–' : card!.criteria[c.key]}
+                                {card!.criteria[c.key]}
                               </td>
                             ))}
                             <td className="aitw-board__num aitw-board__total">{card!.total}</td>
                           </tr>
                         ))}
+                        <tr className="aitw-board__avg">
+                          <td className="aitw-board__name">average</td>
+                          {judging.criteria.map((c) => (
+                            <td key={c.key} className="aitw-board__num">
+                              {r.criteria[c.key] == null ? '–' : r.criteria[c.key]!.toFixed(1)}
+                            </td>
+                          ))}
+                          <td className="aitw-board__num aitw-board__total">{r.avgTotal.toFixed(1)}</td>
+                        </tr>
                       </tbody>
                     </table>
                   </div>
-                </div>
-              )
-            })}
+                )}
+              </div>
+            )
+          })}
         </>
       )}
     </div>

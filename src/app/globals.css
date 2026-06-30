@@ -235,6 +235,20 @@ body {
   font-weight: 600;
 }
 
+.aitw-board__rankin {
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+}
+
+.aitw-board__avg td {
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  border-bottom: none;
+  color: rgba(255, 255, 255, 0.6);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.72rem;
+}
+
 .aitw-input {
   width: 100%;
   padding: 0.65rem 0.8rem;
