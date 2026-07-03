@@ -124,6 +124,22 @@ body {
   background: linear-gradient(180deg, rgba(8, 12, 9, 0.9), rgba(4, 8, 6, 0.95));
 }
 
+.aitw-team__panel--finalist {
+  border-color: var(--accent-yellow);
+}
+
+.aitw-team__badge {
+  display: inline-block;
+  margin-left: 0.6rem;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #040506;
+  background: var(--accent-yellow);
+  vertical-align: middle;
+}
+
 .aitw-team__stack {
   display: flex;
   flex-direction: column;
