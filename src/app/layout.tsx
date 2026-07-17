@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist, IBM_Plex_Mono, Press_Start_2P } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { PromoBanner } from '@/components/PromoBanner'
 import './globals.css'
 
 const geistSans = Geist({
@@ -37,6 +38,7 @@ export default function RootLayout({
       className={`${pressStart2P.variable} ${ibmPlexMono.variable} ${geistSans.variable}`}
     >
       <body className="antialiased">
+        <PromoBanner />
         {children}
         <Analytics />
       </body>

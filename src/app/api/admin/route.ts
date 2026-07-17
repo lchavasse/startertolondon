@@ -9,6 +9,8 @@ import {
   updateManualEvent,
   setCuratedOverride,
   setSectorOverride,
+  setUrlOverride,
+  setCoverOverride,
   getSystemSourceOverrides,
   setSystemSourceOverride,
   getBlocklist,
@@ -151,6 +153,26 @@ export async function POST(req: NextRequest) {
         : []),
     ])
     return NextResponse.json({ ok: true, sectorTags: normalised ?? [] })
+  }
+
+  if (action === 'set-event-url') {
+    const { id, url } = body as { id?: string; url?: unknown }
+    if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+    if (url !== null && typeof url !== 'string') {
+      return NextResponse.json({ error: 'url must be a string or null' }, { status: 400 })
+    }
+    await setUrlOverride(id, url)
+    return NextResponse.json({ ok: true })
+  }
+
+  if (action === 'set-event-cover') {
+    const { id, coverUrl } = body as { id?: string; coverUrl?: unknown }
+    if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
+    if (coverUrl !== null && typeof coverUrl !== 'string') {
+      return NextResponse.json({ error: 'coverUrl must be a string or null' }, { status: 400 })
+    }
+    await setCoverOverride(id, coverUrl)
+    return NextResponse.json({ ok: true })
   }
 
   if (action === 'toggle-system-source') {

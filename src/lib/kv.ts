@@ -23,11 +23,13 @@ export async function saveEvents(events: LondonEvent[]): Promise<void> {
 }
 
 export async function getEvents(): Promise<LondonEvent[]> {
-  const [rawAuto, rawManual, rawOverrides, rawSectorOverrides] = await Promise.all([
+  const [rawAuto, rawManual, rawOverrides, rawSectorOverrides, rawUrlOverrides, rawCoverOverrides] = await Promise.all([
     redis.get<string>('events:london'),
     redis.get<string>('events:manual'),
     redis.get<string>('events:curated-overrides'),
     redis.get<string>('events:sector-overrides'),
+    redis.get<string>('events:url-overrides'),
+    redis.get<string>('events:cover-overrides'),
   ])
 
   const autoEvents: LondonEvent[] = rawAuto
@@ -41,6 +43,12 @@ export async function getEvents(): Promise<LondonEvent[]> {
     : {}
   const sectorOverrides: Record<string, string[]> = rawSectorOverrides
     ? typeof rawSectorOverrides === 'string' ? JSON.parse(rawSectorOverrides) : rawSectorOverrides
+    : {}
+  const urlOverrides: Record<string, string> = rawUrlOverrides
+    ? typeof rawUrlOverrides === 'string' ? JSON.parse(rawUrlOverrides) : rawUrlOverrides
+    : {}
+  const coverOverrides: Record<string, string> = rawCoverOverrides
+    ? typeof rawCoverOverrides === 'string' ? JSON.parse(rawCoverOverrides) : rawCoverOverrides
     : {}
 
   // Merge: manual wins over auto for same id
@@ -65,6 +73,8 @@ export async function getEvents(): Promise<LondonEvent[]> {
         ? { ...e, sectorTags: sectorOverrides[e.id].filter(isSector) }
         : e
     )
+    .map((e) => (e.id in urlOverrides ? { ...e, url: urlOverrides[e.id] } : e))
+    .map((e) => (e.id in coverOverrides ? { ...e, coverUrl: coverOverrides[e.id] } : e))
     .sort((a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime())
 }
 
@@ -163,6 +173,45 @@ export async function setSectorOverride(id: string, sectors: Sector[] | null): P
     current[id] = [...new Set(sectors.filter(isSector))]
   }
   await redis.set('events:sector-overrides', JSON.stringify(current))
+}
+
+// URL overrides — manual link fixes that survive scrapes. Needed for events
+// whose Luma API `event.url` slug (e.g. a pre-vanity-URL id) differs from the
+// canonical link the organiser wants shown, since the scraper rebuilds the
+// url field from the API on every run.
+export async function getUrlOverrides(): Promise<Record<string, string>> {
+  const raw = await redis.get<string>('events:url-overrides')
+  if (!raw) return {}
+  return typeof raw === 'string' ? JSON.parse(raw) : raw
+}
+
+/** Pass `null` to remove the override (event reverts to its scraped url). */
+export async function setUrlOverride(id: string, url: string | null): Promise<void> {
+  const current = await getUrlOverrides()
+  if (url === null) {
+    delete current[id]
+  } else {
+    current[id] = url
+  }
+  await redis.set('events:url-overrides', JSON.stringify(current))
+}
+
+// Cover image overrides — same rationale as url-overrides, for event.coverUrl.
+export async function getCoverOverrides(): Promise<Record<string, string>> {
+  const raw = await redis.get<string>('events:cover-overrides')
+  if (!raw) return {}
+  return typeof raw === 'string' ? JSON.parse(raw) : raw
+}
+
+/** Pass `null` to remove the override (event reverts to its scraped cover). */
+export async function setCoverOverride(id: string, coverUrl: string | null): Promise<void> {
+  const current = await getCoverOverrides()
+  if (coverUrl === null) {
+    delete current[id]
+  } else {
+    current[id] = coverUrl
+  }
+  await redis.set('events:cover-overrides', JSON.stringify(current))
 }
 
 // EB/Meetup allowlist — source keys (e.g. 'meetup:tech-startups-in-the-pub') whose

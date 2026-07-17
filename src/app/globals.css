@@ -33,8 +33,7 @@ body {
   font-family: var(--font-plex-mono);
 }
 
-/* ─── Site-wide promo banner styles (component currently unused — kept for
-   future banners; render a .promo-banner link in layout.tsx to re-enable) ── */
+/* ─── Site-wide promo banner styles ── */
 .promo-banner {
   position: relative;
   z-index: 50;
