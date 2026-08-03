@@ -34,14 +34,15 @@ const STOPWORDS = new Set([
   'ai',
 ])
 
+// Unicode-aware on purpose: stripping to [a-z0-9] would blank out any name written in Cyrillic or
+// CJK, and a blank key is what made crm-dedupe collide unrelated records. Diacritics fold away, so
+// an accented spelling and its plain form land on the same key.
 function tokenise(value: string | null | undefined): string[] {
   return (value ?? '')
     .toLowerCase()
     .normalize('NFKD')
     .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim()
-    .split(' ')
+    .split(/[^\p{L}\p{N}]+/u)
     .filter(Boolean)
 }
 
