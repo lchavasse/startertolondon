@@ -10,20 +10,19 @@
  * promoted. The DB is a derived artefact, so every run drops and rebuilds rather than upserting;
  * that is what makes it trivially re-runnable and identical run to run.
  *
+ * Normalisation comes from scripts/lib/normalise.ts, shared with the scanner loader — the two
+ * staging DBs are joined on name_norm / tokens, so a local variant here would silently under-match.
+ *
  * Zero LLM calls. Nothing here talks to a network.
  */
 import { readFileSync, mkdirSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { DatabaseSync } from 'node:sqlite'
+import { nameTokens, normaliseName } from './lib/normalise'
 
 const STAGING_DIR = join(process.cwd(), 'scripts', '.staging')
 const DB_PATH = join(STAGING_DIR, 'linkedin.db')
 const LACHLAN_URL = 'https://www.linkedin.com/in/lchavasse'
-
-const LEGAL_SUFFIXES = new Set([
-  'ltd', 'limited', 'inc', 'llc', 'plc', 'gmbh', 'sa', 'bv', 'ag', 'co', 'corp', 'corporation',
-  'holdings', 'group', 'uk',
-])
 
 // minimal CSV parser that handles quoted fields and embedded commas/newlines
 function parseCsv(text: string): string[][] {
@@ -61,18 +60,6 @@ function readTable(file: string): Array<Record<string, string>> {
     header.forEach((key, i) => { record[key] = (row[i] ?? '').trim() })
     return record
   })
-}
-
-function norm(value: string | null | undefined) {
-  return (value ?? '').toLowerCase().replace(/[^a-z0-9]/g, '')
-}
-
-// Strip trailing legal suffixes token by token, but never all the way to empty — a company literally
-// called "Group" still needs a key.
-function normCompany(value: string | null | undefined) {
-  let tokens = (value ?? '').toLowerCase().split(/[^a-z0-9]+/).filter(Boolean)
-  while (tokens.length > 1 && LEGAL_SUFFIXES.has(tokens[tokens.length - 1])) tokens = tokens.slice(0, -1)
-  return tokens.join('')
 }
 
 function normProfileUrl(value: string | null | undefined) {
@@ -134,12 +121,13 @@ function buildConnections(db: DatabaseSync) {
       position text,
       connected_on text,
       name_norm text,
-      company_norm text
+      company_norm text,
+      company_tokens text
     )
   `)
   const insert = db.prepare(`
-    insert into connections (first_name, last_name, full_name, profile_url, email, company, position, connected_on, name_norm, company_norm)
-    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    insert into connections (first_name, last_name, full_name, profile_url, email, company, position, connected_on, name_norm, company_norm, company_tokens)
+    values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
   const rows = readTable('Connections.csv')
   for (const row of rows) {
@@ -155,8 +143,9 @@ function buildConnections(db: DatabaseSync) {
       row['Company'] || null,
       row['Position'] || null,
       parseConnectedOn(row['Connected On'] ?? ''),
-      norm(full),
-      normCompany(row['Company']) || null,
+      normaliseName(full),
+      normaliseName(row['Company']) || null,
+      nameTokens(row['Company']) || null,
     )
   }
   db.exec('create index connections_name_norm on connections (name_norm)')
@@ -236,7 +225,7 @@ function buildConversations(db: DatabaseSync) {
     for (const person of seen) {
       if (!person.url && !person.name) continue
       if (isLachlan(person.url, person.name)) continue
-      const key = person.url || `name:${norm(person.name)}`
+      const key = person.url || `name:${normaliseName(person.name)}`
       if (!acc.participants.has(key)) acc.participants.set(key, person)
     }
 
@@ -322,7 +311,7 @@ function main() {
   const { messages, conversations } = buildConversations(db)
   const invitationCount = buildInvitations(db)
 
-  const withCompany = count(db, `select count(*) as n from connections where company is not null and company_norm is not null`)
+  const withCompany = count(db, `select count(*) as n from connections where company is not null`)
   const distinctCounterparties = count(db, `select count(distinct coalesce(counterparty_profile_url, counterparty_name)) as n from conversations where counterparty_name is not null or counterparty_profile_url is not null`)
   const owedByLachlan = count(db, `select count(*) as n from conversations where awaiting_reply_from = 'lachlan'`)
   const owedByCounterparty = count(db, `select count(*) as n from conversations where awaiting_reply_from = 'counterparty'`)
