@@ -50,3 +50,4 @@ scripts/.crm-dedupe-snapshot.json
 scripts/*.db
 scripts/.staging/
 scripts/.crm-next-action-decisions.json
+scripts/.crm-notion-document.txt
