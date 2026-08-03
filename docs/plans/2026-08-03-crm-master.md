@@ -76,14 +76,42 @@ schema was designed for exactly the three directions below. **Do not add tables.
 | # | Chunk | Depends on | Where | Status |
 |---|---|---|---|---|
 | 0 | Agent bridge + chase loop | — | Claude Code | **done** — `8b5ffa9` |
-| 1 | LinkedIn graph import | — | Claude Code | not started |
-| 2 | deeptech-scanner join + warm routes | 1 | Claude Code | not started |
+| 0.5 | Data repair (dedupe, next_action) | — | Claude Code | **done** — `3e6e648` |
+| 1 | Local staging DB + LinkedIn load | — | Claude Code | not started |
+| 2 | scanner join + warm routes (in staging) | 1 | Claude Code | not started |
+| 2.5 | Promote reviewed staging rows to Supabase | 2 | Claude Code | not started |
 | 3 | Conversation ingest (Granola/Notion) | 0 | Hermes | not started |
-| 4 | Bright Data enrichment | 2 | Claude Code | not started |
+| 3.5 | Relink the 55 orphaned Notion interactions | 0 | Claude Code | not started |
+| 4 | Bright Data enrichment | 2.5 | Claude Code | not started |
 | 5 | Manual target wrap (the 26 Jul PRD) | 0 | Claude Code | deferred |
 
-Chunks 0 and 1 are independent — run them in parallel. Chunk 1 writes to Supabase directly via a
-`tsx` script and needs no API.
+### Staging-first, decided 2026-08-03
+
+Chunks 1 and 2 no longer write to Supabase. They build `scripts/.staging/crm-staging.db` (SQLite,
+gitignored) and do all loading, fuzzy matching and scoring there. Only chunk 2.5 promotes reviewed
+rows into `crm_*`.
+
+Why: `deeptech-scanner` is already SQLite so the join is native rather than cross-system; matching
+3,932 connections against 3,331 companies needs several threshold iterations you do not want to run
+against production; and LinkedIn message bodies never reach Supabase at all — only derived fields
+are ever promoted.
+
+### Data repair outcome (`3e6e648`)
+
+The 10 July sheet import ran twice. Two consequences, both now fixed:
+
+- **20 duplicate organisations and 20 duplicate opportunities.** 191→171 orgs, 196→176
+  opportunities, all dependants repointed, zero dangling links. `scripts/crm-dedupe.ts`, snapshots
+  before deleting. Note: two orgs both named `?` are Basecamp Research and Prima Mente — different
+  companies that collide on an empty normalised key. Never merge on a blank key.
+- **`next_action` never held actions.** All 87 values were contact names, firms, LinkedIn URLs or
+  reminders. The chase queue's central signal was inverted. Recovered 58 people, 58 opportunity
+  links and 5 LinkedIn contact points via `src/lib/llm/contact-classifier.ts`; originals preserved
+  verbatim in `notes_freeform` before clearing. `crm_contact_points` 0→5, `crm_people` 51→109.
+
+Current state: 176 opportunities, 171 organisations, 109 people, 5 contact points, 96 opportunities
+with at least one linked person. **Zero opportunities have a real next action** — that is now the
+honest reading, and the chase queue reports it.
 
 ---
 
