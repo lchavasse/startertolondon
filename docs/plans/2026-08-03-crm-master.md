@@ -75,7 +75,7 @@ schema was designed for exactly the three directions below. **Do not add tables.
 
 | # | Chunk | Depends on | Where | Status |
 |---|---|---|---|---|
-| 0 | Agent bridge + chase loop | — | Claude Code | not started |
+| 0 | Agent bridge + chase loop | — | Claude Code | **done** — `8b5ffa9` |
 | 1 | LinkedIn graph import | — | Claude Code | not started |
 | 2 | deeptech-scanner join + warm routes | 1 | Claude Code | not started |
 | 3 | Conversation ingest (Granola/Notion) | 0 | Hermes | not started |
@@ -183,6 +183,26 @@ VERIFY
 
 Report: what you built, what the backfill changed, and anything in the plan that turned out wrong.
 ```
+
+### Chunk 0 outcome (2026-08-03)
+
+Shipped in `8b5ffa9`. Notes for whoever picks up the next chunk:
+
+- Agent access is `Authorization: Bearer $CRM_AGENT_TOKEN`. The token is in the worktree
+  `.env.local` only — **add it to Vercel env before Hermes can reach production.**
+- Reads: `GET /api/crm?entity=chase|search|opportunities|...`. The existing `entity=` convention was
+  kept rather than inventing `resource=`.
+- `add-outreach-entry` now writes through to the parent opportunity. Do not add a competing action
+  that logs outreach without doing this — that omission is what emptied the dashboard.
+- `ingest-document` dedupes via explicit `content_hash` lookup, not `ON CONFLICT`. The unique index
+  is partial (`where content_hash is not null`) and Postgres cannot target it from `ON CONFLICT`.
+- All 55 `crm_interactions` are orphans — no `opportunity_id`, `person_id` or `organisation_id`.
+  Nothing in the CRM currently links an interaction to anything. Worth fixing when chunk 3 lands.
+- `last_activity_at` is still 0/196 and that is deliberate. The backfill only derives from real
+  history; the `--fallback-to-updated-at` path would report import age as activity.
+- **Use pnpm in this worktree.** `pnpm-lock.yaml` pins `@supabase/supabase-js` 2.100.0; `npm install`
+  resolves `^2.100.0` to 2.112.0, whose stricter `update()` types break the build in two unrelated
+  admin routes. Those errors are an install artifact, not a real break.
 
 ## Chunk 1 — LinkedIn graph import
 
