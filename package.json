@@ -21,7 +21,9 @@
     "post-thread": "npx tsx --env-file=.env.local scripts/post-thread.ts",
     "screenshot": "npx tsx --env-file=.env.local scripts/screenshot.ts",
     "import-builders": "npx tsx --env-file=.env.local scripts/import-builders.ts",
-    "aitw:teams": "npx tsx --env-file=.env.local scripts/list-teams.ts"
+    "aitw:teams": "npx tsx --env-file=.env.local scripts/list-teams.ts",
+    "crm:import-sheet": "npx tsx --env-file=.env.local scripts/import-deeptech-sheet.ts",
+    "crm:import-notion": "npx tsx --env-file=.env.local scripts/import-deeptech-notion.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.1",

@@ -1,0 +1,73 @@
+import { CrmShell } from '@/components/crm/CrmShell'
+import { TodayCards } from '@/components/crm/TodayCards'
+import { UrgentList } from '@/components/crm/UrgentList'
+import { InboundSummary } from '@/components/crm/InboundSummary'
+import { fetchCrmDashboardData } from '@/lib/crm/server'
+
+export const dynamic = 'force-dynamic'
+
+export default async function CrmHomePage() {
+  const data = await fetchCrmDashboardData()
+
+  return (
+    <CrmShell
+      title="CRM"
+      subtitle="Manual-first outreach ops for sponsors, speakers, expo, partners, topics, and week-level admin. The point is not elegance. The point is not dropping the ball."
+    >
+      <TodayCards summary={data.summary} />
+      <div className="grid gap-4 xl:grid-cols-2">
+        <UrgentList
+          title="Overdue follow-ups"
+          empty="No overdue opportunity follow-ups. Miracles continue."
+          items={data.overdueOpportunities.map((opportunity) => ({
+            id: opportunity.id,
+            title: opportunity.title,
+            meta: `${opportunity.workstream} · ${opportunity.owner_name ?? 'Unassigned'} · ${opportunity.next_action ?? 'No next action'}`,
+            href: `/crm/opportunities/${opportunity.id}`,
+          }))}
+        />
+        <UrgentList
+          title="Overdue tasks"
+          empty="No overdue tasks. Either progress or very inventive denial."
+          items={data.overdueTasks.map((task) => ({
+            id: task.id,
+            title: task.title,
+            meta: `${task.owner_name ?? 'Unassigned'} · ${task.priority} · ${task.status}`,
+            href: '/crm/tasks',
+          }))}
+        />
+        <UrgentList
+          title="Due today"
+          empty="Nothing due today. Suspicious, frankly."
+          items={data.dueTodayTasks.map((task) => ({
+            id: task.id,
+            title: task.title,
+            meta: `${task.owner_name ?? 'Unassigned'} · ${task.priority}`,
+            href: '/crm/tasks',
+          }))}
+        />
+        <UrgentList
+          title="Needs next action"
+          empty="Every active opportunity has a next action. That almost never happens."
+          items={data.staleActiveOpportunities.map((opportunity) => ({
+            id: opportunity.id,
+            title: opportunity.title,
+            meta: `${opportunity.workstream} · ${opportunity.owner_name ?? 'Unassigned'}`,
+            href: `/crm/opportunities/${opportunity.id}`,
+          }))}
+        />
+      </div>
+      <InboundSummary inbound={data.inbound} />
+      <UrgentList
+        title="Recent interactions"
+        empty="No CRM interactions yet."
+        items={data.recentInteractions.map((interaction) => ({
+          id: interaction.id,
+          title: interaction.summary,
+          meta: `${interaction.interaction_type} · ${interaction.direction}`,
+          href: null,
+        }))}
+      />
+    </CrmShell>
+  )
+}
