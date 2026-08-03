@@ -4,10 +4,19 @@ const CRM_COOKIE = 'crm_admin_key'
 
 function isCrmAuthed(req: NextRequest) {
   const secret = process.env.ADMIN_SECRET
-  if (!secret) return false
-  const headerKey = req.headers.get('x-admin-key')
-  const cookieKey = req.cookies.get(CRM_COOKIE)?.value
-  return headerKey === secret || cookieKey === secret
+  if (secret) {
+    const headerKey = req.headers.get('x-admin-key')
+    const cookieKey = req.cookies.get(CRM_COOKIE)?.value
+    if (headerKey === secret || cookieKey === secret) return true
+  }
+
+  const agentToken = process.env.CRM_AGENT_TOKEN
+  if (agentToken) {
+    const bearer = req.headers.get('authorization')
+    if (bearer === `Bearer ${agentToken}`) return true
+  }
+
+  return false
 }
 
 export function middleware(req: NextRequest) {

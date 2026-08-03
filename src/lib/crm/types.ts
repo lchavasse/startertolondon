@@ -256,8 +256,33 @@ export interface CrmDashboardData {
   overdueTasks: CrmTaskView[]
   dueTodayTasks: CrmTaskView[]
   staleActiveOpportunities: CrmOpportunityView[]
+  noContactRouteOpportunities: CrmOpportunityView[]
   recentInteractions: CrmInteraction[]
   inbound: CrmInboundSummary
+}
+
+export type CrmChaseReason =
+  | 'overdue_followup'
+  | 'no_next_action'
+  | 'no_owner'
+  | 'no_contact_route'
+  | 'stale'
+
+export interface CrmChaseItem {
+  opportunity: CrmOpportunityView
+  reasons: CrmChaseReason[]
+  score: number
+  daysOverdue: number | null
+  daysSinceActivity: number | null
+  contactPoints: CrmContactPoint[]
+  latestOutreach: CrmOutreachEntry | null
+}
+
+export interface CrmSearchResult {
+  type: 'opportunity' | 'organisation' | 'person'
+  id: string
+  label: string
+  detail: string | null
 }
 
 export interface CrmCountSummary {

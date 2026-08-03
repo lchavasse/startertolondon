@@ -1,13 +1,18 @@
+import { createHash } from 'node:crypto'
 import { NextRequest, NextResponse } from 'next/server'
-import { getCrmServiceClient, fetchCrmDashboardData, fetchCrmOpportunityDetail, fetchCrmOpportunities, fetchCrmTasks, fetchCrmPeople, fetchCrmOrganisations, fetchCrmPersonDetail, fetchCrmOrganisationDetail, fetchCrmInteractions, fetchCrmSourceLinks } from '@/lib/crm/server'
-import { CRM_CONTACT_CHANNELS, CRM_CONTACT_ENTITY_TYPES, CRM_ENTITY_TYPES, CRM_OPPORTUNITY_STATUSES, CRM_OUTREACH_STATUSES, CRM_PRIORITIES, CRM_SOURCE_SYSTEMS, CRM_TASK_STATUSES, CRM_WORKSTREAMS } from '@/lib/crm/constants'
+import { getCrmServiceClient, fetchCrmChaseQueue, fetchCrmDashboardData, fetchCrmOpportunityDetail, fetchCrmOpportunities, fetchCrmTasks, fetchCrmPeople, fetchCrmOrganisations, fetchCrmPersonDetail, fetchCrmOrganisationDetail, fetchCrmInteractions, fetchCrmSourceLinks, searchCrm } from '@/lib/crm/server'
+import { CRM_CONTACT_CHANNELS, CRM_CONTACT_ENTITY_TYPES, CRM_ENTITY_TYPES, CRM_OPPORTUNITY_STATUSES, CRM_OUTREACH_STATUSES, CRM_PRIORITIES, CRM_SOURCE_DOCUMENT_TYPES, CRM_SOURCE_SYSTEMS, CRM_TASK_STATUSES, CRM_WORKSTREAMS } from '@/lib/crm/constants'
 
 const CRM_COOKIE = 'crm_admin_key'
 
 function isAuthorized(req: NextRequest): boolean {
   const secret = process.env.ADMIN_SECRET
-  if (!secret) return false
-  return req.headers.get('x-admin-key') === secret || req.cookies.get(CRM_COOKIE)?.value === secret
+  if (secret && (req.headers.get('x-admin-key') === secret || req.cookies.get(CRM_COOKIE)?.value === secret)) return true
+
+  const agentToken = process.env.CRM_AGENT_TOKEN
+  if (agentToken && req.headers.get('authorization') === `Bearer ${agentToken}`) return true
+
+  return false
 }
 
 function bad(message: string, status = 400) {
@@ -43,12 +48,22 @@ async function replaceRelationRows(table: 'crm_opportunity_people' | 'crm_opport
 }
 
 export async function GET(req: NextRequest) {
+  if (!isAuthorized(req)) return bad('Unauthorized', 401)
+
   const url = new URL(req.url)
   const entity = url.searchParams.get('entity')
   const id = url.searchParams.get('id')
+  const limitParam = Number(url.searchParams.get('limit'))
+  const limit = Number.isFinite(limitParam) && limitParam > 0 ? limitParam : undefined
 
   if (!entity || entity === 'dashboard') {
     return NextResponse.json(await fetchCrmDashboardData())
+  }
+  if (entity === 'chase') return NextResponse.json(await fetchCrmChaseQueue({ limit }))
+  if (entity === 'search') {
+    const q = url.searchParams.get('q')
+    if (!q) return bad('q required')
+    return NextResponse.json(await searchCrm(q, { limit }))
   }
   if (entity === 'opportunities') return NextResponse.json(id ? await fetchCrmOpportunityDetail(id) : await fetchCrmOpportunities())
   if (entity === 'tasks') return NextResponse.json(await fetchCrmTasks())
@@ -179,6 +194,65 @@ export async function POST(req: NextRequest) {
       })
       if (interactionError) throw interactionError
 
+      const opportunityPatch: Record<string, unknown> = {
+        last_activity_at: typeof payload.happened_at === 'string' ? payload.happened_at : new Date().toISOString(),
+      }
+      if (typeof payload.next_step === 'string' && payload.next_step) opportunityPatch.next_action = payload.next_step
+      if (typeof payload.next_due_at === 'string' && payload.next_due_at) opportunityPatch.next_followup_at = payload.next_due_at
+
+      const { data: opportunity, error: opportunityError } = await supabase
+        .from('crm_opportunities')
+        .update(opportunityPatch)
+        .eq('id', payload.opportunity_id)
+        .select('*')
+        .single()
+      if (opportunityError) throw opportunityError
+
+      return NextResponse.json({ ...data, opportunity })
+    }
+
+    if (action === 'set-next-step') {
+      const fields = asRecord(body.fields)
+      if (!fields) return bad('fields required')
+      const payload = pick(fields, ['opportunity_id', 'next_action', 'next_followup_at', 'owner_user_id'])
+      if (typeof payload.opportunity_id !== 'string') return bad('opportunity_id required')
+      const patch = pick(payload, ['next_action', 'next_followup_at', 'owner_user_id'])
+      if (!Object.keys(patch).length) return bad('nothing to update')
+      const { data, error } = await supabase.from('crm_opportunities').update(patch).eq('id', payload.opportunity_id).select('*').single()
+      if (error) throw error
+      return NextResponse.json(data)
+    }
+
+    if (action === 'ingest-document') {
+      const fields = asRecord(body.fields)
+      if (!fields) return bad('fields required')
+      ensureEnum(fields.source_system, CRM_SOURCE_SYSTEMS, 'source_system')
+      ensureEnum(fields.document_type ?? 'note', CRM_SOURCE_DOCUMENT_TYPES, 'document_type')
+      const payload = pick(fields, ['job_id', 'source_system', 'url', 'title', 'document_type', 'fetched_at', 'raw_text', 'metadata', 'content_hash', 'parse_status'])
+      if (typeof payload.source_system !== 'string') return bad('source_system required')
+      if (typeof payload.raw_text !== 'string' || !payload.raw_text) return bad('raw_text required')
+      if (!payload.content_hash) {
+        payload.content_hash = createHash('sha256')
+          .update(`${payload.source_system}:${payload.url ?? ''}:${payload.raw_text}`)
+          .digest('hex')
+      }
+      // crm_source_documents_hash_idx is a partial unique index (where content_hash is not null),
+      // which ON CONFLICT cannot target, so dedupe with an explicit lookup
+      const { data: existing, error: existingError } = await supabase
+        .from('crm_source_documents')
+        .select('id')
+        .eq('content_hash', payload.content_hash)
+        .maybeSingle()
+      if (existingError) throw existingError
+
+      if (existing) {
+        const { data, error } = await supabase.from('crm_source_documents').update(payload).eq('id', existing.id).select('*').single()
+        if (error) throw error
+        return NextResponse.json(data)
+      }
+
+      const { data, error } = await supabase.from('crm_source_documents').insert(payload).select('*').single()
+      if (error) throw error
       return NextResponse.json(data)
     }
 

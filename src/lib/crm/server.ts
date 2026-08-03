@@ -1,5 +1,7 @@
 import { createClient } from '@supabase/supabase-js'
 import {
+  CrmChaseItem,
+  CrmChaseReason,
   CrmContactPoint,
   CrmCountSummary,
   CrmDashboardData,
@@ -17,6 +19,7 @@ import {
   CrmPerson,
   CrmPersonDetail,
   CrmPersonOrganisation,
+  CrmSearchResult,
   CrmSourceLink,
   CrmTask,
   CrmTaskView,
@@ -132,15 +135,41 @@ async function loadTaskViews(supabase: ReturnType<typeof getCrmServiceClient>) {
   }))
 }
 
+async function loadAllContactPoints(supabase: ReturnType<typeof getCrmServiceClient>) {
+  const { data, error } = await supabase.from('crm_contact_points').select('*').order('is_primary', { ascending: false })
+  if (error) throw error
+  const byEntity = new Map<string, CrmContactPoint[]>()
+  for (const row of (data ?? []) as CrmContactPoint[]) {
+    const key = `${row.entity_type}:${row.entity_id}`
+    const items = byEntity.get(key) ?? []
+    items.push(row)
+    byEntity.set(key, items)
+  }
+  return byEntity
+}
+
+function opportunityContactPoints(opportunity: CrmOpportunityView, byEntity: Map<string, CrmContactPoint[]>) {
+  return [
+    ...opportunity.people.flatMap((person) => byEntity.get(`person:${person.id}`) ?? []),
+    ...opportunity.organisations.flatMap((organisation) => byEntity.get(`organisation:${organisation.id}`) ?? []),
+  ]
+}
+
+function daysBetween(from: string | null | undefined, to: number) {
+  if (!from) return null
+  return Math.floor((to - new Date(from).getTime()) / 86_400_000)
+}
+
 export async function fetchCrmDashboardData(): Promise<CrmDashboardData> {
   const supabase = getCrmServiceClient()
-  const [opportunities, tasks, interactions, inbound, people, counts] = await Promise.all([
+  const [opportunities, tasks, interactions, inbound, people, counts, contactPointsByEntity] = await Promise.all([
     loadOpportunityViews(supabase),
     loadTaskViews(supabase),
     fetchCrmInteractions({ limit: 12 }),
     fetchCrmInboundSummary(),
     fetchCrmPeople(),
     fetchCrmCounts(),
+    loadAllContactPoints(supabase),
   ])
 
   const overdueOpportunities = opportunities.filter((opportunity) => isPast(opportunity.next_followup_at) && opportunity.status === 'active')
@@ -151,6 +180,9 @@ export async function fetchCrmDashboardData(): Promise<CrmDashboardData> {
     return due >= new Date(startOfTodayIso()).getTime() && due <= new Date(endOfTodayIso()).getTime()
   })
   const staleActiveOpportunities = opportunities.filter((opportunity) => opportunity.status === 'active' && !opportunity.next_action)
+  const noContactRouteOpportunities = opportunities.filter(
+    (opportunity) => opportunity.status === 'active' && opportunityContactPoints(opportunity, contactPointsByEntity).length === 0,
+  )
 
   const summary: CrmDashboardSummary = {
     opportunityCount: opportunities.length,
@@ -170,9 +202,106 @@ export async function fetchCrmDashboardData(): Promise<CrmDashboardData> {
     overdueTasks,
     dueTodayTasks,
     staleActiveOpportunities,
+    noContactRouteOpportunities,
     recentInteractions: interactions,
     inbound,
   }
+}
+
+export async function fetchCrmChaseQueue(options: { limit?: number } = {}): Promise<CrmChaseItem[]> {
+  const supabase = getCrmServiceClient()
+  const [opportunities, contactPointsByEntity, outreach] = await Promise.all([
+    loadOpportunityViews(supabase),
+    loadAllContactPoints(supabase),
+    supabase.from('crm_outreach_entries').select('*').order('happened_at', { ascending: false }),
+  ])
+
+  if (outreach.error) throw outreach.error
+
+  const latestOutreachByOpportunity = new Map<string, CrmOutreachEntry>()
+  for (const entry of (outreach.data ?? []) as CrmOutreachEntry[]) {
+    if (!latestOutreachByOpportunity.has(entry.opportunity_id)) latestOutreachByOpportunity.set(entry.opportunity_id, entry)
+  }
+
+  const now = Date.now()
+
+  const items = opportunities
+    .filter((opportunity) => opportunity.status === 'active')
+    .map((opportunity) => {
+      const contactPoints = opportunityContactPoints(opportunity, contactPointsByEntity)
+      const latestOutreach = latestOutreachByOpportunity.get(opportunity.id) ?? null
+      const daysOverdue = isPast(opportunity.next_followup_at) ? daysBetween(opportunity.next_followup_at, now) : null
+      const daysSinceActivity = daysBetween(opportunity.last_activity_at ?? latestOutreach?.happened_at ?? null, now)
+
+      const reasons: CrmChaseReason[] = []
+      let score = 0
+
+      if (daysOverdue != null) {
+        reasons.push('overdue_followup')
+        score += 1000 + Math.min(daysOverdue, 365)
+      }
+      if (!opportunity.next_action) {
+        reasons.push('no_next_action')
+        score += 500
+      }
+      if (!opportunity.owner_user_id) {
+        reasons.push('no_owner')
+        score += 250
+      }
+      if (contactPoints.length === 0) {
+        reasons.push('no_contact_route')
+        score += 100
+      }
+      if (daysSinceActivity != null && daysSinceActivity > 7) {
+        reasons.push('stale')
+        score += Math.min(daysSinceActivity, 365)
+      }
+
+      return { opportunity, reasons, score, daysOverdue, daysSinceActivity, contactPoints, latestOutreach }
+    })
+    .filter((item) => item.reasons.length > 0)
+    .sort((a, b) => b.score - a.score || a.opportunity.title.localeCompare(b.opportunity.title))
+
+  return items.slice(0, options.limit ?? 50)
+}
+
+export async function searchCrm(query: string, options: { limit?: number } = {}): Promise<CrmSearchResult[]> {
+  const term = query.trim()
+  if (!term) return []
+  const supabase = getCrmServiceClient()
+  const pattern = `%${term}%`
+  const limit = options.limit ?? 20
+
+  const [opportunities, organisations, people] = await Promise.all([
+    supabase.from('crm_opportunities').select('id, title, workstream, status').ilike('title', pattern).limit(limit),
+    supabase.from('crm_organisations').select('id, name, org_type, website').ilike('name', pattern).limit(limit),
+    supabase.from('crm_people').select('id, full_name, title').ilike('full_name', pattern).limit(limit),
+  ])
+
+  for (const result of [opportunities, organisations, people]) {
+    if (result.error) throw result.error
+  }
+
+  return [
+    ...((opportunities.data ?? []) as Array<{ id: string; title: string; workstream: string; status: string }>).map((row) => ({
+      type: 'opportunity' as const,
+      id: row.id,
+      label: row.title,
+      detail: `${row.workstream} · ${row.status}`,
+    })),
+    ...((organisations.data ?? []) as Array<{ id: string; name: string; org_type: string | null; website: string | null }>).map((row) => ({
+      type: 'organisation' as const,
+      id: row.id,
+      label: row.name,
+      detail: [row.org_type, row.website].filter(Boolean).join(' · ') || null,
+    })),
+    ...((people.data ?? []) as Array<{ id: string; full_name: string; title: string | null }>).map((row) => ({
+      type: 'person' as const,
+      id: row.id,
+      label: row.full_name,
+      detail: row.title,
+    })),
+  ].slice(0, limit)
 }
 
 export async function fetchCrmOpportunities(): Promise<CrmOpportunityView[]> {

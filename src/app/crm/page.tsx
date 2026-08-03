@@ -56,6 +56,16 @@ export default async function CrmHomePage() {
             href: `/crm/opportunities/${opportunity.id}`,
           }))}
         />
+        <UrgentList
+          title="No contact route"
+          empty="Every active opportunity has a contact point. Unlikely, but welcome."
+          items={data.noContactRouteOpportunities.map((opportunity) => ({
+            id: opportunity.id,
+            title: opportunity.title,
+            meta: `${opportunity.workstream} · ${opportunity.organisations[0]?.name ?? 'No linked org'}`,
+            href: `/crm/opportunities/${opportunity.id}`,
+          }))}
+        />
       </div>
       <InboundSummary inbound={data.inbound} />
       <UrgentList
