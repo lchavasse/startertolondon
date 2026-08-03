@@ -10,7 +10,7 @@ import { DatabaseSync } from 'node:sqlite'
 import { mkdirSync, rmSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { nameTokens, normaliseName } from './lib/normalise.ts'
+import { nameTokens, normaliseName } from './lib/normalise'
 
 const SOURCE_DB = process.env.SCANNER_DB ?? '/Users/lchavasse/code/deeptech-scanner/deeptech.db'
 const STAGING_DB = resolve(dirname(fileURLToPath(import.meta.url)), '.staging/scanner.db')
