@@ -35,7 +35,14 @@ const rows = db.prepare(`
   from classified x
   join candidates c on c.slug = x.slug
   left join li.profiles p on p.profile_url = c.profile_url
-  left join li.conversations v on v.counterparty_profile_url = c.profile_url
+  -- One person can hold several threads; collapse to the most recent so they appear once.
+  left join (
+    select counterparty_profile_url, max(last_message_at) last_message_at,
+           sum(message_count) message_count,
+           min(awaiting_reply_from) awaiting_reply_from
+    from li.conversations where counterparty_profile_url is not null
+    group by counterparty_profile_url
+  ) v on v.counterparty_profile_url = c.profile_url
   where x.rivan_group != 'none' and x.confidence >= 0.6
 `).all() as any[]
 
