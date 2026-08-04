@@ -23,9 +23,16 @@ const flag = (name: string, fallback: number) => {
   const i = args.indexOf(name)
   return i >= 0 && args[i + 1] ? Number(args[i + 1]) : fallback
 }
-const BATCH = flag('--batch', 100)
+// Batches of 100 produced snapshots that wedged on Bright Data's side — one hung for 7h39m with no
+// output. Smaller batches complete faster and cap the cost of a wedge.
+const BATCH = flag('--batch', 40)
 const LIMIT = flag('--limit', Infinity)
+const TIMEOUT_MIN = flag('--timeout-min', 8)
 const DRY_RUN = args.includes('--dry-run')
+
+function stamp() {
+  return new Date().toISOString().slice(11, 19)
+}
 
 const db = new DatabaseSync(DB)
 
@@ -82,6 +89,7 @@ const insert = db.prepare(`
 
 let fetched = 0
 let failed = 0
+let skipped = 0
 const startedAt = Date.now()
 
 for (let i = 0; i < todo.length; i += BATCH) {
@@ -90,7 +98,12 @@ for (let i = 0; i < todo.length; i += BATCH) {
 
   try {
     if (existsSync(TMP)) unlinkSync(TMP)
-    execFileSync(BD, ['people', '--out', TMP, '--urls', ...batch], { stdio: ['ignore', 'ignore', 'inherit'], timeout: 30 * 60_000 })
+    // SIGTERM was not enough to reclaim a wedged wrapper, so kill hard on timeout.
+    execFileSync(BD, ['people', '--out', TMP, '--urls', ...batch], {
+      stdio: ['ignore', 'ignore', 'inherit'],
+      timeout: TIMEOUT_MIN * 60_000,
+      killSignal: 'SIGKILL',
+    })
     const rows = JSON.parse(readFileSync(TMP, 'utf8')) as Array<Record<string, any>>
 
     // Match the response back to the URL we asked for: the API echoes a canonical www. form, so
@@ -131,13 +144,14 @@ for (let i = 0; i < todo.length; i += BATCH) {
 
     const rate = fetched / ((Date.now() - startedAt) / 60_000)
     const left = todo.length - (i + batch.length)
-    console.log(`${label}: +${rows.length} rows | total ${fetched} ok, ${failed} missing | ~${Math.round(left / Math.max(rate, 1))}min left`)
+    console.log(`[${stamp()}] ${label}: +${rows.length} rows | total ${fetched} ok, ${failed} missing | ~${Math.round(left / Math.max(rate, 0.1))}min left`)
   } catch (error) {
-    console.error(`${label} FAILED — ${error instanceof Error ? error.message.split('\n')[0] : error}`)
-    console.error('  stopping. re-run to resume; everything already stored is kept.')
-    break
+    // A wedged or failed batch must not end the run — skip it and keep going. Re-running later
+    // picks up whatever was skipped, and nothing already stored is re-billed.
+    skipped += batch.length
+    console.error(`[${stamp()}] ${label} FAILED (${error instanceof Error ? error.message.split('\n')[0] : error}) — skipping, continuing`)
   }
 }
 
-console.log(`\nfetched ${fetched}, missing ${failed}`)
+console.log(`\nfetched ${fetched}, missing ${failed}, skipped ${skipped}`)
 console.log(`profiles table now holds ${(db.prepare('select count(*) n from profiles').get() as any).n} rows`)
