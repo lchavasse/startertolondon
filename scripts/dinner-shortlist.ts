@@ -8,7 +8,9 @@ import { writeFileSync } from 'node:fs'
 // whether he can actually get hold of them: an existing conversation beats a cold connection,
 // which beats someone he has never met. London matters because it is a London dinner.
 
-const DB = 'scripts/.staging/candidates.db'
+// Allow reading a snapshot: the live DB may be mid-write by the classifier, and opening it
+// read-write is what crashed an earlier run.
+const DB = process.argv.find((a) => a.startsWith('--db='))?.slice(5) ?? 'scripts/.staging/candidates.db'
 const TARGETS: Record<string, number> = {
   rivan: 4,
   top_founder: 15,

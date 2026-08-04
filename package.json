@@ -25,7 +25,8 @@
     "crm:import-sheet": "npx tsx --env-file=.env.local scripts/import-deeptech-sheet.ts",
     "crm:import-notion": "npx tsx --env-file=.env.local scripts/import-deeptech-notion.ts",
     "crm:backfill-activity": "npx tsx --env-file=.env.local scripts/backfill-crm-activity.ts",
-    "crm:test-agent-api": "npx tsx --env-file=.env.local scripts/test-crm-agent-api.ts"
+    "crm:test-agent-api": "npx tsx --env-file=.env.local scripts/test-crm-agent-api.ts",
+    "crm:import-pool": "npx tsx --env-file=.env.local scripts/import-people-pool.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.1",
