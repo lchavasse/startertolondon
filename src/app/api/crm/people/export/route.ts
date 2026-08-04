@@ -59,7 +59,8 @@ export async function GET(req: NextRequest) {
   const supabase = getCrmServiceClient()
   // Paged: a .limit() over db-max-rows is silently truncated, which would quietly ship a short CSV.
   const build = () => {
-    let q = supabase.from('crm_people_pool').select('*').order('fit', { ascending: false })
+    // slug last: fit has heavy ties and paging a non-deterministic sort loses rows.
+    let q = supabase.from('crm_people_pool').select('*').order('fit', { ascending: false }).order('slug')
     if (group) q = q.eq('event_group', group)
     if (shortlisted) q = q.eq('shortlisted', true)
     if (flagged) q = q.not('note', 'is', null)
@@ -69,7 +70,7 @@ export async function GET(req: NextRequest) {
 
   let rows: Record<string, any>[]
   try {
-    rows = await fetchAllRows<Record<string, any>>(build)
+    rows = await fetchAllRows<Record<string, any>>(build, { key: (r) => String(r.slug) })
   } catch (e) {
     return NextResponse.json({ error: e instanceof Error ? e.message : 'query failed' }, { status: 500 })
   }

@@ -13,7 +13,9 @@ export default async function PeoplePoolPage() {
   try {
     // Paged, not limited: Supabase truncates at db-max-rows and says nothing.
     data = await fetchAllRows<CrmPoolPerson>(() =>
-      supabase.from('crm_people_pool').select('*').order('fit', { ascending: false }),
+      // slug last: fit has heavy ties and paging a non-deterministic sort loses rows.
+      supabase.from('crm_people_pool').select('*').order('fit', { ascending: false }).order('slug'),
+      { key: (r) => r.slug },
     )
   } catch (e) {
     error = { message: e instanceof Error ? e.message : 'query failed' }
