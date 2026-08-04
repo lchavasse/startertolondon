@@ -37,7 +37,18 @@ function cell(value: unknown) {
   return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
 }
 
+// Checked here as well as in middleware. This route dumps the whole sourcing pool — names,
+// employers and LinkedIn URLs — so it should not be one misplaced config file away from public.
+function isAuthorized(req: NextRequest): boolean {
+  const secret = process.env.ADMIN_SECRET
+  if (secret && (req.headers.get('x-admin-key') === secret || req.cookies.get('crm_admin_key')?.value === secret)) return true
+  const agent = process.env.CRM_AGENT_TOKEN
+  return Boolean(agent && req.headers.get('authorization') === `Bearer ${agent}`)
+}
+
 export async function GET(req: NextRequest) {
+  if (!isAuthorized(req)) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
   const url = new URL(req.url)
   const group = url.searchParams.get('group')
   const shortlisted = url.searchParams.get('shortlisted') === '1'
