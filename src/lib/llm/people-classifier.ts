@@ -37,6 +37,8 @@ export const RIVAN_GROUPS = [
   'recent_grad',
   'policy_misc',
   'vc',
+  'deeptech_operator',
+  'deeptech_ic',
   'none',
 ] as const
 
@@ -107,7 +109,15 @@ rivanGroup — staffing for one dinner. Exactly one, or "none":
                     DSIT, the Royal Academy of Engineering, Onward or a think tank counts even if
                     their title never says "policy".
   vc                investor at a fund, angel, or venture capital firm
-  none              fits none of the above
+  deeptech_operator commercial, ops, BD, product or general management at a deeptech company —
+                    a COO of a robotics firm or a country director at a nuclear company is a
+                    serious ecosystem contact even though they are not an engineer or founder
+  deeptech_ic       individual-contributor engineer or scientist at a deeptech company who is not
+                    senior enough for senior_engineer — the body of the expo, and future speakers
+  none              genuinely not of interest — not deeptech, or too little to tell
+
+  "none" must mean uninteresting, NOT merely "does not fit a dinner row". Anyone doing real
+  deeptech work belongs in one of the groups above.
 
 isDeeptech: true if they work in or directly on a deeptech field, else false.
 confidence: 0-1. Be honest — thin input deserves a low score.
