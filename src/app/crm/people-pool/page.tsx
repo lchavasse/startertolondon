@@ -1,17 +1,23 @@
 import { CrmShell } from '@/components/crm/CrmShell'
 import { PeoplePool } from '@/components/crm/PeoplePool'
 import { getCrmServiceClient } from '@/lib/crm/server'
+import { fetchAllRows } from '@/lib/crm/fetch-all'
 import type { CrmPoolPerson } from '@/lib/crm/pillars'
 
 export const dynamic = 'force-dynamic'
 
 export default async function PeoplePoolPage() {
   const supabase = getCrmServiceClient()
-  const { data, error } = await supabase
-    .from('crm_people_pool')
-    .select('*')
-    .order('fit', { ascending: false })
-    .limit(5000)
+  let data: CrmPoolPerson[] = []
+  let error: { message: string } | null = null
+  try {
+    // Paged, not limited: Supabase truncates at db-max-rows and says nothing.
+    data = await fetchAllRows<CrmPoolPerson>(() =>
+      supabase.from('crm_people_pool').select('*').order('fit', { ascending: false }),
+    )
+  } catch (e) {
+    error = { message: e instanceof Error ? e.message : 'query failed' }
+  }
 
   if (error) {
     return (
@@ -34,7 +40,7 @@ export default async function PeoplePoolPage() {
       title="Sourcing"
       subtitle="Everyone classified from the LinkedIn network, the deeptech scanner, and profiles adjacent to both. Tick to shortlist, flag with a note, fix a wrong label in place. Everything saves as you go."
     >
-      <PeoplePool people={(data ?? []) as CrmPoolPerson[]} />
+      <PeoplePool people={data} />
     </CrmShell>
   )
 }

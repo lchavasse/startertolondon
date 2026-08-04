@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCrmServiceClient } from '@/lib/crm/server'
+import { fetchAllRows } from '@/lib/crm/fetch-all'
 
 // CSV export for the sourcing pool. Server-rendered rather than built in the browser: the earlier
 // version lived in a published artifact, where the sandboxed iframe blocks both downloads and
@@ -56,16 +57,22 @@ export async function GET(req: NextRequest) {
   const pillar = url.searchParams.get('pillar')
 
   const supabase = getCrmServiceClient()
-  let query = supabase.from('crm_people_pool').select('*').order('fit', { ascending: false }).limit(10000)
-  if (group) query = query.eq('event_group', group)
-  if (shortlisted) query = query.eq('shortlisted', true)
-  if (flagged) query = query.not('note', 'is', null)
-  if (pillar) query = query.contains('pillars', [pillar])
+  // Paged: a .limit() over db-max-rows is silently truncated, which would quietly ship a short CSV.
+  const build = () => {
+    let q = supabase.from('crm_people_pool').select('*').order('fit', { ascending: false })
+    if (group) q = q.eq('event_group', group)
+    if (shortlisted) q = q.eq('shortlisted', true)
+    if (flagged) q = q.not('note', 'is', null)
+    if (pillar) q = q.contains('pillars', [pillar])
+    return q
+  }
 
-  const { data, error } = await query
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-
-  const rows = data ?? []
+  let rows: Record<string, any>[]
+  try {
+    rows = await fetchAllRows<Record<string, any>>(build)
+  } catch (e) {
+    return NextResponse.json({ error: e instanceof Error ? e.message : 'query failed' }, { status: 500 })
+  }
   const csv = [
     COLUMNS.map(([h]) => h).join(','),
     ...rows.map((r) => COLUMNS.map(([, get]) => cell(get(r as Record<string, any>))).join(',')),
