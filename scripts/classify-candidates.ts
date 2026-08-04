@@ -19,6 +19,8 @@ const args = process.argv.slice(2)
 const flag = (n: string, d: number) => { const i = args.indexOf(n); return i >= 0 && args[i + 1] ? Number(args[i + 1]) : d }
 const BATCH = flag('--batch', 25)
 const LIMIT = flag('--limit', Infinity)
+const MAX_PRIORITY = flag('--max-priority', 3)
+const MIN_PRIORITY = flag('--min-priority', 0)
 
 const db = new DatabaseSync(CANDIDATES)
 db.exec(`attach database '${LINKEDIN}' as li`)
@@ -65,7 +67,11 @@ const rows = db.prepare(`
            when p.profile_url is not null then 1
            when c.sources like '%scanner_founder%' then 2
            when c.scanner_company is not null then 3
-           else 4
+           -- Adjacent profiles at companies the scanner has never seen. Classifying these on
+           -- company name alone is the cheap way to find people at companies we don't track;
+           -- rejects are simply never enriched, so the noise costs one Haiku call and stops there.
+           when c.company is not null and (c.location like '%London%' or c.location like '%United Kingdom%') then 4
+           else 5
          end priority
   from candidates c
   left join li.profiles p on p.profile_url = c.profile_url
@@ -74,10 +80,10 @@ const rows = db.prepare(`
   order by priority, c.slug
 `).all() as any[]
 
-const pool = rows.filter((r) => r.priority <= 3).slice(0, LIMIT)
+const pool = rows.filter((r) => r.priority >= MIN_PRIORITY && r.priority <= MAX_PRIORITY).slice(0, LIMIT)
 
 console.log(`unclassified candidates with a name: ${rows.length}`)
-console.log(`evidence-bearing (priority 0-3):     ${rows.filter((r) => r.priority <= 3).length}`)
+console.log(`within priority <= ${MAX_PRIORITY}:                  ${rows.filter((r) => r.priority <= MAX_PRIORITY).length}`)
 console.log(`classifying this run:                ${pool.length}  (batches of ${BATCH})\n`)
 
 if (!pool.length) {
