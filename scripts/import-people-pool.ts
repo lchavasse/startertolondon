@@ -7,6 +7,10 @@ import { fitScore } from './lib/fit'
 // The operator-owned columns — shortlisted, note, corrected — are the only data here that cannot be
 // regenerated from the pipeline, so a re-import must never touch them. Rows already marked
 // `corrected` keep their hand-set group and pillars too; that is the whole point of correcting one.
+//
+// That protection depends on reading EVERY existing row. Supabase truncates a plain select at
+// db-max-rows (1000) without erroring, which silently skipped 1,631 rows and would have wiped the
+// edits on them. Read it paged, and refuse to write at all if the read looks short.
 
 function requireEnv(name: string) {
   const v = process.env[name]
@@ -29,7 +33,7 @@ const rows = db.prepare(`
          x.rivan_group, x.pillars, x.seniority, x.role_type, x.confidence, x.evidence, x.is_deeptech,
          s.is_physical, s.industrial_score, s.sector scanner_sector, s.stage, s.website,
          v.last_message_at, v.awaiting_reply_from, v.message_count,
-         cr.doctorate_status, cr.doctorate_field, cr.doctorate_institution, cr.confidence doctorate_confidence
+         cr.doctorate_status, cr.doctorate_field, cr.doctorate_institution
   from classified x
   join candidates c on c.slug = x.slug
   left join li.profiles p on p.profile_url = c.profile_url
@@ -83,26 +87,42 @@ const payload = [...byPerson.values()].map((r) => {
     doctorate_status: r.doctorate_status ?? null,
     doctorate_field: r.doctorate_field ?? null,
     doctorate_institution: r.doctorate_institution ?? null,
-    doctorate_confidence: r.doctorate_confidence ?? null,
   }
 })
 
 async function main() {
-  const { data: existing, error: exErr } = await supabase
-    .from('crm_people_pool')
-    .select('slug, shortlisted, note, corrected, event_group, pillars')
-  if (exErr) throw exErr
+  const existing: any[] = []
+  const PAGE = 1000
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await supabase
+      .from('crm_people_pool')
+      .select('slug, shortlisted, note, corrected, event_group, pillars')
+      .order('slug')
+      .range(from, from + PAGE - 1)
+    if (error) throw error
+    const batch = data ?? []
+    existing.push(...batch)
+    if (batch.length < PAGE) break
+  }
 
-  const keep = new Map((existing ?? []).map((r: any) => [r.slug, r]))
+  const { count: trueCount, error: cErr } = await supabase.from('crm_people_pool').select('*', { head: true, count: 'exact' })
+  if (cErr) throw cErr
+  if (trueCount != null && existing.length < trueCount) {
+    throw new Error(`read ${existing.length} of ${trueCount} existing rows — refusing to write, this would overwrite operator edits`)
+  }
+
+  const keep = new Map(existing.map((r: any) => [r.slug, r]))
   const corrected = (existing ?? []).filter((r: any) => r.corrected).length
   const marked = (existing ?? []).filter((r: any) => r.shortlisted || r.note).length
 
   console.log(`staging rows: ${rows.length} -> ${payload.length} after de-duplication`)
   console.log(`already in Supabase: ${keep.size}  (${corrected} corrected, ${marked} shortlisted/noted)`)
 
+  // Every object in a bulk upsert must carry the same keys: PostgREST fills any it is missing with
+  // NULL, and shortlisted is NOT NULL, so a mixed-shape batch fails halfway through.
   const final = payload.map((p) => {
     const prev = keep.get(p.slug)
-    if (!prev) return p
+    if (!prev) return { ...p, shortlisted: false, note: null, corrected: false }
     return {
       ...p,
       // Never clobber what a human set.
