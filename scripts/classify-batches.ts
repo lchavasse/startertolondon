@@ -1,4 +1,5 @@
 import { DatabaseSync } from 'node:sqlite'
+import { sanitiseForModel } from '../src/lib/llm/sanitise'
 import { writeFileSync, readFileSync, readdirSync, mkdirSync, existsSync } from 'node:fs'
 
 // Splits unclassified people into JSON batches for Claude Code subagents, and merges their answers
@@ -51,8 +52,8 @@ if (mode === 'export') {
   let n = 0
   for (let i = 0; i < pool.length; i += size) {
     const batch = pool.slice(i, i + size).map((r) => ({
-      slug: r.slug, name: r.name, headline: r.headline, company: r.company,
-      sector: r.scanner_sector, location: r.location, about: r.about,
+      slug: r.slug, name: r.name, headline: sanitiseForModel(r.headline), company: r.company,
+      sector: r.scanner_sector, location: r.location, about: sanitiseForModel(r.about),
       education: educationSummary(r.education_json), followers: r.followers,
     }))
     n += 1

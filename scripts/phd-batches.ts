@@ -1,4 +1,5 @@
 import { DatabaseSync } from 'node:sqlite'
+import { sanitiseForModel } from '../src/lib/llm/sanitise'
 import { writeFileSync, readFileSync, readdirSync, mkdirSync, existsSync } from 'node:fs'
 
 // Finds engineering PhDs: people holding a doctorate who now work in industry rather than academia.
@@ -55,9 +56,9 @@ if (mode === 'export') {
     const batch = rows.slice(i, i + size).map((r) => ({
       slug: r.slug,
       name: r.name,
-      headline: r.headline,
+      headline: sanitiseForModel(r.headline),
       company: r.company,
-      about: r.about,
+      about: sanitiseForModel(r.about),
       currentRole: r.role_type,
       education: (() => {
         try {

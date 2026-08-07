@@ -10,6 +10,7 @@
  * so the caller creates nothing.
  */
 import Anthropic from '@anthropic-ai/sdk'
+import { sanitiseForModel } from './sanitise'
 
 export const PILLARS = [
   'energy',
@@ -153,11 +154,12 @@ export async function classifyPeople(candidates: CandidateInput[]): Promise<Clas
   const payload = candidates.map((c) => ({
     slug: c.slug,
     name: c.name ?? null,
-    headline: c.headline ?? null,
+    headline: sanitiseForModel(c.headline),
     company: c.company ?? null,
     sector: c.scannerSector ?? null,
     location: c.location ?? null,
-    about: c.about ?? null,
+    // Scraped bios are attacker-controlled text; three in this dataset carry injections.
+    about: sanitiseForModel(c.about),
     education: c.education ?? null,
     followers: c.followers ?? null,
   }))
