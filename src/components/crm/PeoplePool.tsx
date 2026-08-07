@@ -23,6 +23,8 @@ const ROUTE_FILTERS: Array<[string, string]> = [
   ['picked', 'shortlisted'],
   ['flagged', 'has a note'],
   ['physical', 'builds physical'],
+  ['phd', 'has a doctorate'],
+  ['phd_now', 'PhD in progress'],
 ]
 
 export function PeoplePool({ people: initial }: { people: CrmPoolPerson[] }) {
@@ -88,6 +90,8 @@ export function PeoplePool({ people: initial }: { people: CrmPoolPerson[] }) {
           picked: p.shortlisted,
           flagged: Boolean(p.note),
           physical: p.is_physical === true,
+          phd: p.doctorate_status === 'completed' || p.doctorate_status === 'in_progress',
+          phd_now: p.doctorate_status === 'in_progress',
         }
         for (const f of filters.route) if (!checks[f]) return false
       }
@@ -119,6 +123,8 @@ export function PeoplePool({ people: initial }: { people: CrmPoolPerson[] }) {
     if (filters.pillars.size === 1) params.set('pillar', [...filters.pillars][0])
     if (filters.route.has('picked')) params.set('shortlisted', '1')
     if (filters.route.has('flagged')) params.set('flagged', '1')
+    if (filters.route.has('phd_now')) params.set('doctorate', 'in_progress')
+    else if (filters.route.has('phd')) params.set('doctorate', 'any')
     return `/api/crm/people/export?${params.toString()}`
   }
 
@@ -267,6 +273,12 @@ export function PeoplePool({ people: initial }: { people: CrmPoolPerson[] }) {
                   <div className="font-mono text-sm font-semibold text-[var(--accent-yellow)]">{p.fit}</div>
                   {p.scanner_sector ? <div className="mt-0.5 max-w-[22ch] font-mono text-[10px] text-[var(--muted)]">{p.scanner_sector}</div> : null}
                   {p.is_physical ? <div className="font-mono text-[10px] text-[#4fd1c5]">physical</div> : null}
+                  {p.doctorate_status === 'completed' || p.doctorate_status === 'in_progress' ? (
+                    <div className="mt-0.5 font-mono text-[10px] text-[#c084fc]">
+                      {p.doctorate_status === 'in_progress' ? 'PhD (current)' : 'PhD'}
+                      {p.doctorate_field ? ` · ${p.doctorate_field.slice(0, 18)}` : ''}
+                    </div>
+                  ) : null}
                 </td>
                 <td className="px-3 py-2">
                   <input

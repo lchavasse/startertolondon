@@ -28,11 +28,13 @@ const rows = db.prepare(`
          coalesce(p.city, c.location) location, p.followers,
          x.rivan_group, x.pillars, x.seniority, x.role_type, x.confidence, x.evidence, x.is_deeptech,
          s.is_physical, s.industrial_score, s.sector scanner_sector, s.stage, s.website,
-         v.last_message_at, v.awaiting_reply_from, v.message_count
+         v.last_message_at, v.awaiting_reply_from, v.message_count,
+         cr.doctorate_status, cr.doctorate_field, cr.doctorate_institution, cr.confidence doctorate_confidence
   from classified x
   join candidates c on c.slug = x.slug
   left join li.profiles p on p.profile_url = c.profile_url
   left join sc.companies s on s.name_norm = c.company_norm and c.company_norm <> ''
+  left join credentials cr on cr.slug = c.slug
   left join (
     select counterparty_profile_url cp, max(last_message_at) last_message_at,
            min(awaiting_reply_from) awaiting_reply_from, sum(message_count) message_count
@@ -78,6 +80,10 @@ const payload = [...byPerson.values()].map((r) => {
     awaiting_reply_from: r.awaiting_reply_from,
     message_count: r.message_count,
     sources: r.sources,
+    doctorate_status: r.doctorate_status ?? null,
+    doctorate_field: r.doctorate_field ?? null,
+    doctorate_institution: r.doctorate_institution ?? null,
+    doctorate_confidence: r.doctorate_confidence ?? null,
   }
 })
 

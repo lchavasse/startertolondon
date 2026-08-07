@@ -25,6 +25,9 @@ const COLUMNS: Array<[string, (r: Record<string, any>) => unknown]> = [
   ['location', (r) => r.location],
   ['route', (r) => (r.last_message_at ? `talked ${String(r.last_message_at).slice(0, 10)}` : r.is_connection ? 'connection' : 'not connected')],
   ['owes_reply', (r) => (r.awaiting_reply_from === 'lachlan' ? 'yes' : '')],
+  ['doctorate', (r) => r.doctorate_status ?? ''],
+  ['doctorate_field', (r) => r.doctorate_field],
+  ['doctorate_institution', (r) => r.doctorate_institution],
   ['shortlisted', (r) => (r.shortlisted ? 'yes' : '')],
   ['note', (r) => r.note],
   ['confidence', (r) => r.confidence],
@@ -55,6 +58,7 @@ export async function GET(req: NextRequest) {
   const shortlisted = url.searchParams.get('shortlisted') === '1'
   const flagged = url.searchParams.get('flagged') === '1'
   const pillar = url.searchParams.get('pillar')
+  const doctorate = url.searchParams.get('doctorate')
 
   const supabase = getCrmServiceClient()
   // Paged: a .limit() over db-max-rows is silently truncated, which would quietly ship a short CSV.
@@ -65,6 +69,9 @@ export async function GET(req: NextRequest) {
     if (shortlisted) q = q.eq('shortlisted', true)
     if (flagged) q = q.not('note', 'is', null)
     if (pillar) q = q.contains('pillars', [pillar])
+    // ?doctorate=any covers completed and in-progress together, which is usually what is wanted.
+    if (doctorate === 'any') q = q.in('doctorate_status', ['completed', 'in_progress'])
+    else if (doctorate) q = q.eq('doctorate_status', doctorate)
     return q
   }
 
@@ -83,6 +90,7 @@ export async function GET(req: NextRequest) {
     'deeptech',
     group ?? (shortlisted ? 'shortlist' : 'all'),
     flagged ? 'flagged' : null,
+    doctorate ? `phd-${doctorate}` : null,
     pillar,
   ].filter(Boolean).join('-')
 

@@ -69,6 +69,10 @@ export interface CrmPoolPerson {
   awaiting_reply_from: string | null
   message_count: number | null
   sources: string | null
+  doctorate_status: 'completed' | 'in_progress' | 'none' | null
+  doctorate_field: string | null
+  doctorate_institution: string | null
+  doctorate_confidence: number | null
   shortlisted: boolean
   note: string | null
   corrected: boolean
