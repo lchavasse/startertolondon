@@ -33,7 +33,7 @@ const rows = db.prepare(`
          x.rivan_group, x.pillars, x.seniority, x.role_type, x.confidence, x.evidence, x.is_deeptech,
          s.is_physical, s.industrial_score, s.sector scanner_sector, s.stage, s.website,
          v.last_message_at, v.awaiting_reply_from, v.message_count,
-         cr.doctorate_status, cr.doctorate_field, cr.doctorate_institution
+         cr.doctorate_status, cr.doctorate_field, cr.doctorate_institution, cr.confidence doctorate_confidence
   from classified x
   join candidates c on c.slug = x.slug
   left join li.profiles p on p.profile_url = c.profile_url
@@ -87,6 +87,7 @@ const payload = [...byPerson.values()].map((r) => {
     doctorate_status: r.doctorate_status ?? null,
     doctorate_field: r.doctorate_field ?? null,
     doctorate_institution: r.doctorate_institution ?? null,
+    doctorate_confidence: r.doctorate_confidence ?? null,
   }
 })
 
