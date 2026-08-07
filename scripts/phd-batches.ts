@@ -10,19 +10,31 @@ import { writeFileSync, readFileSync, readdirSync, mkdirSync, existsSync } from 
 // bio — which is a judgement, hence agents rather than a regex.
 //
 // Only 85 of 3,914 connections advertise it in their name. This finds the rest.
+//
+// `doctorate_status` is three-valued, not a boolean: DeepTech London wants CURRENT PhD students as
+// much as finished ones — a final-year candidate is arguably a better dinner guest than someone who
+// graduated five years ago — and they do not carry the title yet, so a yes/no field would erase
+// exactly the group being looked for.
 
 const DIR = 'scripts/.staging/phd'
 const DB = 'scripts/.staging/candidates.db'
 const mode = process.argv[2]
+const WAVE = process.argv.find((a) => a.startsWith('--wave='))?.slice(7) ?? 'wave'
 
 // Opened read-write in both modes: export needs to create the credentials table so it can skip
 // people already checked, which is what makes a re-run cheap.
 const db = new DatabaseSync(DB)
 db.exec(`attach database 'file:scripts/.staging/linkedin.db?mode=ro' as li`)
 
+function addColumn(name: string, decl: string) {
+  const cols = (db.prepare(`pragma table_info(credentials)`).all() as any[]).map((c) => c.name)
+  if (cols.length && !cols.includes(name)) db.exec(`alter table credentials add column ${name} ${decl}`)
+}
+
 db.exec(`create table if not exists credentials (
   slug text primary key,
   has_doctorate integer not null,
+  doctorate_status text,
   doctorate_field text,
   doctorate_institution text,
   in_industry_role integer not null,
@@ -30,6 +42,8 @@ db.exec(`create table if not exists credentials (
   evidence text,
   checked_at text not null
 )`)
+
+addColumn('doctorate_status', 'text')
 
 if (mode === 'export') {
   const size = Number(process.argv[3] ?? 250)
@@ -44,8 +58,11 @@ if (mode === 'export') {
     left join credentials cr on cr.slug = c.slug
     where c.is_connection = 1
       and p.education_json is not null
-      and x.role_type in ('engineer', 'founder', 'operator')
-      and cr.slug is null
+      -- Students and researchers were excluded from the first pass by role, which is precisely
+      -- where current PhD candidates sit. Anyone still in education matters regardless of role.
+      and (x.role_type in ('engineer', 'founder', 'operator', 'student', 'researcher')
+           or p.education_json like '%202[6-9]%')
+      and (cr.slug is null or (cr.has_doctorate = 0 and cr.doctorate_status is null and p.education_json like '%202[6-9]%'))
     order by c.slug
   `).all() as any[]
 
@@ -72,19 +89,20 @@ if (mode === 'export') {
         } catch { return [] }
       })(),
     }))
-    writeFileSync(`${DIR}/phd-${String(n).padStart(2, '0')}.json`, JSON.stringify(batch, null, 1))
+    writeFileSync(`${DIR}/${WAVE}-${String(n).padStart(2, '0')}.json`, JSON.stringify(batch, null, 1))
   }
   console.log(`${rows.length} connections in industry roles with education history -> ${n} batches of ${size} in ${DIR}/`)
 }
 
 if (mode === 'merge') {
-  const files = readdirSync(DIR).filter((f) => f.startsWith('result-') && f.endsWith('.json'))
+  // Merges every result file regardless of wave; rows are keyed by slug so waves cannot collide.
+  const files = readdirSync(DIR).filter((f) => f.startsWith('result') && f.endsWith('.json'))
   if (!files.length) { console.log(`no result-*.json in ${DIR}/`); process.exit(0) }
 
   const up = db.prepare(`insert into credentials
-    (slug, has_doctorate, doctorate_field, doctorate_institution, in_industry_role, confidence, evidence, checked_at)
-    values (?,?,?,?,?,?,?,?)
-    on conflict(slug) do update set has_doctorate=excluded.has_doctorate, doctorate_field=excluded.doctorate_field,
+    (slug, has_doctorate, doctorate_status, doctorate_field, doctorate_institution, in_industry_role, confidence, evidence, checked_at)
+    values (?,?,?,?,?,?,?,?,?)
+    on conflict(slug) do update set has_doctorate=excluded.has_doctorate, doctorate_status=excluded.doctorate_status, doctorate_field=excluded.doctorate_field,
       doctorate_institution=excluded.doctorate_institution, in_industry_role=excluded.in_industry_role,
       confidence=excluded.confidence, evidence=excluded.evidence, checked_at=excluded.checked_at`)
 
@@ -95,8 +113,9 @@ if (mode === 'merge') {
     try { rows = JSON.parse(readFileSync(`${DIR}/${f}`, 'utf8')) } catch { console.log(`  ${f}: unparseable`); continue }
     if (!Array.isArray(rows)) continue
     for (const r of rows) {
-      if (!r || typeof r.slug !== 'string' || typeof r.hasDoctorate !== 'boolean') { bad += 1; continue }
-      up.run(r.slug, r.hasDoctorate ? 1 : 0, r.doctorateField ?? null, r.doctorateInstitution ?? null,
+      const status = ['completed', 'in_progress', 'none'].includes(r.doctorateStatus) ? r.doctorateStatus : null
+      if (!r || typeof r.slug !== 'string' || !status) { bad += 1; continue }
+      up.run(r.slug, status === 'completed' ? 1 : 0, status, r.doctorateField ?? null, r.doctorateInstitution ?? null,
         r.inIndustryRole ? 1 : 0, typeof r.confidence === 'number' ? r.confidence : 0.5,
         typeof r.evidence === 'string' ? r.evidence : '', new Date().toISOString())
       ok += 1
@@ -105,8 +124,9 @@ if (mode === 'merge') {
   db.exec('commit')
   const n = (s: string) => (db.prepare(s).get() as any).n
   console.log(`merged ${ok} (${bad} malformed)`)
-  console.log(`  doctorate holders found: ${n('select count(*) n from credentials where has_doctorate=1')}`)
-  console.log(`  ...in an industry role:  ${n('select count(*) n from credentials where has_doctorate=1 and in_industry_role=1')}`)
+  console.log(`  completed doctorates: ${n("select count(*) n from credentials where doctorate_status='completed'")}`)
+  console.log(`  IN PROGRESS:          ${n("select count(*) n from credentials where doctorate_status='in_progress'")}`)
+  console.log(`  in an industry role:  ${n("select count(*) n from credentials where doctorate_status in ('completed','in_progress') and in_industry_role=1")}`)
 }
 
 if (!['export', 'merge'].includes(mode ?? '')) console.log('usage: phd-batches.ts export [size] | merge')
