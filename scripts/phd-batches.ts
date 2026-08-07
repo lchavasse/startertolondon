@@ -113,7 +113,13 @@ if (mode === 'merge') {
     try { rows = JSON.parse(readFileSync(`${DIR}/${f}`, 'utf8')) } catch { console.log(`  ${f}: unparseable`); continue }
     if (!Array.isArray(rows)) continue
     for (const r of rows) {
-      const status = ['completed', 'in_progress', 'none'].includes(r.doctorateStatus) ? r.doctorateStatus : null
+      // Wave 1 answered with a boolean before in-progress doctorates were a separate state.
+      // Accept both shapes rather than discarding 1,100 already-verified rows.
+      const status = ['completed', 'in_progress', 'none'].includes(r?.doctorateStatus)
+        ? r.doctorateStatus
+        : typeof r?.hasDoctorate === 'boolean'
+          ? (r.hasDoctorate ? 'completed' : 'none')
+          : null
       if (!r || typeof r.slug !== 'string' || !status) { bad += 1; continue }
       up.run(r.slug, status === 'completed' ? 1 : 0, status, r.doctorateField ?? null, r.doctorateInstitution ?? null,
         r.inIndustryRole ? 1 : 0, typeof r.confidence === 'number' ? r.confidence : 0.5,
