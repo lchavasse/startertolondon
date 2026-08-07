@@ -51,3 +51,5 @@ scripts/*.db
 scripts/.staging/
 scripts/.crm-next-action-decisions.json
 scripts/.crm-notion-document.txt
+scripts/.staging/batches/
+scripts/.staging/phd/
