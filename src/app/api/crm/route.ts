@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto'
 import { NextRequest, NextResponse } from 'next/server'
-import { getCrmServiceClient, fetchCrmChaseQueue, fetchCrmDashboardData, fetchCrmOpportunityDetail, fetchCrmOpportunities, fetchCrmTasks, fetchCrmPeople, fetchCrmOrganisations, fetchCrmPersonDetail, fetchCrmOrganisationDetail, fetchCrmInteractions, fetchCrmSourceLinks, searchCrm } from '@/lib/crm/server'
+import { getCrmServiceClient, fetchCrmContacts, fetchCrmContactEvents, fetchCrmChaseQueue, fetchCrmDashboardData, fetchCrmOpportunityDetail, fetchCrmOpportunities, fetchCrmTasks, fetchCrmPeople, fetchCrmOrganisations, fetchCrmPersonDetail, fetchCrmOrganisationDetail, fetchCrmInteractions, fetchCrmSourceLinks, searchCrm } from '@/lib/crm/server'
+import { CRM_CONTACT_EVENT_KINDS, CRM_CONTACT_SOURCES, CRM_CONTACT_STATUSES, labelsFromInput, normaliseLinkedInUrl } from '@/lib/crm/contacts'
 import { CRM_CONTACT_CHANNELS, CRM_CONTACT_ENTITY_TYPES, CRM_ENTITY_TYPES, CRM_OPPORTUNITY_STATUSES, CRM_OUTREACH_STATUSES, CRM_PRIORITIES, CRM_SOURCE_DOCUMENT_TYPES, CRM_SOURCE_SYSTEMS, CRM_TASK_STATUSES, CRM_WORKSTREAMS } from '@/lib/crm/constants'
 
 const CRM_COOKIE = 'crm_admin_key'
@@ -69,6 +70,15 @@ export async function GET(req: NextRequest) {
   if (entity === 'tasks') return NextResponse.json(await fetchCrmTasks())
   if (entity === 'people') return NextResponse.json(id ? await fetchCrmPersonDetail(id) : await fetchCrmPeople())
   if (entity === 'organisations') return NextResponse.json(id ? await fetchCrmOrganisationDetail(id) : await fetchCrmOrganisations())
+  if (entity === 'contacts') {
+    const contacts = await fetchCrmContacts({
+      source_system: url.searchParams.get('source') ?? undefined,
+      status: url.searchParams.get('status') ?? undefined,
+      label: url.searchParams.get('label') ?? undefined,
+    })
+    const events = await fetchCrmContactEvents(contacts.map((c) => c.id))
+    return NextResponse.json(contacts.map((c) => ({ ...c, events: events.filter((e) => e.contact_id === c.id) })))
+  }
   if (entity === 'interactions') return NextResponse.json(await fetchCrmInteractions())
   if (entity === 'source-links') return NextResponse.json(await fetchCrmSourceLinks(url.searchParams.get('entityType') ?? undefined, id ?? undefined))
 
@@ -265,6 +275,80 @@ export async function POST(req: NextRequest) {
       if (typeof payload.entity_type !== 'string' || typeof payload.entity_id !== 'string' || typeof payload.source_system !== 'string') return bad('entity_type, entity_id, source_system required')
       const { data, error } = await supabase.from('crm_source_links').upsert(payload).select('*').single()
       if (error) throw error
+      return NextResponse.json(data)
+    }
+
+    if (action === 'upsert-contact') {
+      const fields = asRecord(body.fields)
+      if (!fields) return bad('fields required')
+      ensureEnum(fields.source_system, CRM_CONTACT_SOURCES, 'source_system')
+      ensureEnum(fields.status ?? 'new', CRM_CONTACT_STATUSES, 'status')
+      const payload = pick(fields, ['id', 'full_name', 'company', 'email', 'phone', 'linkedin_url', 'source_system', 'source_ref', 'status', 'note', 'owner', 'last_contacted_at', 'next_followup_at', 'enrichment', 'enriched_at'])
+      if (typeof payload.full_name !== 'string' || !payload.full_name.trim()) return bad('full_name required')
+      if (typeof payload.source_system !== 'string') return bad('source_system required')
+      if ('linkedin_url' in payload) payload.linkedin_url = normaliseLinkedInUrl(payload.linkedin_url as string | null)
+      if ('labels' in fields) {
+        const labels = labelsFromInput(fields.labels)
+        if (!labels) return bad('labels must be an array of strings')
+        payload.labels = labels
+      }
+
+      // Pulling the same lead up twice must not duplicate it, and the caller usually knows the lake
+      // row rather than our uuid — so resolve identity before deciding insert vs update.
+      let existingId = typeof payload.id === 'string' ? payload.id : null
+      if (!existingId && typeof payload.source_ref === 'string' && payload.source_ref) {
+        const { data } = await supabase.from('crm_contacts').select('id').eq('source_system', payload.source_system).eq('source_ref', payload.source_ref).maybeSingle()
+        existingId = data?.id ?? null
+      }
+      if (!existingId && typeof payload.linkedin_url === 'string' && payload.linkedin_url) {
+        const { data } = await supabase.from('crm_contacts').select('id').eq('linkedin_url', payload.linkedin_url).maybeSingle()
+        existingId = data?.id ?? null
+      }
+
+      let previousStatus: string | null = null
+      if (existingId) {
+        const { data } = await supabase.from('crm_contacts').select('status').eq('id', existingId).maybeSingle()
+        previousStatus = data?.status ?? null
+      }
+
+      const { data, error } = existingId
+        ? await supabase.from('crm_contacts').update(payload).eq('id', existingId).select('*').single()
+        : await supabase.from('crm_contacts').insert(payload).select('*').single()
+      if (error) throw error
+
+      // A status change with no trace is how a timeline stops being trustworthy.
+      if (previousStatus && typeof payload.status === 'string' && payload.status !== previousStatus) {
+        const { error: eventError } = await supabase.from('crm_contact_events').insert({
+          contact_id: data.id,
+          kind: 'status_change',
+          body: `${previousStatus} → ${payload.status}`,
+          author: typeof payload.owner === 'string' ? payload.owner : null,
+        })
+        if (eventError) throw eventError
+      }
+
+      return NextResponse.json(data)
+    }
+
+    if (action === 'add-contact-event') {
+      const fields = asRecord(body.fields)
+      if (!fields) return bad('fields required')
+      ensureEnum(fields.kind ?? 'note', CRM_CONTACT_EVENT_KINDS, 'kind')
+      const payload = pick(fields, ['contact_id', 'happened_at', 'kind', 'body', 'author'])
+      if (typeof payload.contact_id !== 'string') return bad('contact_id required')
+      if (typeof payload.body !== 'string' || !payload.body.trim()) return bad('body required')
+      const { data, error } = await supabase.from('crm_contact_events').insert(payload).select('*').single()
+      if (error) throw error
+
+      // Anything that represents real contact moves the clock the chase queue reads.
+      if (['outreach', 'reply', 'meeting'].includes(String(payload.kind ?? 'note'))) {
+        const { error: touchError } = await supabase
+          .from('crm_contacts')
+          .update({ last_contacted_at: typeof payload.happened_at === 'string' ? payload.happened_at : new Date().toISOString() })
+          .eq('id', payload.contact_id)
+        if (touchError) throw touchError
+      }
+
       return NextResponse.json(data)
     }
 

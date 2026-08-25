@@ -25,6 +25,7 @@ import {
   CrmTaskView,
   CrmUser,
 } from './types'
+import { CrmContact, CrmContactEvent } from './contacts'
 
 function requireEnv(name: string): string {
   const value = process.env[name]
@@ -536,4 +537,27 @@ export async function fetchCrmInboundSummary(): Promise<CrmInboundSummary> {
     latestApplicationAt: latestApplication?.created_at ?? null,
     latestWaitlistAt: latestWaitlist?.created_at ?? null,
   }
+}
+
+export async function fetchCrmContacts(filter: { source_system?: string; status?: string; label?: string } = {}): Promise<CrmContact[]> {
+  const supabase = getCrmServiceClient()
+  let query = supabase.from('crm_contacts').select('*')
+  if (filter.source_system) query = query.eq('source_system', filter.source_system)
+  if (filter.status) query = query.eq('status', filter.status)
+  if (filter.label) query = query.contains('labels', [filter.label])
+  const { data, error } = await query.order('updated_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as CrmContact[]
+}
+
+export async function fetchCrmContactEvents(contactIds: string[]): Promise<CrmContactEvent[]> {
+  if (!contactIds.length) return []
+  const supabase = getCrmServiceClient()
+  const { data, error } = await supabase
+    .from('crm_contact_events')
+    .select('*')
+    .in('contact_id', contactIds)
+    .order('happened_at', { ascending: false })
+  if (error) throw error
+  return (data ?? []) as CrmContactEvent[]
 }
