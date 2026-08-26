@@ -2,12 +2,12 @@ import { CrmShell } from '@/components/crm/CrmShell'
 import { TodayCards } from '@/components/crm/TodayCards'
 import { UrgentList } from '@/components/crm/UrgentList'
 import { InboundSummary } from '@/components/crm/InboundSummary'
-import { fetchCrmDashboardData } from '@/lib/crm/server'
+import { fetchCrmContactsDue, fetchCrmDashboardData } from '@/lib/crm/server'
 
 export const dynamic = 'force-dynamic'
 
 export default async function CrmHomePage() {
-  const data = await fetchCrmDashboardData()
+  const [data, dueContacts] = await Promise.all([fetchCrmDashboardData(), fetchCrmContactsDue()])
 
   return (
     <CrmShell
@@ -16,6 +16,20 @@ export default async function CrmHomePage() {
     >
       <TodayCards summary={data.summary} />
       <div className="grid gap-4 xl:grid-cols-2">
+        <UrgentList
+          title="Due to resurface"
+          empty="Nobody parked for later has come round yet."
+          items={dueContacts.map((contact) => ({
+            id: contact.id,
+            title: [contact.full_name, contact.role, contact.company].filter(Boolean).join(' · '),
+            meta: [
+              contact.next_followup_at ? `due ${contact.next_followup_at.slice(0, 10)}` : null,
+              contact.labels.length ? contact.labels.join(', ') : null,
+              contact.note,
+            ].filter(Boolean).join(' · '),
+            href: contact.source_system === 'expo_application' ? '/crm/expo' : null,
+          }))}
+        />
         <UrgentList
           title="Overdue follow-ups"
           empty="No overdue opportunity follow-ups. Miracles continue."

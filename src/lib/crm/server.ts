@@ -561,3 +561,20 @@ export async function fetchCrmContactEvents(contactIds: string[]): Promise<CrmCo
   if (error) throw error
   return (data ?? []) as CrmContactEvent[]
 }
+
+// The resurface queue. A contact parked for six months is only a reminder if something asks for it
+// when the date arrives — this is that something, for both the dashboard and any agent or cron.
+export async function fetchCrmContactsDue(options: { withinDays?: number; limit?: number } = {}): Promise<CrmContact[]> {
+  const supabase = getCrmServiceClient()
+  const horizon = new Date()
+  horizon.setDate(horizon.getDate() + (options.withinDays ?? 0))
+  const { data, error } = await supabase
+    .from('crm_contacts')
+    .select('*')
+    .not('next_followup_at', 'is', null)
+    .lte('next_followup_at', horizon.toISOString())
+    .order('next_followup_at', { ascending: true })
+    .limit(options.limit ?? 100)
+  if (error) throw error
+  return (data ?? []) as CrmContact[]
+}

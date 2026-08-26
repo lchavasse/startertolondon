@@ -30,6 +30,26 @@ you have the wrong version — run `pnpm install`, don't edit those files.
 | `/crm/people-pool` | **Sourcing** — 2,631 classified people, fit-ranked, shortlist and export |
 | `/crm/enrichment` | Enrichment job queue (built, unused) |
 
+## Logging a contact from one line
+
+`/crm-log` in Claude Code, or the primitive directly:
+
+```bash
+echo '{"full_name":"Jason Kelly","company":"Ginkgo Bioworks","role":"CEO",
+       "log":"emailed, keen to hear about next year","kind":"outreach",
+       "resurface_in":"6 months","labels":["sponsor"]}' | npm run crm:log -- -
+
+npm run crm:log -- entry.json --dry-run    # says CREATE or UPDATE without writing
+```
+
+Identity resolves on id → source_system+source_ref → linkedin_url → email → name+company.
+Name alone never matches. Re-running the same entry updates the contact and appends another
+timeline entry rather than creating a second person.
+
+`resurface_in` takes "6 months" / "2 weeks" / "10 days" / "1 year" and is parsed by the script,
+never by the model. Due contacts appear in **Due to resurface** on `/crm`, and at
+`GET /api/crm?entity=due&days=30` for an agent or cron.
+
 ## Exporting CSVs
 
 From the Sourcing page, or directly:
