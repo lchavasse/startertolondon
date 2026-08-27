@@ -25,8 +25,9 @@ you have the wrong version — run `pnpm install`, don't edit those files.
 |---|---|
 | `/crm` | Today — overdue follow-ups, tasks due, opportunities with no next action or contact route |
 | `/crm/opportunities` | 176 opportunities, workbench per opportunity |
-| `/crm/people` · `/crm/organisations` | 109 people, 171 orgs |
-| `/crm/expo` | **Expo applications** — the 7 public form submissions, with status, labels, note and timeline |
+| `/crm/people` · `/crm/organisations` | 109 people, 171 orgs — the older Notion/sheet import, linked to opportunities. Not yet merged with `crm_contacts`. |
+| `/crm/contacts` | **Active leads** — every `crm_contacts` row whatever its source, with status, labels, note, timeline and resurface date |
+| `/crm/expo` | **Expo applications** — the 7 public form submissions, reviewed through the same working layer |
 | `/crm/people-pool` | **Sourcing** — 2,631 classified people, fit-ranked, shortlist and export |
 | `/crm/enrichment` | Enrichment job queue (built, unused) |
 

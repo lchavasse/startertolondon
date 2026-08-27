@@ -1,6 +1,7 @@
 'use client'
 
 import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
+import { postContact, postContactEvent } from '@/lib/crm/contact-client'
 import {
   CRM_CONTACT_STATUSES,
   CONTACT_STATUS_LABELS,
@@ -89,24 +90,15 @@ export function ExpoApplications({
   const saveContact = useCallback(
     async (app: ExpoApplication, patch: Record<string, unknown>): Promise<ContactWithEvents | null> => {
       try {
-        const res = await fetch('/api/crm', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'upsert-contact',
-            fields: {
-              source_system: EXPO_SOURCE,
-              source_ref: app.id,
-              full_name: app.name,
-              company: app.company,
-              email: app.email,
-              phone: app.phone,
-              ...patch,
-            },
-          }),
+        const saved = await postContact({
+          source_system: EXPO_SOURCE,
+          source_ref: app.id,
+          full_name: app.name,
+          company: app.company,
+          email: app.email,
+          phone: app.phone,
+          ...patch,
         })
-        if (!res.ok) throw new Error(String(res.status))
-        const saved = (await res.json()) as CrmContact
         const merged: ContactWithEvents = { ...saved, events: contacts[app.id]?.events ?? [] }
         setContacts((prev) => ({ ...prev, [app.id]: merged }))
         setFailed(null)
@@ -124,13 +116,7 @@ export function ExpoApplications({
       const contact = contacts[app.id] ?? (await saveContact(app, {}))
       if (!contact) return
       try {
-        const res = await fetch('/api/crm', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'add-contact-event', fields: { contact_id: contact.id, body, kind } }),
-        })
-        if (!res.ok) throw new Error(String(res.status))
-        const saved = (await res.json()) as CrmContactEvent
+        const saved = await postContactEvent({ contact_id: contact.id, body, kind })
         setContacts((prev) => ({
           ...prev,
           [app.id]: { ...prev[app.id], events: [saved, ...(prev[app.id]?.events ?? [])] },

@@ -10,7 +10,7 @@ export default async function CrmPeoplePage() {
   return (
     <CrmShell
       title="People"
-      subtitle="Contacts, leads, speakers, founders, patrons, meddlers, and the rest."
+      subtitle="The older records imported from Notion and the sheet, linked to opportunities. New leads you log or pull up from a source live on Contacts instead — these two have not been merged yet."
     >
       <EntityList
         title="People"
