@@ -4,6 +4,16 @@
 
 Next.js app serving London tech events scraped from the Luma API. Events page only for now; architecture is designed to expand to VCs, workspaces, etc. (the broader "starter-london" vision).
 
+## Not here any more
+
+The CRM lives in its own repo: `~/code/ft/deeptech-crm`. It reads and writes the same Supabase
+project this app does — `crm_*` tables plus read-only access to the KB. Anything about
+opportunities, contacts, the sourcing pool or the expo/volunteer review grids belongs there.
+
+The sourcing pipeline's staging half is still here (`scripts/build-candidates.ts`,
+`classify-candidates.ts`, `enrich-connections-brightdata.ts` and friends) because it reads local
+SQLite in `scripts/.staging`. Only the step that writes Supabase moved.
+
 ## Key Architecture
 
 ```
