@@ -45,3 +45,11 @@ docs/posts/*.typefully.json
 
 # claude code local worktrees
 .claude/worktrees/
+
+scripts/.crm-dedupe-snapshot.json
+scripts/*.db
+scripts/.staging/
+scripts/.crm-next-action-decisions.json
+scripts/.crm-notion-document.txt
+scripts/.staging/batches/
+scripts/.staging/phd/

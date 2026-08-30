@@ -22,7 +22,13 @@
     "screenshot": "npx tsx --env-file=.env.local scripts/screenshot.ts",
     "style:unicode": "npx tsx scripts/unicode-style.ts",
     "import-builders": "npx tsx --env-file=.env.local scripts/import-builders.ts",
-    "aitw:teams": "npx tsx --env-file=.env.local scripts/list-teams.ts"
+    "aitw:teams": "npx tsx --env-file=.env.local scripts/list-teams.ts",
+    "crm:import-sheet": "npx tsx --env-file=.env.local scripts/import-deeptech-sheet.ts",
+    "crm:import-notion": "npx tsx --env-file=.env.local scripts/import-deeptech-notion.ts",
+    "crm:backfill-activity": "npx tsx --env-file=.env.local scripts/backfill-crm-activity.ts",
+    "crm:test-agent-api": "npx tsx --env-file=.env.local scripts/test-crm-agent-api.ts",
+    "crm:log": "npx tsx --env-file=.env.local scripts/crm-log.ts",
+    "crm:import-pool": "npx tsx --env-file=.env.local scripts/import-people-pool.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.91.1",
