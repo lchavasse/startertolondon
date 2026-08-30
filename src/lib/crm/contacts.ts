@@ -26,6 +26,7 @@ export const CONTACT_STATUS_LABELS: Record<CrmContactStatus, string> = {
 // and public forms, and one of them lives in another repo.
 export const CRM_CONTACT_SOURCES = [
   'expo_application',
+  'volunteer_application',
   'waitlist',
   'people_pool',
   'scanner',

@@ -28,6 +28,7 @@ you have the wrong version — run `pnpm install`, don't edit those files.
 | `/crm/people` · `/crm/organisations` | 109 people, 171 orgs — the older Notion/sheet import, linked to opportunities. Not yet merged with `crm_contacts`. |
 | `/crm/contacts` | **Active leads** — every `crm_contacts` row whatever its source, with status, labels, note, timeline and resurface date |
 | `/crm/expo` | **Expo applications** — the 7 public form submissions, reviewed through the same working layer |
+| `/crm/volunteers` | **Volunteers** — signups from the public volunteer form, with shift coverage per window |
 | `/crm/people-pool` | **Sourcing** — 2,631 classified people, fit-ranked, shortlist and export |
 | `/crm/enrichment` | Enrichment job queue (built, unused) |
 
@@ -50,6 +51,21 @@ timeline entry rather than creating a second person.
 `resurface_in` takes "6 months" / "2 weeks" / "10 days" / "1 year" and is parsed by the script,
 never by the model. Due contacts appear in **Due to resurface** on `/crm`, and at
 `GET /api/crm?entity=due&days=30` for an agent or cron.
+
+## Reviewing a source table
+
+`/crm/expo` and `/crm/volunteers` are the same grid over two different source tables. The source row
+is owned elsewhere — both forms live in the `deeptech-ldn` repo — and nothing in the CRM writes back
+to it. The verdict, labels, note, resurface date and timeline all live in `crm_contacts`, linked by
+`(source_system, source_ref)`, so a resubmission cannot wipe a decision.
+
+Adding a third one is a page, a row type and a grid: read the table, pass the rows plus
+`fetchCrmContacts({ source_system })` into a component that calls `useContactReview`
+(`src/lib/crm/use-contact-review.ts`) and renders the shared cells from
+`src/components/crm/ReviewCells.tsx`. Only the source columns and filters are new.
+
+The volunteer grid's `SHIFT_WINDOWS` mirrors `deeptech-ldn/lib/config.ts`. Windows outside that list
+still render — it just means the form changed and the constant has not caught up.
 
 ## Exporting CSVs
 

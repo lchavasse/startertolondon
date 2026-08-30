@@ -8,6 +8,7 @@ const tabs = [
   { href: '/crm/opportunities', label: 'Opportunities' },
   { href: '/crm/contacts', label: 'Contacts' },
   { href: '/crm/expo', label: 'Expo' },
+  { href: '/crm/volunteers', label: 'Volunteers' },
   { href: '/crm/tasks', label: 'Tasks' },
   { href: '/crm/people', label: 'People' },
   { href: '/crm/people-pool', label: 'Sourcing' },

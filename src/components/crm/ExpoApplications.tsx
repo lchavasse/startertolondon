@@ -1,15 +1,9 @@
 'use client'
 
-import { Fragment, useCallback, useMemo, useRef, useState } from 'react'
-import { postContact, postContactEvent } from '@/lib/crm/contact-client'
-import {
-  CRM_CONTACT_STATUSES,
-  CONTACT_STATUS_LABELS,
-  CONTACT_LABEL_SUGGESTIONS,
-  type CrmContact,
-  type CrmContactEvent,
-  type CrmContactStatus,
-} from '@/lib/crm/contacts'
+import { Fragment, useMemo, useState } from 'react'
+import { CRM_CONTACT_STATUSES, CONTACT_STATUS_LABELS, type CrmContactStatus } from '@/lib/crm/contacts'
+import { useContactReview, type ContactWithEvents } from '@/lib/crm/use-contact-review'
+import { Field, LabelPicker, NoteInput, StatusSelect, Timeline, chipClass, toggleIn } from './ReviewCells'
 
 // The application row is owned by the public form in the deeptech-ldn repo. Nothing here writes to
 // it — the verdict, labels, note and timeline all live in crm_contacts, linked back by source_ref.
@@ -38,24 +32,12 @@ export interface ExpoApplication {
   logo_url?: string | null
 }
 
-type ContactWithEvents = CrmContact & { events: CrmContactEvent[] }
-
 const EXPO_SOURCE = 'expo_application'
 
 const PAYMENT_LABELS: Record<string, string> = {
   yes: 'can pay',
   subsidised: 'needs subsidy',
   chat: 'wants to chat',
-}
-
-const STATUS_COLOURS: Record<CrmContactStatus, string> = {
-  new: 'text-[var(--muted)]',
-  reviewing: 'text-[#ffb020]',
-  contacted: 'text-[var(--accent-bright)]',
-  in_conversation: 'text-[#4fd1c5]',
-  confirmed: 'text-[var(--accent-yellow)]',
-  declined: 'text-[#ff9d9d]',
-  parked: 'text-[var(--muted)]',
 }
 
 const SORTS: Array<[string, string]> = [
@@ -72,77 +54,23 @@ export function ExpoApplications({
   applications: ExpoApplication[]
   contacts: ContactWithEvents[]
 }) {
-  const [contacts, setContacts] = useState<Record<string, ContactWithEvents>>(() =>
-    Object.fromEntries(initialContacts.filter((c) => c.source_ref).map((c) => [c.source_ref as string, c])),
-  )
-  const [failed, setFailed] = useState<string | null>(null)
+  const { contacts, failed, addEvent, setStatus, toggleLabel, setNote } = useContactReview<ExpoApplication>({
+    sourceSystem: EXPO_SOURCE,
+    identity: (a) => ({
+      source_ref: a.id,
+      full_name: a.name,
+      company: a.company,
+      email: a.email,
+      phone: a.phone,
+    }),
+    initial: initialContacts,
+  })
+
   const [expanded, setExpanded] = useState<string | null>(null)
   const [sort, setSort] = useState('newest')
   const [statusFilter, setStatusFilter] = useState<Set<string>>(new Set())
   const [paymentFilter, setPaymentFilter] = useState<Set<string>>(new Set())
   const [q, setQ] = useState('')
-  const [draft, setDraft] = useState<Record<string, string>>({})
-  const timers = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
-
-  // Every write goes through upsert-contact, which resolves an existing row by
-  // (source_system, source_ref) before deciding insert vs update — so the first edit on an
-  // application creates its contact and later edits patch it, with no create step to forget.
-  const saveContact = useCallback(
-    async (app: ExpoApplication, patch: Record<string, unknown>): Promise<ContactWithEvents | null> => {
-      try {
-        const saved = await postContact({
-          source_system: EXPO_SOURCE,
-          source_ref: app.id,
-          full_name: app.name,
-          company: app.company,
-          email: app.email,
-          phone: app.phone,
-          ...patch,
-        })
-        const merged: ContactWithEvents = { ...saved, events: contacts[app.id]?.events ?? [] }
-        setContacts((prev) => ({ ...prev, [app.id]: merged }))
-        setFailed(null)
-        return merged
-      } catch {
-        setFailed('Could not save that change. Nothing was written — try again.')
-        return null
-      }
-    },
-    [contacts],
-  )
-
-  const addEvent = useCallback(
-    async (app: ExpoApplication, body: string, kind: string) => {
-      const contact = contacts[app.id] ?? (await saveContact(app, {}))
-      if (!contact) return
-      try {
-        const saved = await postContactEvent({ contact_id: contact.id, body, kind })
-        setContacts((prev) => ({
-          ...prev,
-          [app.id]: { ...prev[app.id], events: [saved, ...(prev[app.id]?.events ?? [])] },
-        }))
-        setDraft((d) => ({ ...d, [app.id]: '' }))
-        setFailed(null)
-      } catch {
-        setFailed('Could not add that timeline entry.')
-      }
-    },
-    [contacts, saveContact],
-  )
-
-  const setStatus = (app: ExpoApplication, status: string) => void saveContact(app, { status })
-
-  const toggleLabel = (app: ExpoApplication, label: string) => {
-    const current = contacts[app.id]?.labels ?? []
-    const next = current.includes(label) ? current.filter((l) => l !== label) : [...current, label]
-    void saveContact(app, { labels: next })
-  }
-
-  const setNote = (app: ExpoApplication, note: string) => {
-    setContacts((prev) => ({ ...prev, [app.id]: { ...(prev[app.id] ?? ({} as ContactWithEvents)), note } as ContactWithEvents }))
-    clearTimeout(timers.current[app.id])
-    timers.current[app.id] = setTimeout(() => void saveContact(app, { note }), 700)
-  }
 
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase()
@@ -176,19 +104,6 @@ export function ExpoApplications({
     return byStatus
   }, [applications, contacts])
 
-  const chip = (active: boolean) =>
-    `font-mono text-[11px] border px-2 py-1 transition-colors ${
-      active
-        ? 'bg-[var(--accent-yellow)] text-black border-[var(--accent-yellow)] font-semibold'
-        : 'border-[var(--line)] text-[var(--muted-strong)] hover:text-[#f0ede6]'
-    }`
-
-  const toggleIn = (set: Set<string>, setter: (s: Set<string>) => void, key: string) => {
-    const next = new Set(set)
-    next.has(key) ? next.delete(key) : next.add(key)
-    setter(next)
-  }
-
   return (
     <div className="space-y-4">
       {failed ? (
@@ -199,7 +114,7 @@ export function ExpoApplications({
         <div className="flex flex-wrap items-center gap-2">
           <span className="w-16 font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--muted)]">Status</span>
           {CRM_CONTACT_STATUSES.map((s) => (
-            <button key={s} type="button" onClick={() => toggleIn(statusFilter, setStatusFilter, s)} className={chip(statusFilter.has(s))} aria-pressed={statusFilter.has(s)}>
+            <button key={s} type="button" onClick={() => toggleIn(statusFilter, setStatusFilter, s)} className={chipClass(statusFilter.has(s))} aria-pressed={statusFilter.has(s)}>
               {CONTACT_STATUS_LABELS[s]} <span className="opacity-60">{counts[s] ?? 0}</span>
             </button>
           ))}
@@ -208,7 +123,7 @@ export function ExpoApplications({
         <div className="flex flex-wrap items-center gap-2">
           <span className="w-16 font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--muted)]">Payment</span>
           {Object.entries(PAYMENT_LABELS).map(([k, label]) => (
-            <button key={k} type="button" onClick={() => toggleIn(paymentFilter, setPaymentFilter, k)} className={chip(paymentFilter.has(k))} aria-pressed={paymentFilter.has(k)}>
+            <button key={k} type="button" onClick={() => toggleIn(paymentFilter, setPaymentFilter, k)} className={chipClass(paymentFilter.has(k))} aria-pressed={paymentFilter.has(k)}>
               {label} <span className="opacity-60">{applications.filter((a) => a.payment === k).length}</span>
             </button>
           ))}
@@ -276,41 +191,13 @@ export function ExpoApplications({
                       </span>
                     </td>
                     <td className="px-3 py-2">
-                      <select
-                        value={status}
-                        onChange={(e) => setStatus(a, e.target.value)}
-                        aria-label={`Status for ${a.company}`}
-                        className={`border border-[var(--line)] bg-[rgba(9,13,14,0.5)] px-1 py-0.5 font-mono text-[11px] ${STATUS_COLOURS[status]}`}
-                      >
-                        {CRM_CONTACT_STATUSES.map((s) => <option key={s} value={s}>{CONTACT_STATUS_LABELS[s]}</option>)}
-                      </select>
+                      <StatusSelect status={status} label={a.company} onChange={(next) => setStatus(a, next)} />
                     </td>
                     <td className="px-3 py-2">
-                      <details>
-                        <summary className="cursor-pointer list-none">
-                          {c?.labels?.length
-                            ? c.labels.map((l) => <span key={l} className="mr-1 inline-block border border-[var(--line)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--muted-strong)]">{l}</span>)
-                            : <span className="font-mono text-[10px] text-[var(--muted)]">add labels</span>}
-                        </summary>
-                        <div className="mt-2 grid grid-cols-2 gap-x-3 border border-[var(--line)] bg-[rgba(9,13,14,0.8)] p-2">
-                          {CONTACT_LABEL_SUGGESTIONS.map((l) => (
-                            <label key={l} className="flex cursor-pointer items-center gap-1.5 font-mono text-[10px] text-[var(--muted-strong)]">
-                              <input type="checkbox" checked={Boolean(c?.labels?.includes(l))} onChange={() => toggleLabel(a, l)} className="h-3 w-3 accent-[var(--accent-yellow)]" />
-                              {l}
-                            </label>
-                          ))}
-                        </div>
-                      </details>
+                      <LabelPicker labels={c?.labels ?? []} onToggle={(l) => toggleLabel(a, l)} />
                     </td>
                     <td className="px-3 py-2">
-                      <input
-                        type="text"
-                        defaultValue={c?.note ?? ''}
-                        onChange={(e) => setNote(a, e.target.value)}
-                        placeholder="verdict…"
-                        aria-label={`Note for ${a.company}`}
-                        className={`w-full min-w-[140px] border-b bg-transparent px-1 py-1 font-mono text-[11px] ${c?.note ? 'border-[#ffb020] text-[#ffb020]' : 'border-[var(--line)] text-[#f0ede6]'}`}
-                      />
+                      <NoteInput note={c?.note} label={a.company} onChange={(value) => setNote(a, value)} />
                     </td>
                     <td className="px-3 py-2">
                       <button type="button" onClick={() => setExpanded(isOpen ? null : a.id)} className="font-mono text-[11px] text-[var(--accent-bright)] hover:text-[var(--accent-yellow)]">
@@ -343,54 +230,7 @@ export function ExpoApplications({
                             ) : null}
                           </div>
 
-                          <div className="space-y-3">
-                            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--muted)]">Timeline</p>
-                            <form
-                              onSubmit={(e) => {
-                                e.preventDefault()
-                                const body = (draft[a.id] ?? '').trim()
-                                if (body) void addEvent(a, body, 'note')
-                              }}
-                              className="flex gap-2"
-                            >
-                              <input
-                                type="text"
-                                value={draft[a.id] ?? ''}
-                                onChange={(e) => setDraft((d) => ({ ...d, [a.id]: e.target.value }))}
-                                placeholder="what you said, what they said…"
-                                aria-label={`Add timeline entry for ${a.company}`}
-                                className="flex-1 border border-[var(--line)] bg-[rgba(9,13,14,0.5)] px-2 py-1.5 font-mono text-[11px] text-[#f0ede6] placeholder:text-[var(--muted)]"
-                              />
-                              <button type="submit" className="border border-[var(--line)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-[var(--accent-yellow)] hover:bg-[var(--accent-yellow)] hover:text-black">
-                                Note
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const body = (draft[a.id] ?? '').trim()
-                                  if (body) void addEvent(a, body, 'outreach')
-                                }}
-                                className="border border-[var(--line)] px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest text-[var(--muted-strong)] hover:text-[#f0ede6]"
-                              >
-                                Contacted
-                              </button>
-                            </form>
-
-                            {c?.events?.length ? (
-                              <ul className="space-y-2">
-                                {c.events.map((e) => (
-                                  <li key={e.id} className="border-l-2 border-[var(--line)] pl-3">
-                                    <div className="font-mono text-[10px] uppercase tracking-widest text-[var(--muted)]">
-                                      {e.happened_at.slice(0, 10)} · {e.kind.replace('_', ' ')}
-                                    </div>
-                                    <div className="text-[12px] text-[#f0ede6]">{e.body}</div>
-                                  </li>
-                                ))}
-                              </ul>
-                            ) : (
-                              <p className="font-mono text-[11px] text-[var(--muted)]">Nothing logged yet.</p>
-                            )}
-                          </div>
+                          <Timeline events={c?.events ?? []} label={a.company} onAdd={(body, kind) => void addEvent(a, body, kind)} />
                         </div>
                       </td>
                     </tr>
@@ -402,16 +242,6 @@ export function ExpoApplications({
         </table>
         {!rows.length ? <p className="p-8 text-center text-sm text-[var(--muted)]">No applications match those filters.</p> : null}
       </div>
-    </div>
-  )
-}
-
-function Field({ label, value }: { label: string; value: string | null | undefined }) {
-  if (!value) return null
-  return (
-    <div>
-      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[var(--muted)]">{label}</p>
-      <p className="whitespace-pre-wrap text-[12px] text-[#f0ede6]">{value}</p>
     </div>
   )
 }
