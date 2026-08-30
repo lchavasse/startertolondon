@@ -1,6 +1,6 @@
 ---
 name: crm-log
-description: Turn a line of text about a person into a CRM contact, a timeline entry and a date to resurface them on. Triggers on "log this contact", "add X to the CRM", "met X today", "emailed X", "/crm-log", or any sentence naming a person plus something that happened with them. Enriches from LinkedIn via the brightdata or exa-websets skills when a profile URL or more detail is wanted.
+description: Turn a line of text about a person into a CRM contact, a timeline entry and a date to resurface them on. Triggers on "log this contact", "add X to the CRM", "met X today", "emailed X", "/crm-log", or any sentence naming a person plus something that happened with them. Hands off to the enrich-lead skill when a profile URL or more detail is wanted.
 ---
 
 # CRM log
@@ -61,11 +61,11 @@ Name alone never matches. Two people called James is a certainty at this scale, 
 
 The script does not fetch anything — pass enrichment in via the `enrichment` object, which is free-form jsonb.
 
-When a LinkedIn URL is given or the user wants more than the sentence carries:
-
-1. **`brightdata` skill** — `people` dataset for a known profile URL. Returns role, current company, experience history. Cheap and exact when you have the URL.
-2. **`exa-websets` skill** — when you need to *find* the person or company first, or want verified enrichment columns across several.
-3. Plain web search plus the company site for a one-liner and funding stage.
+When a LinkedIn URL is given or the user wants more than the sentence carries,
+use the **`enrich-lead`** skill — it holds the cost-ordered ladder (what we already
+know → free web → `brightdata` → `apify` → Apollo → `exa-websets`) and the rules
+about not spending on an unqualified lead. Do not pick a scraper straight off the
+top of your head; the cheap rungs answer most questions.
 
 Put whatever you find under `enrichment` and lift `role`, `company`, `email`, `linkedin_url` up to the real columns. Setting `enrichment` stamps `enriched_at` automatically.
 
