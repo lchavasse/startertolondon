@@ -12,41 +12,172 @@ handles:
     match:
       - encodeclub
       - encode club
-    seen: 7
-    last_seen: 2026-06-28
+    seen: 9
+    last_seen: 2026-08-29
     contexts:
       - builders & brews — @nebiusevents + tavily + @encodeclub bringing the
         friday coworking energy.
       - poolside don't quit — research hackathon with the nvidia dev community
         closes the week.
       - kick off london tech week early at plugged for some coworking
+  - x: oscarfalll
+    match:
+      - oscarfalll
+    seen: 7
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗪𝗲𝗱 𝟭𝟱
+      - 𝘁𝗵𝗲 𝘄𝗲𝗲𝗸𝗲𝗻𝗱
+      - 𝗦𝘂𝗻 𝟵
+  - x: andy_ajt
+    match:
+      - andy_ajt
+    seen: 7
+    last_seen: 2026-09-13
+    contexts:
+      - 𝗪𝗲𝗱 𝟭𝟱
+      - 𝘁𝗵𝗲 𝘄𝗲𝗲𝗸𝗲𝗻𝗱
+      - 𝗦𝘂𝗻 𝟵
+  - x: openai
+    match:
+      - openai
+    seen: 6
+    last_seen: 2026-09-13
+    contexts:
+      - wind down (sort of).
+      - 𝗦𝗮𝘁 𝟮𝟮
+      - 𝗧𝗵𝘂 𝟯
+  - x: charlierward
+    match:
+      - charlierward
+    seen: 5
+    last_seen: 2026-09-13
+    contexts:
+      - agents day.
+      - the week's big one — wed is stacked 👀
+      - 𝗪𝗲𝗱 𝟮𝟮
   - x: vercel
     match:
       - vercel
-    seen: 3
-    last_seen: 2026-06-15
+    seen: 5
+    last_seen: 2026-09-13
     contexts:
       - wind down (sort of).
       - "@vercel day zero — the warm-up before the big ship 🚢"
       - "@vercel ship lands in london — demos, agents, the whole show 🔥"
+  - x: plugged
+    match:
+      - plugged
+    seen: 5
+    last_seen: 2026-09-13
+    contexts:
+      - a couple of hacks to round off the week 🔥
+      - 𝗙𝗿𝗶 𝟭𝟰
+      - 𝗙𝗿𝗶 𝟰
+  - x: cursor_ai
+    match:
+      - cursor_ai
+    seen: 5
+    last_seen: 2026-09-13
+    contexts:
+      - 𝘁𝗵𝗲 𝗰𝗼𝗿𝗴𝗶 𝘄𝗲𝗲𝗸𝗲𝗻𝗱
+      - 𝗦𝘂𝗻 𝟲
+      - "# X thread"
+  - x: rarefounders
+    match:
+      - rarefounders
+    seen: 4
+    last_seen: 2026-08-03
+    contexts:
+      - "@sxswlndn, day 1."
+      - "ease in: hardware builder coffee, 8am, granary square ☕️ come say hi 👋"
+      - 𝗧𝘂𝗲 𝟭𝟰
+  - x: 99daycoder
+    match:
+      - 99daycoder
+    seen: 4
+    last_seen: 2026-07-27
+    contexts:
+      - ease in with build. pitch. fund. — a day of startup pitching + funding
+        talk, backed by kickstart global (@99daycoder hos
+      - london data week is in full swing, and thursday's got a full day of it 👀
+      - 𝗧𝗵𝘂 𝟭𝟲
+  - x: paw_lean
+    match:
+      - paw_lean
+    seen: 3
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗪𝗲𝗱 𝟭𝟱
+      - 𝘁𝗵𝗲 𝘄𝗲𝗲𝗸𝗲𝗻𝗱
+      - 𝗙𝗿𝗶 𝟭𝟭
+  - x: encode_pillarvc
+    match:
+      - encode_pillarvc
+    seen: 3
+    last_seen: 2026-09-06
+    contexts:
+      - "# X thread"
+      - 𝗧𝗵𝘂 𝟭𝟯
+      - 𝗪𝗲𝗱 𝟵
   - x: dcolaianni
     match:
       - dcolaianni
-    seen: 2
-    last_seen: 2026-05-25
+    seen: 3
+    last_seen: 2026-09-13
     contexts:
       - it's i/o day and @gdglondon are doing the one-stop shop — watch party +
         build-with-ai hack night + AIDevCamp awards.
       - agents day.
+      - 𝗧𝘂𝗲 𝟭𝟱
   - x: nebiusevents
     match:
       - nebiusevents
-    seen: 2
-    last_seen: 2026-05-17
+    seen: 3
+    last_seen: 2026-09-13
     contexts:
       - go big or stay home.
       - builders & brews — @nebiusevents + tavily + @encodeclub bringing the
         friday coworking energy.
+      - 𝗧𝘂𝗲 𝟭𝟱
+  - x: nvidia
+    match:
+      - nvidia
+      - nvidiadeveloper
+      - nvidia developer community
+    seen: 3
+    last_seen: 2026-09-13
+    contexts:
+      - You can lock in to not one, but three awesome hacks over the weekend
+      - the stacked one. 👀
+      - 𝗙𝗿𝗶 𝟭𝟴
+  - x: venturecafelond
+    match:
+      - venturecafelond
+    seen: 3
+    last_seen: 2026-09-13
+    contexts:
+      - An absolute blockbuster!
+      - "# X thread"
+      - 𝗧𝗵𝘂 𝟭𝟳
+  - x: meetgranola
+    match:
+      - meetgranola
+    seen: 3
+    last_seen: 2026-09-13
+    contexts:
+      - An absolute blockbuster!
+      - 𝘁𝗵𝗲 𝘄𝗲𝗲𝗸𝗲𝗻𝗱
+      - 𝗠𝗼𝗻 𝟭𝟰
+  - x: claudiaamaggi
+    match:
+      - claudiaamaggi
+    seen: 3
+    last_seen: 2026-09-13
+    contexts:
+      - 𝗦𝗮𝘁 𝟴
+      - 𝗧𝘂𝗲 𝟴
+      - 𝗧𝗵𝘂 𝟭𝟳
   - x: sxswlndn
     match:
       - sxswlndn
@@ -63,22 +194,6 @@ handles:
     contexts:
       - agents day.
       - day two — and the parties ramp up.
-  - x: charlierward
-    match:
-      - charlierward
-    seen: 2
-    last_seen: 2026-06-22
-    contexts:
-      - agents day.
-      - the week's big one — wed is stacked 👀
-  - x: rarefounders
-    match:
-      - rarefounders
-    seen: 2
-    last_seen: 2026-06-15
-    contexts:
-      - "@sxswlndn, day 1."
-      - "ease in: hardware builder coffee, 8am, granary square ☕️ come say hi 👋"
   - x: kickstartldn
     match:
       - kickstartldn
@@ -87,16 +202,6 @@ handles:
     contexts:
       - You can lock in to not one, but three awesome hacks over the weekend
       - not one, not two, but FOUR awesome hacks to lock into this weekend 🛠️
-  - x: nvidia
-    match:
-      - nvidia
-      - nvidiadeveloper
-      - nvidia developer community
-    seen: 2
-    last_seen: 2026-06-08
-    contexts:
-      - You can lock in to not one, but three awesome hacks over the weekend
-      - the stacked one. 👀
   - x: elevenlabsio
     match:
       - elevenlabsio
@@ -106,6 +211,123 @@ handles:
       - and the hacks begin — ai in government with @elevenlabsio & i.AI kicks
         off the run.
       - a couple of hacks to round off the week 🔥
+  - x: zqwq333
+    match:
+      - zqwq333
+    seen: 2
+    last_seen: 2026-07-13
+    contexts:
+      - 𝗧𝘂𝗲 𝟭𝟰
+      - 𝗙𝗿𝗶 𝟭𝟳
+  - x: reach_vb
+    match:
+      - reach_vb
+    seen: 2
+    last_seen: 2026-07-13
+    contexts:
+      - 𝗪𝗲𝗱 𝟭𝟱
+      - 𝘁𝗵𝗲 𝘄𝗲𝗲𝗸𝗲𝗻𝗱
+  - x: joinef
+    match:
+      - joinef
+    seen: 2
+    last_seen: 2026-08-03
+    contexts:
+      - "@joinef sit down with nir eyal — the 'hooked' author — for a fireside
+        on habits, focus & belief."
+      - "# X thread"
+  - x: mralbertchun
+    match:
+      - mralbertchun
+    seen: 2
+    last_seen: 2026-08-22
+    contexts:
+      - 𝗪𝗲𝗱 𝟮𝟮
+      - 𝗪𝗲𝗱 𝟮𝟲
+  - x: isnit0
+    match:
+      - isnit0
+    seen: 2
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗦𝗮𝘁 𝟱
+      - 𝗪𝗲𝗱 𝟵
+  - x: lukerramsden
+    match:
+      - lukerramsden
+    seen: 2
+    last_seen: 2026-09-06
+    contexts:
+      - 𝘁𝗵𝗲 𝗰𝗼𝗿𝗴𝗶 𝘄𝗲𝗲𝗸𝗲𝗻𝗱
+      - 𝗦𝘂𝗻 𝟲
+  - x: replit
+    match:
+      - replit
+    seen: 2
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗪𝗲𝗱 𝟵
+      - 𝗧𝗵𝘂 𝟭𝟬
+  - x: juhanapeltomaa
+    match:
+      - juhanapeltomaa
+    seen: 2
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗪𝗲𝗱 𝟵
+      - 𝗦𝗮𝘁 𝟭𝟮
+  - x: frankterpo
+    match:
+      - frankterpo
+    seen: 2
+    last_seen: 2026-09-13
+    contexts:
+      - 𝘁𝗵𝗲 𝘄𝗲𝗲𝗸𝗲𝗻𝗱
+      - 𝗧𝘂𝗲 𝟭𝟱
+  - x: techeurope_
+    match:
+      - techeurope_
+      - tech_europe
+      - tech europe
+      - "{tech: europe}"
+    seen: 2
+    last_seen: 2026-09-13
+    contexts:
+      - 𝗦𝗮𝘁 𝟮𝟮
+      - 𝘁𝗵𝗲 𝘄𝗲𝗲𝗸𝗲𝗻𝗱
+  - x: sotalikesfuture
+    match:
+      - sotalikesfuture
+    seen: 2
+    last_seen: 2026-09-13
+    contexts:
+      - 𝗦𝗮𝘁 𝟱
+      - "bonus: @sotalikesfuture commission ii closes friday — £7k to design
+        autonomous industry that runs on intermittent renewa"
+  - x: ramenclubhq
+    match:
+      - ramenclubhq
+    seen: 2
+    last_seen: 2026-09-13
+    contexts:
+      - 𝗪𝗲𝗱 𝟵
+      - 𝗪𝗲𝗱 𝟭𝟲
+  - x: elevenlabsdevs
+    match:
+      - elevenlabsdevs
+    seen: 2
+    last_seen: 2026-09-13
+    contexts:
+      - 𝗪𝗲𝗱 𝟵
+      - 𝗧𝗵𝘂 𝟭𝟳
+  - x: googledeepmind
+    match:
+      - googledeepmind
+    seen: 2
+    last_seen: 2026-09-13
+    contexts:
+      - 𝗧𝗵𝘂 𝟭𝟳
+      - 𝘁𝗵𝗲 𝘄𝗲𝗲𝗸𝗲𝗻𝗱
   - x: gdglondon
     match:
       - gdglondon
@@ -219,20 +441,6 @@ handles:
     last_seen: 2026-05-31
     contexts:
       - An absolute blockbuster!
-  - x: meetgranola
-    match:
-      - meetgranola
-    seen: 1
-    last_seen: 2026-05-31
-    contexts:
-      - An absolute blockbuster!
-  - x: venturecafelond
-    match:
-      - venturecafelond
-    seen: 1
-    last_seen: 2026-05-31
-    contexts:
-      - An absolute blockbuster!
   - x: foresightinst
     match:
       - foresightinst
@@ -277,13 +485,6 @@ handles:
     last_seen: 2026-06-08
     contexts:
       - the stacked one. 👀
-  - x: openai
-    match:
-      - openai
-    seen: 1
-    last_seen: 2026-06-08
-    contexts:
-      - wind down (sort of).
   - x: framoira
     match:
       - framoira
@@ -319,18 +520,462 @@ handles:
     last_seen: 2026-06-28
     contexts:
       - the week's busiest — wed's got options 👀
-  - x: joinef
+  - x: loganakio
     match:
-      - joinef
+      - loganakio
     seen: 1
-    last_seen: 2026-06-28
+    last_seen: 2026-07-13
     contexts:
-      - "@joinef sit down with nir eyal — the 'hooked' author — for a fireside
-        on habits, focus & belief."
-  - x: plugged
+      - 𝗧𝘂𝗲 𝟭𝟰
+  - x: codysedler
     match:
-      - plugged
+      - codysedler
     seen: 1
-    last_seen: 2026-06-28
+    last_seen: 2026-07-13
     contexts:
-      - a couple of hacks to round off the week 🔥
+      - 𝗧𝘂𝗲 𝟭𝟰
+  - x: matbogus
+    match:
+      - matbogus
+    seen: 1
+    last_seen: 2026-07-13
+    contexts:
+      - 𝗪𝗲𝗱 𝟭𝟱
+  - x: jamiec_24
+    match:
+      - jamiec_24
+    seen: 1
+    last_seen: 2026-07-13
+    contexts:
+      - 𝗪𝗲𝗱 𝟭𝟱
+  - x: alextweets_
+    match:
+      - alextweets_
+    seen: 1
+    last_seen: 2026-07-13
+    contexts:
+      - 𝗧𝗵𝘂 𝟭𝟲
+  - x: manuel_mch
+    match:
+      - manuel_mch
+    seen: 1
+    last_seen: 2026-07-13
+    contexts:
+      - 𝗧𝗵𝘂 𝟭𝟲
+  - x: entreprylexia
+    match:
+      - entreprylexia
+    seen: 1
+    last_seen: 2026-07-13
+    contexts:
+      - 𝗧𝗵𝘂 𝟭𝟲
+  - x: fatemallk
+    match:
+      - fatemallk
+    seen: 1
+    last_seen: 2026-07-13
+    contexts:
+      - 𝘁𝗵𝗲 𝘄𝗲𝗲𝗸𝗲𝗻𝗱
+  - x: sammyhep
+    match:
+      - sammyhep
+    seen: 1
+    last_seen: 2026-07-20
+    contexts:
+      - 𝗧𝘂𝗲 𝟮𝟭
+  - x: altalibkhalid
+    match:
+      - altalibkhalid
+    seen: 1
+    last_seen: 2026-07-20
+    contexts:
+      - 𝗪𝗲𝗱 𝟮𝟮
+  - x: remy_mess
+    match:
+      - remy_mess
+    seen: 1
+    last_seen: 2026-07-20
+    contexts:
+      - 𝗪𝗲𝗱 𝟮𝟮
+  - x: josephinepqt1
+    match:
+      - josephinepqt1
+    seen: 1
+    last_seen: 2026-07-20
+    contexts:
+      - 𝗪𝗲𝗱 𝟮𝟮
+  - x: mattzcarey
+    match:
+      - mattzcarey
+    seen: 1
+    last_seen: 2026-07-20
+    contexts:
+      - 𝗧𝗵𝘂 𝟮𝟯
+  - x: arukanism
+    match:
+      - arukanism
+    seen: 1
+    last_seen: 2026-07-27
+    contexts:
+      - 𝗠𝗼𝗻 𝟮𝟳
+  - x: brightdata
+    match:
+      - brightdata
+    seen: 1
+    last_seen: 2026-07-27
+    contexts:
+      - 𝗧𝘂𝗲 𝟮𝟴
+  - x: itsajchan
+    match:
+      - itsajchan
+    seen: 1
+    last_seen: 2026-07-27
+    contexts:
+      - 𝗧𝘂𝗲 𝟮𝟴
+  - x: tigertopaz3942
+    match:
+      - tigertopaz3942
+    seen: 1
+    last_seen: 2026-07-27
+    contexts:
+      - 𝗧𝘂𝗲 𝟮𝟴
+  - x: nodirumurkulov
+    match:
+      - nodirumurkulov
+    seen: 1
+    last_seen: 2026-07-27
+    contexts:
+      - 𝘁𝗵𝗲 𝘄𝗲𝗲𝗸𝗲𝗻𝗱
+  - x: zaltsman
+    match:
+      - zaltsman
+    seen: 1
+    last_seen: 2026-08-03
+    contexts:
+      - "# X thread"
+  - x: elevenlabs
+    match:
+      - elevenlabs
+    seen: 1
+    last_seen: 2026-08-03
+    contexts:
+      - "# X thread"
+  - x: bryanlimy
+    match:
+      - bryanlimy
+    seen: 1
+    last_seen: 2026-08-03
+    contexts:
+      - "# X thread"
+  - x: _jfcarter
+    match:
+      - _jfcarter
+    seen: 1
+    last_seen: 2026-08-03
+    contexts:
+      - "# X thread"
+  - x: incident_io
+    match:
+      - incident_io
+    seen: 1
+    last_seen: 2026-08-03
+    contexts:
+      - "# X thread"
+  - x: pathfounders
+    match:
+      - pathfounders
+    seen: 1
+    last_seen: 2026-08-03
+    contexts:
+      - "# X thread"
+  - x: mikebutcher
+    match:
+      - mikebutcher
+    seen: 1
+    last_seen: 2026-08-03
+    contexts:
+      - "# X thread"
+  - x: 12ian34
+    match:
+      - 12ian34
+    seen: 1
+    last_seen: 2026-08-03
+    contexts:
+      - "# X thread"
+  - x: the__elliott
+    match:
+      - the__elliott
+    seen: 1
+    last_seen: 2026-08-03
+    contexts:
+      - "# X thread"
+  - x: wtreyde
+    match:
+      - wtreyde
+    seen: 1
+    last_seen: 2026-08-10
+    contexts:
+      - 𝗧𝗵𝘂 𝟭𝟯
+  - x: ryrobyrne
+    match:
+      - ryrobyrne
+    seen: 1
+    last_seen: 2026-08-10
+    contexts:
+      - 𝗧𝗵𝘂 𝟭𝟯
+  - x: coloopai
+    match:
+      - coloopai
+    seen: 1
+    last_seen: 2026-08-10
+    contexts:
+      - 𝗦𝗮𝘁 𝟭𝟱
+  - x: campaignlab_
+    match:
+      - campaignlab_
+      - campaign lab
+      - campaignlab
+    seen: 1
+    last_seen: 2026-08-22
+    contexts:
+      - also on saturday — @campaignlab_ open up newspeak house for council data
+        hack day.
+  - x: bendunnflores
+    match:
+      - bendunnflores
+      - ben dunn flores
+    seen: 1
+    last_seen: 2026-08-22
+    contexts:
+      - 𝗧𝘂𝗲 𝟮𝟱
+  - x: lukas_m_ziegler
+    match:
+      - lukas_m_ziegler
+    seen: 1
+    last_seen: 2026-08-29
+    contexts:
+      - 𝗧𝘂𝗲 𝟭
+  - x: navneet_kaurrrr
+    match:
+      - navneet_kaurrrr
+    seen: 1
+    last_seen: 2026-08-29
+    contexts:
+      - 𝗪𝗲𝗱 𝟮
+  - x: katerynag13
+    match:
+      - katerynag13
+    seen: 1
+    last_seen: 2026-08-29
+    contexts:
+      - 𝗧𝗵𝘂 𝟯
+  - x: modal
+    match:
+      - modal
+    seen: 1
+    last_seen: 2026-08-29
+    contexts:
+      - 𝗧𝗵𝘂 𝟯
+  - x: lfg_uk
+    match:
+      - lfg_uk
+    seen: 1
+    last_seen: 2026-08-29
+    contexts:
+      - 𝗦𝗮𝘁 𝟱
+  - x: londonmaxxing
+    match:
+      - londonmaxxing
+    seen: 1
+    last_seen: 2026-08-29
+    contexts:
+      - 𝗦𝗮𝘁 𝟱
+  - x: superteamuk
+    match:
+      - superteamuk
+    seen: 1
+    last_seen: 2026-08-29
+    contexts:
+      - 𝗦𝗮𝘁 𝟱
+  - x: moelzek
+    match:
+      - moelzek
+    seen: 1
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗠𝗼𝗻 𝟳
+  - x: maxkokocom
+    match:
+      - maxkokocom
+    seen: 1
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗠𝗼𝗻 𝟳
+  - x: n_skene
+    match:
+      - n_skene
+    seen: 1
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗠𝗼𝗻 𝟳
+  - x: deant94
+    match:
+      - deant94
+    seen: 1
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗠𝗼𝗻 𝟳
+  - x: codewithsimon
+    match:
+      - codewithsimon
+    seen: 1
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗧𝘂𝗲 𝟴
+  - x: hboelman
+    match:
+      - hboelman
+    seen: 1
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗧𝘂𝗲 𝟴
+  - x: isaactolley_
+    match:
+      - isaactolley_
+    seen: 1
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗧𝘂𝗲 𝟴
+  - x: the_samsama
+    match:
+      - the_samsama
+    seen: 1
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗪𝗲𝗱 𝟵
+  - x: iristenteije
+    match:
+      - iristenteije
+    seen: 1
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗪𝗲𝗱 𝟵
+  - x: ninjaturtle_vc
+    match:
+      - ninjaturtle_vc
+    seen: 1
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗪𝗲𝗱 𝟵
+  - x: thesubthread
+    match:
+      - thesubthread
+    seen: 1
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗧𝗵𝘂 𝟭𝟬
+  - x: richhewes
+    match:
+      - richhewes
+    seen: 1
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗧𝗵𝘂 𝟭𝟬
+  - x: souramoo
+    match:
+      - souramoo
+    seen: 1
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗦𝗮𝘁 𝟭𝟮
+  - x: derewah
+    match:
+      - derewah
+    seen: 1
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗦𝗮𝘁 𝟭𝟮
+  - x: nightofficers
+    match:
+      - nightofficers
+    seen: 1
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗦𝗮𝘁 𝟭𝟮
+  - x: redwoodfounders
+    match:
+      - redwoodfounders
+    seen: 1
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗦𝗮𝘁 𝟭𝟮
+  - x: aayman_1302
+    match:
+      - aayman_1302
+    seen: 1
+    last_seen: 2026-09-06
+    contexts:
+      - 𝗦𝗮𝘁 𝟭𝟮
+  - x: zhang__nuan
+    match:
+      - zhang__nuan
+    seen: 1
+    last_seen: 2026-09-13
+    contexts:
+      - 𝗠𝗼𝗻 𝟭𝟰
+  - x: melapreenio
+    match:
+      - melapreenio
+    seen: 1
+    last_seen: 2026-09-13
+    contexts:
+      - 𝗧𝘂𝗲 𝟭𝟱
+  - x: tavilyai
+    match:
+      - tavilyai
+    seen: 1
+    last_seen: 2026-09-13
+    contexts:
+      - 𝗧𝘂𝗲 𝟭𝟱
+  - x: lauradang0
+    match:
+      - lauradang0
+    seen: 1
+    last_seen: 2026-09-13
+    contexts:
+      - 𝗧𝗵𝘂 𝟭𝟳
+  - x: zakeeabdi
+    match:
+      - zakeeabdi
+    seen: 1
+    last_seen: 2026-09-13
+    contexts:
+      - 𝗧𝗵𝘂 𝟭𝟳
+  - x: khushbooverma_
+    match:
+      - khushbooverma_
+    seen: 1
+    last_seen: 2026-09-13
+    contexts:
+      - 𝗧𝗵𝘂 𝟭𝟳
+  - x: wilbe_science
+    match:
+      - wilbe_science
+    seen: 1
+    last_seen: 2026-09-13
+    contexts:
+      - 𝗙𝗿𝗶 𝟭𝟴
+  - x: subaita_rahman
+    match:
+      - subaita_rahman
+    seen: 1
+    last_seen: 2026-09-13
+    contexts:
+      - 𝗙𝗿𝗶 𝟭𝟴
+  - x: brtrentini
+    match:
+      - brtrentini
+    seen: 1
+    last_seen: 2026-09-13
+    contexts:
+      - 𝗙𝗿𝗶 𝟭𝟴

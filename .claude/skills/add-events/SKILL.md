@@ -66,7 +66,8 @@ WebFetch(
 ```
 
 Notes:
-- Event detail URLs go to `gatherus-app.com/events/<uuid>`. Use those as `url`.
+- Cards link to relative `/events/<uuid>` — use `https://community.venturecafelondon.org/events/<uuid>` as `url`. **Don't trust WebFetch's URLs** (it has invented `gatherus.com` / `gatherus-app.com` hosts); cross-check the uuids with `curl -A "Mozilla/5.0 ..." <homepage> | grep -oE 'href="/events/[a-f0-9-]{36}"'`. Each event page's embedded data has `start_date` with offset.
+- Covers: the `<img>` inside each card, `storage.googleapis.com/gatherus-app/event_images/thumbnails/thumb_*.webp`. Tag `["thursday-gathering"]`.
 - Default venue: `1 Triton Square, London NW1 3BF`. Confirm in the WebFetch output.
 - Times are typically `18:00–21:00 Europe/London`.
 - `organiserName: "Venture Café London"`, `calendarSlug: "venturecafe"`.
@@ -79,31 +80,45 @@ Notes:
 curl -s "https://london.aitinkerers.org/llms-full.txt"
 ```
 
-Look for the `## Recent Event Pages` section. Lines are shaped like:
+The file is one `### <title>` section per event, each shaped like:
 
 ```
-- [<title> [AI Tinkerers - London]](<url>): <type> - <Mon DD, YYYY> - London
+### <title>
+
+> Source: <url>
+> Last updated: <iso timestamp>
+
+![<alt>](<cover image url>)
+<body prose — contains the date, times and sometimes the venue>
 ```
 
 Per event:
-- `name`: the title (strip the trailing ` [AI Tinkerers - London]`)
-- `startAt`: `<date>T18:00:00+01:00` for BST months, `+00:00` for GMT (Nov–Mar). The llms file only gives day-precision; 18:00 is the typical meetup start.
-- `url`: the link
-- `locationName`: `"London"` (full venue isn't in llms.txt; admin can enrich via `/admin`)
-- `coverUrl`: `null`
+- `name`: the `###` heading
+- `url`: the `> Source:` line
+- `startAt` / `endAt`: **read out of the body prose** — there is no structured date field. Look for an `### Event Details` block (`**Date:** 8th June`, `**Time:** 6:15pm - 8:30pm`) or an inline mention (`"On August 16th"`, `"9am to 7pm in central London"`). The year is not always stated — infer from `> Last updated`. Use `+01:00` for BST, `+00:00` for GMT (Nov–Mar).
+- `coverUrl`: the first `![...](...)` after the Source block. Take the bare `images.aitinkerers.org` / `sloppy-joe-app.imgix.net` URL — no need to add imgix or `cdn-cgi/image` params. **Verify it resolves** before writing (`curl -o /dev/null -r 0-0 -w '%{http_code} %{content_type}'`); later `![](...)` images in a section are sponsor logos, not covers.
+- `locationName`: `"London"` unless the body names a venue (often "Address shared on acceptance"). Admin can enrich via `/admin`.
 - `organiserName`: `"AI Tinkerers London"`
-- `tags`: derive from `<type>` — `Hackathon` → `["ai", "hackathon"]`, `Dinner` → `["ai", "dinner"]`, `Vip Event` → `["ai", "invite-only"]`, default `["ai"]`.
+- `tags`: from the body — hackathon → `["ai", "hackathon"]`, dinner → `["ai", "dinner"]`, VIP/invite-only → `["ai", "invite-only"]`, default `["ai"]`.
 - `calendarSlug`: `"aitinkerers"`
 
 **Filter to upcoming dates only** before piping — the file lists past events too.
+
+Gotchas:
+- `llms.txt` (not `-full`) has a `## Recent Event Pages` link list that is **more complete** than the full corpus — cross-check it. Pages can appear there but be absent from `llms-full.txt`, in which case there's no cover or date to extract.
+- **Newer event pages often have no date in the prose.** Detail pages (`/p/<slug>`) return 200 to browser-UA `curl` (as of Sep 2026) and embed JSON-LD with exact `startDate` / `endDate` (with offset) and `location.address` — grep it: `curl -s -A "Mozilla/5.0 ... Chrome/120.0 Safari/537.36" <url> | grep -oE '"(start|end)Date"[^,]*|"location":\{[^}]*\}[^}]*\}'`. `/events` still 403s; `/api/agents/v1` needs a member `sk_` API key. If neither prose nor JSON-LD has a date, ask the user rather than guessing.
+- Re-running with the same `url` + `startAt` upserts in place (id is `sha1(url|startAt)`), so this is the safe way to backfill a cover onto an event already in KV. Changing `startAt` mints a *new* id and leaves a duplicate behind.
 
 ### A new site you haven't seen
 
 1. Try `WebFetch` first. Works for ~80% of sites.
 2. If 403, try `curl -A "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36" <url>`.
 3. If still blocked, probe machine-readable endpoints — many bot-walled sites leave these open: `/llms.txt`, `/llms-full.txt`, `/robots.txt`, `/sitemap.xml`, `/feed.xml`, `/rss`.
-4. If all fail, ask the user to paste the page source into a temp file, then parse that.
-5. **Do not** install Playwright, cheerio, or any new dep without confirming with the user.
+4. If the page is an empty SPA shell (`<div id="root">`), download the JS bundle from the
+   `<script type="module" src="/assets/...">` tag and `grep -oE '"/api/[a-z0-9/_-]+"'` it —
+   these apps usually expose a public JSON endpoint (e.g. `/api/event`) with clean event data.
+5. If all fail, ask the user to paste the page source into a temp file, then parse that.
+6. **Do not** install Playwright, cheerio, or any new dep without confirming with the user.
 
 After a successful run on a new site, append a recipe block above so the next run is one-step.
 
