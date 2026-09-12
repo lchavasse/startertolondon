@@ -53,3 +53,6 @@ scripts/.crm-next-action-decisions.json
 scripts/.crm-notion-document.txt
 scripts/.staging/batches/
 scripts/.staging/phd/
+
+# event-highlights: per-week post images (covers + screenshots, refetchable)
+docs/posts/assets/
