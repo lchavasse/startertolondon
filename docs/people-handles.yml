@@ -11,39 +11,39 @@ people:
     luma:
       - andy_ajt
       - usr-g2e6Kk4JKRhMnc1
-    seen: 21
-    last_seen: 2026-09-14
-  - name: Lachlan Chavasse
-    linkedin: https://www.linkedin.com/in/lchavasse
-    x: lachlan_xyz
-    luma:
-      - lachlanc
-      - usr-8WBV14bKAi7c3kq
-    seen: 19
-    last_seen: 2026-07-27
+    seen: 23
+    last_seen: 2026-10-26
   - name: Oscar Falemara
     linkedin: https://www.linkedin.com/in/oscarfalemara
     x: oscarfalll
     luma:
       - oscarama
       - usr-tkes4xYKa67YJDK
-    seen: 18
-    last_seen: 2026-09-06
+    seen: 21
+    last_seen: 2026-10-26
+  - name: Lachlan Chavasse
+    linkedin: https://www.linkedin.com/in/lchavasse
+    x: lachlan_xyz
+    luma:
+      - lachlanc
+      - usr-8WBV14bKAi7c3kq
+    seen: 21
+    last_seen: 2026-10-26
   - name: Lottie Richards
     linkedin: https://www.linkedin.com/in/lottie-richards-84ba45178
     luma:
       - novabook
       - usr-pmdiYPHHAE621iQ
-    seen: 15
-    last_seen: 2026-09-06
+    seen: 18
+    last_seen: 2026-10-26
   - name: Claudia Maggi
     linkedin: https://www.linkedin.com/in/claudiamaggi
     x: claudiaamaggi
     luma:
       - claudiaamaggi
       - usr-rBIqutNczugBAlD
-    seen: 14
-    last_seen: 2026-09-14
+    seen: 16
+    last_seen: 2026-10-26
   - name: Sam
     linkedin: https://www.linkedin.com/in/samlondon
     x: 99daycoder
@@ -55,8 +55,24 @@ people:
     linkedin: https://www.linkedin.com/in/stephanie-avraamides
     luma:
       - usr-D2BCRghdbZ0O73Z
-    seen: 10
-    last_seen: 2026-08-08
+    seen: 12
+    last_seen: 2026-10-05
+  - name: Vasily Alekseenko
+    linkedin: https://www.linkedin.com/in/alekseenkovv/
+    x: https://x.com/rarefounders
+    luma:
+      - rarefounders
+      - usr-hMqb0XIXoVratXw
+    seen: 12
+    last_seen: 2026-10-26
+  - name: Pauline P. Narvas
+    linkedin: https://www.linkedin.com/in/pnarvas
+    x: paw_lean
+    luma:
+      - pawlean
+      - usr-4HvhGeuyHuGbOpj
+    seen: 11
+    last_seen: 2026-10-26
   - name: Khalid Altalib
     linkedin: https://www.linkedin.com/in/khalid-altalib
     x: AltalibKhalid
@@ -79,20 +95,32 @@ people:
       - usr-JyJCMizioKIaTTi
     seen: 9
     last_seen: 2026-08-29
-  - name: Pauline P. Narvas
-    linkedin: https://www.linkedin.com/in/pnarvas
-    x: paw_lean
+  - name: "Encode: AI for Science, by Pillar VC"
+    linkedin: https://www.linkedin.com/showcase/encode-ai-for-science
+    x: encode_pillarvc
     luma:
-      - pawlean
-      - usr-4HvhGeuyHuGbOpj
+      - encode
+      - usr-i3gbAAY1SdWtmI1
     seen: 9
-    last_seen: 2026-09-06
+    last_seen: 2026-10-26
   - name: Phoenix Court
     linkedin: https://www.linkedin.com/in/ambimistry
     luma:
       - usr-zE7wHHu021qx8v3
     seen: 8
     last_seen: 2026-07-13
+  - name: Fraya Brinkman
+    linkedin: https://www.linkedin.com/in/Frayaejbrinkman
+    luma:
+      - usr-qC1Y1qdxm1ToV6j
+    seen: 8
+    last_seen: 2026-10-05
+  - name: Stephen Wilks
+    linkedin: https://www.linkedin.com/in/stephen-wilks-68a38892
+    luma:
+      - usr-Vrd4BmzHgytLghY
+    seen: 8
+    last_seen: 2026-10-26
   - name: Vaibhav Srivastav
     linkedin: https://www.linkedin.com/in/vaibhavs10
     x: reach_vb
@@ -101,39 +129,39 @@ people:
       - usr-dUjEATDUKZRuqoh
     seen: 7
     last_seen: 2026-07-13
-  - name: Vasily Alekseenko
-    linkedin: https://www.linkedin.com/in/alekseenkovv/
-    x: https://x.com/rarefounders
-    luma:
-      - rarefounders
-      - usr-hMqb0XIXoVratXw
-    seen: 7
-    last_seen: 2026-08-03
   - name: Zizou Brahmi
     linkedin: https://www.linkedin.com/in/abdelaziz-brahmi
     luma:
       - usr-jTl4Hqd72nUGU1F
     seen: 7
     last_seen: 2026-08-29
-  - name: Fraya Brinkman
-    linkedin: https://www.linkedin.com/in/Frayaejbrinkman
-    x: n
+  - name: Daniel Colaianni
+    linkedin: https://www.linkedin.com/in/danielcolaianni
     luma:
-      - usr-qC1Y1qdxm1ToV6j
-    seen: 6
-    last_seen: 2026-07-20
+      - holito
+      - usr-4EjnOZO9Ayzgt9U
+      - dcolaianni
+    seen: 7
+    last_seen: 2026-10-19
+    x: dcolaianni
+  - name: Marion Boimond
+    linkedin: https://www.linkedin.com/in/marionboimond
+    luma:
+      - usr-bfgEinYnf8USbI4
+    seen: 7
+    last_seen: 2026-10-26
+  - name: Stefanie Mulder
+    linkedin: https://www.linkedin.com/in/stefaniemulder
+    luma:
+      - usr-8myB3RFxcJB136S
+    seen: 7
+    last_seen: 2026-10-26
   - name: Ana M. Pricop
     linkedin: https://www.linkedin.com/in/ana-pricop
     luma:
       - usr-OkOvuYEzOGFXl0R
     seen: 6
     last_seen: 2026-07-20
-  - name: Stephen Wilks
-    linkedin: https://www.linkedin.com/in/stephen-wilks-68a38892
-    luma:
-      - usr-Vrd4BmzHgytLghY
-    seen: 6
-    last_seen: 2026-07-27
   - name: Zara Yaqoob
     linkedin: https://www.linkedin.com/in/zara-y-aaba5794
     luma:
@@ -159,36 +187,19 @@ people:
       - usr-5weTp6epCQyHdXS
     seen: 6
     last_seen: 2026-08-29
-  - name: "Encode: AI for Science, by Pillar VC"
-    linkedin: https://www.linkedin.com/showcase/encode-ai-for-science
-    x: encode_pillarvc
-    luma:
-      - encode
-      - usr-i3gbAAY1SdWtmI1
-    seen: 6
-    last_seen: 2026-09-06
-  - name: Daniel Colaianni
-    linkedin: https://www.linkedin.com/in/danielcolaianni
-    luma:
-      - holito
-      - usr-4EjnOZO9Ayzgt9U
-      - dcolaianni
-    seen: 6
-    last_seen: 2026-09-14
-    x: dcolaianni
-  - name: BuildHer Labs
-    linkedin: https://www.linkedin.com/in/shreya-choudhuri
-    luma:
-      - buildherlabs
-      - usr-K3b5l0BVWIbpYKi
-    seen: 5
-    last_seen: 2026-07-20
   - name: Sam Hepburn
     linkedin: https://www.linkedin.com/in/sammyhepburn
     x: SammyHep
     luma:
       - sammyhep
       - usr-8dQtAtssDYfmCzy
+    seen: 6
+    last_seen: 2026-10-12
+  - name: BuildHer Labs
+    linkedin: https://www.linkedin.com/in/shreya-choudhuri
+    luma:
+      - buildherlabs
+      - usr-K3b5l0BVWIbpYKi
     seen: 5
     last_seen: 2026-07-20
   - name: M Coyle
@@ -260,18 +271,13 @@ people:
       - usr-Em4ZaxX0LkKME1q
     seen: 5
     last_seen: 2026-08-29
-  - name: Marion Boimond
-    linkedin: https://www.linkedin.com/in/marionboimond
+  - name: Tikhon
+    x: _tikhon
     luma:
-      - usr-bfgEinYnf8USbI4
+      - tikhon
+      - usr-4gP7xr1omSnop2S
     seen: 5
-    last_seen: 2026-09-14
-  - name: Stefanie Mulder
-    linkedin: https://www.linkedin.com/in/stefaniemulder
-    luma:
-      - usr-8myB3RFxcJB136S
-    seen: 5
-    last_seen: 2026-09-14
+    last_seen: 2026-10-12
   - name: Louni Roussel
     linkedin: https://www.linkedin.com/in/louisnicolas-roussel
     x: LouniRou01
@@ -407,6 +413,29 @@ people:
       - usr-O4svXJrJEipJn5G
     seen: 4
     last_seen: 2026-09-14
+  - name: John Roche
+    linkedin: https://www.linkedin.com/in/johnroche--
+    x: johnroche__
+    luma:
+      - usr-Yq9LMvmmUJ9xbff
+    seen: 4
+    last_seen: 2026-10-12
+  - name: Sahar Mor (Bond AI)
+    linkedin: https://www.linkedin.com/in/sahar-mor
+    x: theaievangelist
+    luma:
+      - saharmor
+      - usr-eGOHWjRQ2O39POL
+    seen: 4
+    last_seen: 2026-10-19
+  - name: Society for Technological Advancement
+    linkedin: https://www.linkedin.com/in/society-for-technological-advancement
+    x: sotalikesfuture
+    luma:
+      - sotalikesfuture
+      - usr-3R405cKWTCAFDlc
+    seen: 4
+    last_seen: 2026-10-26
   - name: Francesco Moiraghi
     linkedin: https://www.linkedin.com/in/francesco-moiraghi
     x: framoira
@@ -528,13 +557,6 @@ people:
       - usr-qtoZ7FtyzNdpxt6
     seen: 3
     last_seen: 2026-07-27
-  - name: Tikhon
-    x: _tikhon
-    luma:
-      - tikhon
-      - usr-4gP7xr1omSnop2S
-    seen: 3
-    last_seen: 2026-07-27
   - name: Sara Schein
     linkedin: https://www.linkedin.com/in/sara-schein
     luma:
@@ -545,14 +567,6 @@ people:
     linkedin: https://www.linkedin.com/in/jack-henchy
     luma:
       - usr-zQrzDRSqcP8sv5c
-    seen: 3
-    last_seen: 2026-07-27
-  - name: Sahar Mor (Bond AI)
-    linkedin: https://www.linkedin.com/in/sahar-mor
-    x: theaievangelist
-    luma:
-      - saharmor
-      - usr-eGOHWjRQ2O39POL
     seen: 3
     last_seen: 2026-07-27
   - name: Harriet Kurzynski
@@ -640,6 +654,94 @@ people:
       - usr-o4cFGD0XlrsageA
     seen: 3
     last_seen: 2026-09-14
+  - name: Nuan Zhang
+    linkedin: https://www.linkedin.com/in/nuanzhang
+    x: zhang__nuan
+    luma:
+      - usr-DvFgTs3MfEyboM3
+    seen: 3
+    last_seen: 2026-09-20
+  - name: Yiran Qin
+    linkedin: https://www.linkedin.com/in/yiranqin
+    luma:
+      - yiranq
+      - usr-XcVJJqGW0DHAQDk
+    seen: 3
+    last_seen: 2026-09-20
+  - name: Abhyuday Luthra
+    linkedin: https://www.linkedin.com/in/abhyuday-luthra
+    x: LuthraAbhyuday
+    luma:
+      - usr-TlEqGv8AMjBH3My
+    seen: 3
+    last_seen: 2026-09-21
+  - name: Dillon Roberts
+    linkedin: https://www.linkedin.com/in/dillonroberts9
+    x: dillondoing
+    luma:
+      - DJR_100
+      - usr-kXd21jICdyCuttm
+    seen: 3
+    last_seen: 2026-09-21
+  - name: Adlee H
+    linkedin: https://www.linkedin.com/in/adlee-heshmat
+    luma:
+      - Adlee
+      - usr-QO8p6h2SNYXxaen
+    seen: 3
+    last_seen: 2026-09-21
+  - name: Modal
+    linkedin: https://www.linkedin.com/in/will-r-82361b53
+    x: modal
+    luma:
+      - Modal_Labs
+      - usr-ecesxjfxDXFVTBb
+    seen: 3
+    last_seen: 2026-09-28
+  - name: nader dabit
+    linkedin: https://www.linkedin.com/in/naderdabit
+    luma:
+      - naderdabit
+      - usr-THd1Yk6yuhsI2F5
+    seen: 3
+    last_seen: 2026-09-28
+  - name: Zak A
+    linkedin: https://www.linkedin.com/in/zakeeabdi
+    x: zakeeabdi
+    luma:
+      - usr-7W5KQvZAzK4nAtX
+    seen: 3
+    last_seen: 2026-09-28
+  - name: Mo Elzek
+    linkedin: https://www.linkedin.com/in/elzek
+    x: moelzek
+    luma:
+      - moelzek
+      - usr-l8cu9JWIMgTLRXe
+    seen: 3
+    last_seen: 2026-10-05
+  - name: Juhana Peltomaa
+    linkedin: https://www.linkedin.com/in/juhana-peltomaa
+    x: JuhanaPeltomaa
+    luma:
+      - juhana
+      - usr-vb0kFTRRQKsZMbp
+      - usr-bQ7vuUlAiOhdMQk
+    seen: 3
+    last_seen: 2026-10-12
+  - name: Nebius Developer Community
+    linkedin: https://www.linkedin.com/in/aliceyingjielin
+    luma:
+      - usr-8sXqEJuyDCoyPCx
+    seen: 3
+    last_seen: 2026-10-19
+  - name: Jamie
+    linkedin: https://www.linkedin.com/in/jamie-c7
+    x: jamiec_24
+    luma:
+      - usr-LlUqEojxfJGitFd
+    seen: 3
+    last_seen: 2026-10-26
   - name: Joe Murray
     linkedin: https://www.linkedin.com/in/joe-murray-ai
     luma:
@@ -733,7 +835,6 @@ people:
     last_seen: 2026-08-03
   - name: Gigi Dunn
     linkedin: https://www.linkedin.com/in/gigi-dunn-
-    x: NA
     luma:
       - usr-vRm25uGw6Kt7OEJ
     seen: 2
@@ -809,41 +910,11 @@ people:
       - usr-kjSAKAGzw2gFICF
     seen: 2
     last_seen: 2026-08-29
-  - name: Society for Technological Advancement
-    linkedin: https://www.linkedin.com/in/society-for-technological-advancement
-    x: sotalikesfuture
-    luma:
-      - sotalikesfuture
-      - usr-3R405cKWTCAFDlc
-    seen: 2
-    last_seen: 2026-08-29
   - name: Jack Jackson
     linkedin: https://www.linkedin.com/in/jackjacksoncs
     luma:
       - based1
       - usr-Uhn16vXBV8NeeKc
-    seen: 2
-    last_seen: 2026-08-29
-  - name: Abhyuday Luthra
-    linkedin: https://www.linkedin.com/in/abhyuday-luthra
-    x: LuthraAbhyuday
-    luma:
-      - usr-TlEqGv8AMjBH3My
-    seen: 2
-    last_seen: 2026-08-29
-  - name: Dillon Roberts
-    linkedin: https://www.linkedin.com/in/dillonroberts9
-    x: dillondoing
-    luma:
-      - DJR_100
-      - usr-kXd21jICdyCuttm
-    seen: 2
-    last_seen: 2026-08-29
-  - name: Adlee H
-    linkedin: https://www.linkedin.com/in/adlee-heshmat
-    luma:
-      - Adlee
-      - usr-QO8p6h2SNYXxaen
     seen: 2
     last_seen: 2026-08-29
   - name: Isaac Tolley
@@ -861,29 +932,12 @@ people:
       - usr-gT6g0gVcrgOEPgr
     seen: 2
     last_seen: 2026-09-06
-  - name: Mo Elzek
-    linkedin: https://www.linkedin.com/in/elzek
-    x: moelzek
-    luma:
-      - moelzek
-      - usr-l8cu9JWIMgTLRXe
-    seen: 2
-    last_seen: 2026-09-06
   - name: Max Koko
     linkedin: https://www.linkedin.com/in/maxkokocom
     x: maxkokocom
     luma:
       - maxkokocom
       - usr-bRlqjAwJedJtHoj
-    seen: 2
-    last_seen: 2026-09-06
-  - name: Juhana Peltomaa
-    linkedin: https://www.linkedin.com/in/juhana-peltomaa
-    x: JuhanaPeltomaa
-    luma:
-      - juhana
-      - usr-vb0kFTRRQKsZMbp
-      - usr-bQ7vuUlAiOhdMQk
     seen: 2
     last_seen: 2026-09-06
   - name: Catherine Park
@@ -894,30 +948,10 @@ people:
       - usr-WgDBeyL4eRFh3Su
     seen: 2
     last_seen: 2026-09-14
-  - name: Nuan Zhang
-    linkedin: https://www.linkedin.com/in/nuanzhang
-    x: zhang__nuan
-    luma:
-      - usr-DvFgTs3MfEyboM3
-    seen: 2
-    last_seen: 2026-09-14
-  - name: Yiran Qin
-    linkedin: https://www.linkedin.com/in/yiranqin
-    luma:
-      - yiranq
-      - usr-XcVJJqGW0DHAQDk
-    seen: 2
-    last_seen: 2026-09-14
   - name: Matt Robinson
     linkedin: https://www.linkedin.com/in/mattjackrobinson
     luma:
       - usr-Z826jVzQTgb7CLF
-    seen: 2
-    last_seen: 2026-09-14
-  - name: Nebius Developer Community
-    linkedin: https://www.linkedin.com/in/aliceyingjielin
-    luma:
-      - usr-8sXqEJuyDCoyPCx
     seen: 2
     last_seen: 2026-09-14
   - name: Ayub Yanturin
@@ -962,20 +996,6 @@ people:
       - usr-K9xZwuhL7LxwHaB
     seen: 2
     last_seen: 2026-09-14
-  - name: nader dabit
-    linkedin: https://www.linkedin.com/in/naderdabit
-    luma:
-      - naderdabit
-      - usr-THd1Yk6yuhsI2F5
-    seen: 2
-    last_seen: 2026-09-14
-  - name: Zak A
-    linkedin: https://www.linkedin.com/in/zakeeabdi
-    x: zakeeabdi
-    luma:
-      - usr-7W5KQvZAzK4nAtX
-    seen: 2
-    last_seen: 2026-09-14
   - name: Laura Dang
     linkedin: https://www.linkedin.com/in/laura-t-dang
     x: lauradang0
@@ -983,6 +1003,188 @@ people:
       - usr-kti87eD1aYb3IKg
     seen: 2
     last_seen: 2026-09-14
+  - name: Bob Wallis
+    linkedin: https://www.linkedin.com/in/rwallis
+    luma:
+      - bobw
+      - usr-H2gpzAvWe0Y1PHR
+    seen: 2
+    last_seen: 2026-09-21
+  - name: Pallavi Jayashankar
+    linkedin: https://www.linkedin.com/in/pallavi-jayashankar
+    luma:
+      - PallaviJ
+      - usr-dG6I0wDap0VCRo1
+    seen: 2
+    last_seen: 2026-09-28
+  - name: Tatiana Klim
+    linkedin: https://www.linkedin.com/in/tatiana-krause
+    luma:
+      - tatianaklim
+      - usr-pekQfZ6dzZv1vbJ
+    seen: 2
+    last_seen: 2026-09-28
+  - name: Alex Dan
+    linkedin: https://www.linkedin.com/in/gotoalexdan
+    luma:
+      - usr-GvQoiW83r0sDl4D
+    seen: 2
+    last_seen: 2026-09-28
+  - name: Dmitry Grishin
+    linkedin: https://www.linkedin.com/in/dmitry-grishin
+    luma:
+      - grishin
+      - usr-vJMXiMa6S95xTY2
+    seen: 2
+    last_seen: 2026-09-28
+  - name: Deep Tech Week
+    linkedin: https://www.linkedin.com/in/andercot
+    x: andercot
+    luma:
+      - deeptechweek
+      - usr-oTe3JHPm0t09El5
+    seen: 2
+    last_seen: 2026-10-05
+  - name: Francisco Terpolilli
+    linkedin: https://www.linkedin.com/in/francisco-t-334545144
+    x: frankterpo
+    luma:
+      - usr-O4svXJrJEipJn5G
+    seen: 2
+    last_seen: 2026-10-12
+  - name: Michelangelo Pagliara
+    linkedin: https://www.linkedin.com/in/michelangelo-pagliara
+    x: Ninjaturtle_VC
+    luma:
+      - michelangelo
+      - usr-w3GHtzYlFlaZyQP
+    seen: 2
+    last_seen: 2026-10-12
+  - name: Maja Brlek
+    linkedin: https://www.linkedin.com/in/maja-brlek-0a44b6137
+    luma:
+      - usr-xqY7BF2jxfmAxpd
+    seen: 2
+    last_seen: 2026-10-12
+  - name: Benjamin N'gonga
+    linkedin: https://www.linkedin.com/in/benjaminngonga
+    luma:
+      - usr-82hx2R0fqSNj7w4
+    seen: 2
+    last_seen: 2026-10-12
+  - name: Charlie Ward
+    linkedin: https://www.linkedin.com/in/charlierward
+    x: https://x.com/charlierward
+    luma:
+      - charlieward
+      - usr-l0uyFtEXDvchHIp
+    seen: 2
+    last_seen: 2026-10-12
+  - name: Sofía Sánchez-Zárate
+    linkedin: https://www.linkedin.com/in/sofiasz
+    x: sofiiiiiasz
+    luma:
+      - sofiasz
+      - usr-S4VOLWq1eZm5eKx
+    seen: 2
+    last_seen: 2026-10-12
+  - name: Sara Foster
+    linkedin: https://www.linkedin.com/in/sarabfoster
+    luma:
+      - sarafoster
+      - usr-h9Yu5MQYZF82X3r
+    seen: 2
+    last_seen: 2026-10-12
+  - name: Shreman Shrestha
+    linkedin: https://www.linkedin.com/in/shreman
+    x: theshre
+    luma:
+      - shre
+      - usr-BA8xtEmrnB26Ylp
+    seen: 2
+    last_seen: 2026-10-26
+  - name: Nucleate UK
+    linkedin: https://www.linkedin.com/in/jason-eigenbrood-37b8b4153
+    x: nucleateuk
+    luma:
+      - usr-0AtSwsjKOkVQJgT
+    seen: 2
+    last_seen: 2026-10-26
+  - name: Nucleate HQ
+    linkedin: https://www.linkedin.com/in/rima-rana-phd
+    x: nucleatehq
+    luma:
+      - usr-a51PAktPx1IWkE4
+    seen: 2
+    last_seen: 2026-10-26
+  - name: Aidan Augustin
+    linkedin: https://www.linkedin.com/in/aidanaugustin
+    luma:
+      - usr-3bS10SeeFnRktBN
+    seen: 2
+    last_seen: 2026-10-26
+  - name: Lorenzo Spreafico
+    linkedin: https://www.linkedin.com/in/lorenzospreafico
+    luma:
+      - usr-WBfXypS3MndDe8c
+    seen: 2
+    last_seen: 2026-10-26
+  - name: Antler in the UK
+    linkedin: https://www.linkedin.com/in/lasil
+    x: AntlerGlobal
+    luma:
+      - antleruk
+      - usr-nLThgRa1Fc74BV8
+    seen: 2
+    last_seen: 2026-10-26
+  - name: Philipp Scholz
+    linkedin: https://www.linkedin.com/in/philippscholz96
+    luma:
+      - usr-7m9vh4dL2vBZgtD
+    seen: 2
+    last_seen: 2026-10-26
+  - name: Lynetta Wang
+    linkedin: https://www.linkedin.com/in/lynetta-wang-496b41264
+    luma:
+      - usr-hnCyuAgBSOqRWnq
+    seen: 2
+    last_seen: 2026-10-26
+  - name: Tomás Markey
+    linkedin: https://www.linkedin.com/in/tomás-markey-083358249
+    x: Tomasmrky
+    luma:
+      - usr-OV02BBkMInUYOvW
+    seen: 2
+    last_seen: 2026-10-26
+  - name: Kayan Patel
+    linkedin: https://www.linkedin.com/in/kayan-patel-
+    luma:
+      - usr-FAC5DWWQNUaIy8T
+    seen: 2
+    last_seen: 2026-10-26
+  - name: Rami AH
+    linkedin: https://www.linkedin.com/in/datarami
+    x: ramiabih
+    luma:
+      - ramiabih
+      - usr-1fCUxrVMSJognTl
+    seen: 2
+    last_seen: 2026-10-26
+  - name: eddy davies
+    linkedin: https://www.linkedin.com/in/eddydavies
+    x: eddywdavies
+    luma:
+      - usr-u21cRw5DdiMObLu
+    seen: 2
+    last_seen: 2026-10-26
+  - name: Mohammed Hussain
+    linkedin: https://www.linkedin.com/in/mohammed-s-hussain
+    x: mshussain_
+    luma:
+      - mohammedh
+      - usr-iYOHOZHRoQ9YedH
+    seen: 2
+    last_seen: 2026-10-26
   - name: Logan
     linkedin: https://www.linkedin.com/in/growthcommunity
     x: loganakio
@@ -1014,13 +1216,6 @@ people:
     x: matbogus
     luma:
       - usr-5cM6IaBBapX6Oks
-    seen: 1
-    last_seen: 2026-07-13
-  - name: Jamie
-    linkedin: https://www.linkedin.com/in/jamie-c7
-    x: jamiec_24
-    luma:
-      - usr-LlUqEojxfJGitFd
     seen: 1
     last_seen: 2026-07-13
   - name: Vladi Mihaylova
@@ -1091,13 +1286,6 @@ people:
       - usr-Go9zj05KHD17SfV
     seen: 1
     last_seen: 2026-07-25
-  - name: Francisco Terpolilli
-    linkedin: https://www.linkedin.com/in/francisco-t-334545144
-    x: frankterpo
-    luma:
-      - usr-O4svXJrJEipJn5G
-    seen: 1
-    last_seen: 2026-07-27
   - name: Nodirjon Umurkulov
     linkedin: https://www.linkedin.com/in/nodir-umurkulov-ai-security
     x: NodirUmurkulov
@@ -1146,14 +1334,6 @@ people:
     luma:
       - botirk
       - usr-wrTAR1bBaLXg5Qr
-    seen: 1
-    last_seen: 2026-08-29
-  - name: Modal
-    linkedin: https://www.linkedin.com/in/will-r-82361b53
-    x: modal
-    luma:
-      - Modal_Labs
-      - usr-ecesxjfxDXFVTBb
     seen: 1
     last_seen: 2026-08-29
   - name: Ayman Ali
@@ -1296,14 +1476,6 @@ people:
     linkedin: https://www.linkedin.com/in/gracegreer2000
     luma:
       - usr-58BkwEBuTASMzwf
-    seen: 1
-    last_seen: 2026-09-06
-  - name: Michelangelo Pagliara
-    linkedin: https://www.linkedin.com/in/michelangelo-pagliara
-    x: Ninjaturtle_VC
-    luma:
-      - michelangelo
-      - usr-w3GHtzYlFlaZyQP
     seen: 1
     last_seen: 2026-09-06
   - name: Florian Bieberich
@@ -1470,3 +1642,578 @@ people:
       - usr-fgWuHfPAh8UZSam
     seen: 1
     last_seen: 2026-09-14
+  - name: Michael Grinich
+    linkedin: https://www.linkedin.com/in/grinich
+    x: grinich
+    luma:
+      - grinich
+      - usr-VOrNt05AQ46D4V2
+    seen: 1
+    last_seen: 2026-09-20
+  - name: Advanced Research and Invention Agency (ARIA)
+    linkedin: https://www.linkedin.com/in/sectgenomics
+    luma:
+      - usr-wjrxYcvVBK6caRs
+    seen: 1
+    last_seen: 2026-09-20
+  - name: Lais Carvalho
+    linkedin: https://www.linkedin.com/in/laisbsc
+    x: lais_bsc
+    luma:
+      - lais
+      - usr-xeEpkrleL4Dmw2V
+    seen: 1
+    last_seen: 2026-09-20
+  - name: Rachel Peplow
+    linkedin: https://www.linkedin.com/in/rachelpeplow
+    luma:
+      - usr-cZl4WwdQuSQkkhM
+    seen: 1
+    last_seen: 2026-09-20
+  - name: Natalia Pavlovska
+    linkedin: https://www.linkedin.com/in/natalia-pavlovska
+    luma:
+      - usr-CHhWKVCUZ1IRy40
+    seen: 1
+    last_seen: 2026-09-20
+  - name: Francesco Perticarari
+    linkedin: https://www.linkedin.com/in/fperticarari
+    x: francesco_srv
+    luma:
+      - francescopert
+      - usr-OYItoHBHgllCBHY
+    seen: 1
+    last_seen: 2026-09-20
+  - name: Doruk Ustay
+    linkedin: https://www.linkedin.com/in/doruk-ustay
+    luma:
+      - dorukustay
+      - usr-Hx9BtFrco4uUOBE
+    seen: 1
+    last_seen: 2026-09-20
+  - name: Stefan Brach
+    x: wilmers_dorf
+    luma:
+      - usr-DZUykDS4UZegyzG
+    seen: 1
+    last_seen: 2026-09-21
+  - name: Edward Saperia
+    linkedin: https://www.linkedin.com/in/edsaperia
+    x: edsaperia
+    luma:
+      - edsaperia
+      - usr-VHo0KIG9dQXlKZA
+    seen: 1
+    last_seen: 2026-09-21
+  - name: Sera Evcimen
+    linkedin: https://www.linkedin.com/in/seraevcimen
+    luma:
+      - usr-2xlAkbagd0Ii44z
+    seen: 1
+    last_seen: 2026-09-21
+  - name: Nate Padgett
+    linkedin: https://www.linkedin.com/in/nathanielpadgett
+    x: ngpadgett
+    luma:
+      - informalnate
+      - usr-TZOC192OCDQ0lKx
+    seen: 1
+    last_seen: 2026-09-21
+  - name: Michael Korn
+    linkedin: https://uk.linkedin.com/in/michaelkorn
+    luma:
+      - usr-KnPfFkoSjcB3U6p
+    seen: 1
+    last_seen: 2026-09-21
+  - name: William Schulz
+    linkedin: https://www.linkedin.com/in/william-schulz-
+    x: williamschulz_
+    luma:
+      - usr-ORGH5mBUt3knHGG
+    seen: 1
+    last_seen: 2026-09-21
+  - name: Anna Andersson
+    linkedin: https://www.linkedin.com/in/annandersson12
+    luma:
+      - usr-tVcc3fkEf0atodP
+    seen: 1
+    last_seen: 2026-09-21
+  - name: Akash Bajwa
+    linkedin: https://www.linkedin.com/in/akashbajwa
+    x: AkashBajwa96
+    luma:
+      - akashbajwa
+      - usr-5d8DK4Y38FH4jjd
+    seen: 1
+    last_seen: 2026-09-21
+  - name: Charles Frye
+    linkedin: https://www.linkedin.com/in/charles-frye-38654abb
+    x: charles_irl
+    luma:
+      - usr-kGrR5uIAcCvDpzD
+    seen: 1
+    last_seen: 2026-09-21
+  - name: Circle
+    x: circle
+    luma:
+      - usr-wS2CjvZGzlOcLtq
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Alex Eyles-Owen
+    linkedin: https://www.linkedin.com/in/alex-eyles-owen-534b761b8
+    luma:
+      - usr-Lr46rDLOAJQcySg
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Maha Temre
+    linkedin: https://www.linkedin.com/in/maha-temre-80894a248
+    luma:
+      - usr-7LIkqjGkPEHeWzN
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Becky Donaldson
+    linkedin: https://www.linkedin.com/in/rebecca-donaldson-ab2b60149
+    luma:
+      - becky_donaldson
+      - usr-mXyhBZVLcXrMEb0
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Daniel Oberhaus
+    linkedin: https://www.linkedin.com/in/daniel-oberhaus-b5ba1594
+    luma:
+      - daniel_oberhaus
+      - usr-WKxQtyjIB6gGGjl
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Jillian Smith
+    linkedin: https://www.linkedin.com/in/jillian-smith-18baba67
+    x: Jillian_NSmith
+    luma:
+      - usr-ytKRpBbHWxqJqql
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Taha Adnan (Zaz Ventures)
+    linkedin: https://www.linkedin.com/in/taha-adnan
+    luma:
+      - usr-iOTRMC1kpD60mjh
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Wilfred Kasekende
+    linkedin: https://www.linkedin.com/in/wilfredkasekende
+    x: inventorBlack
+    luma:
+      - inventorBlack
+      - usr-TY6CktirNXtslXt
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Diyi Zhu
+    linkedin: https://www.linkedin.com/in/zhudiyi
+    x: communidiyi
+    luma:
+      - usr-K2buyBlBvrnWLDf
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Yoan Di Cosmo
+    linkedin: https://www.linkedin.com/in/yoandicosmo
+    x: yoandicosmo
+    luma:
+      - usr-MCd0KxvDrGEIbzG
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Nelli Morgulchik
+    linkedin: https://www.linkedin.com/in/nelli-morgulchik
+    luma:
+      - nellimorgulchik
+      - usr-EyfBqRloAX9rvBP
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Jonty Corrin
+    linkedin: https://www.linkedin.com/in/jontycorrin
+    luma:
+      - usr-3VOIWCbthy3OsmG
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Henri Bonamy
+    linkedin: https://www.linkedin.com/in/henri-bonamy
+    x: henribonamy
+    luma:
+      - usr-gAAqtu8V2eDmoI8
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Ines Ullmo
+    linkedin: https://www.linkedin.com/in/ines-ullmo-32b185106
+    luma:
+      - usr-NCwNwZuyhFSooPb
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Danny Naqvi
+    linkedin: https://www.linkedin.com/in/danialnaqvi
+    luma:
+      - dannynaqvi
+      - usr-8krlpJIetjQbkx7
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Jon Besga
+    linkedin: https://www.linkedin.com/in/jonbesga
+    luma:
+      - heyjon
+      - usr-y5OKpjLVH0DQ3x3
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Luba Elliott
+    linkedin: https://www.linkedin.com/in/lubaelliott
+    x: elluba
+    luma:
+      - elluba
+      - usr-vhGEZ78gjVixueY
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Avinash Menon
+    linkedin: https://www.linkedin.com/in/avinash-menon-5312a7197
+    x: naseem9brev
+    luma:
+      - usr-OaNXMZdSUSOYOOK
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Matt Bergland
+    linkedin: https://www.linkedin.com/in/mattbergland
+    x: mattbergland
+    luma:
+      - mattbergland
+      - usr-ZHLqaxSKE41bFUD
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Hailey Eustace
+    linkedin: https://www.linkedin.com/in/haileyeustace
+    luma:
+      - usr-JZ7JXm7f6yUVjWQ
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Andrada Dobre
+    linkedin: https://www.linkedin.com/in/andrada-dobre-9311b188
+    luma:
+      - usr-r9Xc6TmuiAY89gX
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Nadiia Savchenko
+    linkedin: https://www.linkedin.com/in/savchenkonadiia
+    luma:
+      - nadiia
+      - usr-M9GkhzhBLSeTrsy
+    seen: 1
+    last_seen: 2026-09-28
+  - name: EDTH
+    linkedin: https://www.linkedin.com/in/benjaminwolba
+    luma:
+      - eurodefensetech
+      - usr-8R5aVw7SGzNtnQE
+    seen: 1
+    last_seen: 2026-09-28
+  - name: Carolina Neri
+    linkedin: https://www.linkedin.com/in/nericarolina
+    luma:
+      - usr-GUgFkCGqzXEiI8z
+    seen: 1
+    last_seen: 2026-10-05
+  - name: Maud Larbey
+    linkedin: https://www.linkedin.com/in/maudlarbey
+    luma:
+      - MaudSingular
+      - usr-zCTh8QERM6JaTzP
+    seen: 1
+    last_seen: 2026-10-05
+  - name: Felix Martinez
+    linkedin: https://www.linkedin.com/in/felixjmartinez
+    luma:
+      - usr-JmaoQ2qQsj3VS5N
+    seen: 1
+    last_seen: 2026-10-05
+  - name: Lorenzo Cerchi
+    linkedin: https://www.linkedin.com/in/lorenzocerchi
+    luma:
+      - usr-9A2afcOleDj6rSD
+    seen: 1
+    last_seen: 2026-10-05
+  - name: Nirmesh Patel
+    linkedin: https://www.linkedin.com/in/nirmesh-patel
+    x: nirmeshpatel8
+    luma:
+      - usr-trWk9qeMUFSGJEz
+    seen: 1
+    last_seen: 2026-10-05
+  - name: Alex Wilson
+    linkedin: https://www.linkedin.com/in/alex-wilson-2a3873152
+    luma:
+      - usr-9g0OfXmpiAcQXCz
+    seen: 1
+    last_seen: 2026-10-05
+  - name: John Cassidy
+    linkedin: https://www.linkedin.com/in/john-w-cassidy
+    luma:
+      - usr-rEYVYIhQg3gXemR
+    seen: 1
+    last_seen: 2026-10-05
+  - name: Tracy Ha
+    linkedin: https://www.linkedin.com/in/tracy-ha-
+    luma:
+      - usr-FMY8DBDtDVqX3fJ
+    seen: 1
+    last_seen: 2026-10-05
+  - name: Samia Said
+    linkedin: https://www.linkedin.com/in/samia-said-989655163
+    luma:
+      - usr-gxtvVzPx47EjJMN
+    seen: 1
+    last_seen: 2026-10-05
+  - name: Waqas Malik
+    linkedin: https://www.linkedin.com/in/waqas-malik0
+    luma:
+      - usr-2jwtgBSxD6pImic
+    seen: 1
+    last_seen: 2026-10-05
+  - name: Gyen Ming Angel
+    linkedin: https://www.linkedin.com/in/gyen
+    luma:
+      - usr-qOHM6yYOCXvo35X
+    seen: 1
+    last_seen: 2026-10-05
+  - name: Toby Call
+    linkedin: https://www.linkedin.com/in/tobyprimocall
+    luma:
+      - usr-CtZ1YwRPiLx6mUQ
+    seen: 1
+    last_seen: 2026-10-05
+  - name: Jupiter Lucas B.
+    linkedin: https://www.linkedin.com/in/jupiterlucas
+    luma:
+      - usr-HBAoPCipGGwr868
+    seen: 1
+    last_seen: 2026-10-05
+  - name: Kevin Barona
+    linkedin: https://www.linkedin.com/in/kbarona
+    x: kevbarona
+    luma:
+      - usr-SckoQ1vc98ttAh2
+    seen: 1
+    last_seen: 2026-10-05
+  - name: Rob Auchincloss
+    linkedin: https://www.linkedin.com/in/robertauchincloss
+    x: robauchincloss
+    luma:
+      - hyperobject
+      - usr-JBUG5LVK9zXLMi8
+    seen: 1
+    last_seen: 2026-10-05
+  - name: Jason Cerundolo
+    linkedin: https://www.linkedin.com/in/jasoncerundolo
+    luma:
+      - JasonCerundolo
+      - usr-heJOmIjDnvAMypJ
+    seen: 1
+    last_seen: 2026-10-05
+  - name: Rapolas
+    x: long_solitude
+    luma:
+      - usr-sVa1aFfgAQSG3zL
+    seen: 1
+    last_seen: 2026-10-05
+  - name: Weronika Biala
+    linkedin: https://www.linkedin.com/in/weronika-biala
+    luma:
+      - usr-ziR1bursGdV9n4d
+    seen: 1
+    last_seen: 2026-10-05
+  - name: Carolina Cauduro
+    linkedin: https://www.linkedin.com/in/carolina-cauduro
+    luma:
+      - usr-F0v5SHtnKHueCeN
+    seen: 1
+    last_seen: 2026-10-05
+  - name: Miguel Rodrigues
+    linkedin: https://www.linkedin.com/in/miguel-rodrigues-55280557
+    luma:
+      - usr-T3GxY78pm8CqyRO
+    seen: 1
+    last_seen: 2026-10-12
+  - name: Ryan Britnell
+    linkedin: https://www.linkedin.com/in/ryan-britnell
+    x: CodingWithRyan
+    luma:
+      - usr-6OBrqcB4dP19WRm
+    seen: 1
+    last_seen: 2026-10-12
+  - name: Shashi Jagtap
+    linkedin: https://www.linkedin.com/in/shashikantjagtap
+    x: Shashikant86
+    luma:
+      - Shashikant86
+      - usr-NngxqtqG09XZ3Ni
+    seen: 1
+    last_seen: 2026-10-12
+  - name: Alessandro Amenta
+    linkedin: https://www.linkedin.com/in/alessandro-amenta
+    x: ale_amenta
+    luma:
+      - usr-qSsdgMpbRnNqoVG
+    seen: 1
+    last_seen: 2026-10-12
+  - name: Jacopo Piazza
+    linkedin: https://www.linkedin.com/in/None
+    luma:
+      - usr-Jk6OAeS5XqwgoR3
+    seen: 1
+    last_seen: 2026-10-12
+  - name: Ram Bansal
+    linkedin: https://www.linkedin.com/in/ram-bansal
+    x: _RamB_
+    luma:
+      - usr-CdVwfoIqG5sQHVO
+    seen: 1
+    last_seen: 2026-10-12
+  - name: David Pacák
+    linkedin: https://www.linkedin.com/in/davidpacak
+    luma:
+      - usr-RbJgAIemKv3QVEj
+    seen: 1
+    last_seen: 2026-10-12
+  - name: Elie de Fressenel
+    linkedin: https://www.linkedin.com/in/elie-privat-de-fressenel
+    luma:
+      - usr-RhF1k5IFCDexMeu
+    seen: 1
+    last_seen: 2026-10-12
+  - name: Artem Goriunov
+    linkedin: https://www.linkedin.com/in/artemgoriunov
+    luma:
+      - art_goriunov
+      - usr-hKhfmgA4VcKxt61
+    seen: 1
+    last_seen: 2026-10-19
+  - name: Reese Wong
+    linkedin: https://www.linkedin.com/in/reesewong1
+    luma:
+      - usr-dcLloDCwYgGXXuQ
+    seen: 1
+    last_seen: 2026-10-19
+  - name: Forensic Architecture
+    x: forensicarchi
+    luma:
+      - forensicarchi
+      - usr-qO5C6Ys7O5ipGYt
+    seen: 1
+    last_seen: 2026-10-19
+  - name: Gillian Yeomans
+    linkedin: https://www.linkedin.com/in/gyeomans
+    luma:
+      - usr-CVz0mbqWlNYqwvR
+    seen: 1
+    last_seen: 2026-10-19
+  - name: Ansh Agarwal
+    linkedin: https://www.linkedin.com/in/anshagarwal5829
+    luma:
+      - usr-mt7MFNKmckELyBa
+    seen: 1
+    last_seen: 2026-10-19
+  - name: Shubham Jain
+    linkedin: https://www.linkedin.com/in/shubham-jain-b1356962
+    luma:
+      - shubhamjain0594
+      - usr-rzbv4BFFTPa6ROb
+    seen: 1
+    last_seen: 2026-10-19
+  - name: London Venture Capital Network
+    linkedin: https://www.linkedin.com/in/aadamsumer
+    x: londonvcnetwork
+    luma:
+      - lvcn
+      - usr-jw4MWr8ilUjCUTp
+    seen: 1
+    last_seen: 2026-10-19
+  - name: Shona Curtis-Walcott
+    linkedin: https://www.linkedin.com/in/shona-curtis-walcott-28726a153
+    luma:
+      - usr-AYKW4RgxuaCSC4r
+    seen: 1
+    last_seen: 2026-10-19
+  - name: Eldar Utiushev
+    linkedin: https://www.linkedin.com/in/eldaru
+    x: e1daru
+    luma:
+      - usr-BmgeFQs3V5lON3h
+    seen: 1
+    last_seen: 2026-10-19
+  - name: Anil Peri
+    linkedin: https://www.linkedin.com/in/anilperi
+    x: notanilp
+    luma:
+      - usr-4YarDklF2blhcJP
+    seen: 1
+    last_seen: 2026-10-19
+  - name: Lily Jahan
+    linkedin: https://www.linkedin.com/in/lilydjahanbakhsh
+    luma:
+      - askcodex
+      - usr-SYs2uyg0NfeNyDm
+    seen: 1
+    last_seen: 2026-10-19
+  - name: Mishti Ali
+    linkedin: https://www.linkedin.com/in/mishti-ali
+    x: heresmishti
+    luma:
+      - heresmishti
+      - usr-zZHbTQOeryqVrvv
+    seen: 1
+    last_seen: 2026-10-19
+  - name: Lily
+    linkedin: https://www.linkedin.com/in/lily-hammond
+    luma:
+      - LilyHammond
+      - usr-G4RkbQ3Le8y6eiU
+    seen: 1
+    last_seen: 2026-10-19
+  - name: Olivia Qian
+    linkedin: https://www.linkedin.com/in/y-olivia-qian
+    x: infini_present
+    luma:
+      - usr-fGNtCCMHMVXjr87
+    seen: 1
+    last_seen: 2026-10-19
+  - name: Zoe Zhou
+    linkedin: https://www.linkedin.com/in/zoezhouyt912
+    luma:
+      - usr-jA3XigsaJ6MKSgv
+    seen: 1
+    last_seen: 2026-10-19
+  - name: Eleanor
+    linkedin: https://www.linkedin.com/in/eleanor-warnock-6a671037
+    luma:
+      - Misssaxbys
+      - usr-YQate3Irp0jwf0j
+    seen: 1
+    last_seen: 2026-10-26
+  - name: Ross McCrann
+    linkedin: https://www.linkedin.com/in/rossmccrann
+    luma:
+      - usr-ieCVEluLMsSESw2
+    seen: 1
+    last_seen: 2026-10-26
+  - name: Bogdan Ponomar
+    linkedin: https://www.linkedin.com/in/bponomar
+    luma:
+      - bogdanpv1
+      - usr-BHJMjfCyqQR3bxU
+    seen: 1
+    last_seen: 2026-10-26
+  - name: Teresa Wang
+    linkedin: https://www.linkedin.com/in/terwytesa17
+    luma:
+      - teresaaa
+      - usr-7e5iXD3pbbnoRMi
+    seen: 1
+    last_seen: 2026-10-26
+  - name: Christine Ganshof
+    linkedin: https://www.linkedin.com/in/christineganshof
+    luma:
+      - usr-wEPib12mfztKjiz
+    seen: 1
+    last_seen: 2026-10-26

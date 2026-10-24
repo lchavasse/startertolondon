@@ -28,8 +28,8 @@ Don't draft from memory. Open at least the two most recent posts per platform be
 - **First-name-only resolutions need a surname check.** Luma frequently returns just a first name ("Sam", "Jamie", "cody"). Lachlan often knows these people personally and has a fuller name than the data does ("Sam" → "Sam Hooti", "Alex Franch" → "Alex Franch Tapia", "Fatema Alkhalifa" → "Fatema Al Khalifa"). Flag first-name-only or possibly-incomplete hosts clearly in Notes rather than presenting them as final — Lachlan will often complete the name in one line, which is much faster than him rewriting your sentence around it.
 - **@handles inline** on X (from `hosts[].twitter`). On LinkedIn, person-mentions can't be pushed by the API — you write the bold full name + `:o` flavour in the body (see the Unicode-emphasis rule below for how "bold" actually renders), and the manual @mention is done by hand in LinkedIn's composer using the `# Tagging` worksheet (see step 4b). Per-person emoji is on-voice: `(Jonty, Isabel & Nelli 🧪)`, `(Charlie Ward 😍)`.
 - **Trust the resolved socials, add what you know.** Precedence is KB (`kbMatch`) → org registry (`registryMatch`) → Luma (`lumaMatch`) → people registry (`peopleMatch`). All are safe inline. If a host has no handle anywhere, leave the bold name and list it in the gaps.
-- **Links off by default on X.** Lachlan strips most links — they kill engagement (and cost ~13× more to auto-post). Keep one only when the cover graphic is worth it or to support a friend's event. When used, it's a **bare lu.ma link** (no markdown, no shorteners).
-- **Opener (X):** a weather/vibe **question** is the strongest default — "has the heat got to the events scene..?", "is it too hot to network?" — alongside the vibe statement ("easing into july") and the three-word minimalist ("atoms are in."). A big week earns a bolder **value/stakes hook** ("3+ ways you can win 10k cold hard cash this week"). Before drafting, skim the last 3–4 openers in `docs/posts/` so you don't repeat one. Always include "all the links are on londoncalling [dot] guide". **LinkedIn openers work differently — see the section below.**
+- **Every X post carries an image or a link. No exceptions, even on thin days or when he says "keep it simple".** 2+ picks on a day → `--select` collage of exactly those picks. One pick → its bare lu.ma link (the Luma card unfurls) or its cover. A text-only day tweet is a miss: he flagged it on 2026-09-27, 2026-10-11 and 2026-10-25, and on 10-25 he had to make the screenshots himself. Links are bare lu.ma (no markdown, no shorteners).
+- **Opener (X):** a weather/vibe **question** is the strongest default — "has the heat got to the events scene..?", "is it too hot to network?" — alongside the vibe statement ("easing into july") and the three-word minimalist ("atoms are in."). A big week earns a bolder **value/stakes hook** ("3+ ways you can win 10k cold hard cash this week"). Before drafting, skim the last 3–4 openers in `docs/posts/` so you don't repeat one. Always include "all the links are on londoncalling.guide/events" (real URL on X since 2026-10-25). **LinkedIn openers work differently — see the section below.**
 - **LinkedIn sign-off is a free riff — don't default to the same line, and it's optional** (3 of the 5 posts from 08-03 to 09-06 had no london calling line at all). When he keeps it, he rewrites it: "available on all good events lists 👇", "london [cough] calling [cough cough] [dot] guide", "all on london calling [dot] guide 👇". Pick one that fits the week's tone; the literal URL goes in the first comment, never the body.
 - "First birthday" / "rocket ship" / "incredible!!!" are recurring phrases — riff, don't repeat verbatim.
 - **Brand obfuscation (LinkedIn variant):** sometimes signs off with `london [cough] calling [cough cough] [dot] guide` instead of the straight form. Playful — use when the post leans wry.
@@ -81,6 +81,18 @@ Also numbered for a ranked set (`1. … 2. … but you know you'll find me at th
 **Own events: "our" + an invitation.** `it's mine tonight — after hours salon's summer picnic 👀` → `come talk tech, culture and the future at our after hours salon's summer picnic 🏞️`. Same shift as LinkedIn. And he inserts himself with a physical detail: `come cowork in the aircon with myself & @99DayCoder`, `but you know you'll find me at the hardware hack 🤖`.
 
 **Luma cards do the work of links.** Most day tweets carry a bare `lu.ma/xxxx` or the auto-unfurled Luma card rather than describing the event at length — the card supplies the title and image, so the copy is free to be a hook.
+
+### X, 2026-10-25 edits (what he changed in Typefully)
+
+- **Every post got an image or link.** Mon, Tue and Sun (single picks) got a full `https://luma.com/<slug>` link; every multi-event day got a collage. He made the small collages himself because the draft had none.
+- **Real URL in the opener:** `all the links are on londoncalling.guide/events`, not `[dot] guide`.
+- **Opener summary names the biggest draw last** and ends with energy: `... and the UK's largest student run tech summit to close out October!`
+- **"with us", not "with me"** for his own events on X too.
+- **Every org with an account gets tagged**, including speakers and co-organisers found in the description: `@indiebeers`, `@NovabookLDN x @giant_ventures`, `@EWOR_official`, debate by `@alys_key & @misssaxbys`, Tech Summit `@WMK_15`.
+- **Each event credits who's behind it:** `an oxford-style debate at @meetgranola by @alys_key & @misssaxbys`, `AI Field Notes - a chill hang w/ @lukadadiani`.
+- **He cut the "elsewhere:" extras on a busy day** (Thu). Highlights only once there's a collage.
+- **Day intros get a seasonal or calendar hook:** `a busy day before we get spooky 👻` (Halloween Sat), `big start to november with the...` (Sun), `the craziness continues 🔥`.
+- **New closing post: "coming up..."** with 2 to 3 next-week-plus teasers, each a flag/emoji + name + `by @host` + bare link, with a 3-card image (`coming-soon-3up.png`). Out-of-London events are fine here (🇦🇹 RISE). Offer this every week.
 
 ### LinkedIn: what Lachlan actually changes (measured against published posts)
 
@@ -269,6 +281,8 @@ events: [event-id-1, event-id-2, ...]
 
 Use `---` as the X post separator (it's the standard Typefully thread delimiter, and how `post-thread` splits the thread). One post per day is the default, but **theme-grouping is fine** — e.g. merge the weekend's hackathons into a single "three hacks" post.
 
+**What may and may not share a post.** Saturday and Sunday can share one ("the weekend"). **Friday never joins them** — it's a weeknight, and merging it reads as padding out a thin day. The only exception is a single event that genuinely spans Friday into the weekend (a hackathon running Fri→Sun), which is one event and therefore one post. A thin Friday gets its own one-line post instead; the "don't drop a thin day" rule already covers it. On 2026-09-20 I merged `𝗙𝗿𝗶 𝟮𝟱 & 𝗦𝗮𝘁 𝟮𝟲` into one post with one event each and Lachlan split them back out — that was the only change he made to the whole draft.
+
 For each event, prefer in this order: KB-matched twitter handle → registry handle → Luma-extracted handle → just the host name (no @). For LinkedIn, prefer KB linkedin → bold name only.
 
 ### 3a. Convert markdown emphasis to real Unicode
@@ -318,7 +332,10 @@ Then tell the user the file is drafted and ask if they want edits before they pa
 2. **Themed cluster → select collage.** When one post bundles a coherent set of 2–4 events (the weekend's three hackathons, a night of three firesides), `--select` exactly those and let the collage talk; keep the text to the theme line.
 3. **Single hero → cover.** One marquee event = just its Luma `coverUrl` via an `img:` URL. No screenshot.
 
-Everything else stays text-only. Don't screenshot a day you're only pulling one event from, and don't collage events that don't share a thread (the image implies they belong together).
+4. **Opener 12-up → always with `--header`.** The root tweet's week collage (12 picks, three rows of 4) must always carry the London Calling title block on top. Never ship it as cards only.
+   `npm run screenshot -- --week <week> --header --select "<12 titles>" --out week-12up.png`
+
+**Nothing stays text-only.** Every day post gets one of the above: a collage for 2+ picks, a bare link or cover for a single pick. A day mixing a hosted event with an evening one (e.g. builder coffee + Nucleate) is a 2-card collage. Curated-only for `--select`; if a pick isn't curated, use its link instead. Don't collage events from different posts (the image implies they belong together).
 
 **Emit a `# Shots` block.** When the thread calls for screenshots, append a `# Shots` section to the post `.md` — each planned shot with its one-line rationale and the **exact command** — and pre-write the matching `img:` lines in the thread so the files land where they're already referenced. Lachlan runs the commands (after any `/admin` padding); you don't run them. Example:
 
@@ -395,6 +412,7 @@ Then, for any handle whose entry only matches itself, add the event's **luma use
 - Don't generate emojis the archive doesn't use — but the observed vocabulary is wider than it once was. Core: `!!!` `🔥` `🦄` `👀` `👋`. Also in published posts: `🇬🇧 🌞 🌤️ 🚀 👾 🌳 🕺🪩 🫡 😍 🧪 🤖 🏞️ ☕️ 🍜 🍹 ⚽ 🔌 ⬇️ 👇 🏠 🏴󠁧󠁢󠁥󠁮󠁧󠁿`.
 - Don't open either platform by announcing the post is an events round-up. "The events you don't want to miss in London this week!!!" ran on both X and LinkedIn the same week and came **last on both** (317 root views; 1,633 impressions / 45% out-of-network).
 - Don't drop a thin day from the X thread. He adds them back as one-liners.
+- Don't hand over a day post with no image or link. Plan a shot or link for every post in `# Shots` before showing the draft.
 - Don't markdown-wrap lu.ma links on X.
 - Don't hand Lachlan (or `post-thread`) a draft with literal `**`/`*` still in it — run `npm run style:unicode` first (step 3a).
 - Don't comma-fuse multiple events into one LinkedIn bullet. One event, one bullet.

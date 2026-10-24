@@ -1,0 +1,397 @@
+# Deep tech people — sourced from deeptech-scanner, NOT from events.
+#
+# Kept out of people-handles.yml on purpose: that registry tracks event
+# hosts and attendees and `npm run highlights` maintains its seen/last_seen
+# from Luma. Nobody here has attended anything, so those fields would be
+# meaningless and unmaintainable.
+#
+# EVERY ROW IS sampling: random. LinkedIn hands back an arbitrary few staff
+# per company page — these individuals were not chosen, and are not
+# necessarily the most senior or most relevant people at their employer.
+# The company evidence (industrial_score, role_mix) is real research; the
+# choice of person is a coin toss. Treat as leads to verify, not a shortlist.
+#
+# Roles are mined from each person's own LinkedIn 'about' prose, because the
+# API returns an empty job-title field. They are self-descriptions.
+#
+# source: deeptech-scanner  ·  generated: 2026-08-07  ·  50 people
+
+people:
+  - name: "Alex Bamberg"
+    linkedin: https://www.linkedin.com/in/alex-bamberg-a1a87210
+    source: deeptech-scanner
+    sampling: random
+    company: "Superdielectrics, Osprey Charging, ETA Green Power"
+    role: "CEO"
+    seniority: "c-suite"
+    location: "Froxfield Green, England, United Kingdom"
+    added: 2026-08-07
+  - name: "David Richards MBE"
+    linkedin: https://www.linkedin.com/in/davidrichards
+    source: deeptech-scanner
+    sampling: random
+    company: "Yorkshire AI Labs LLP"
+    role: "Co-Founder"
+    seniority: "c-suite"
+    location: "Sheffield, England, United Kingdom"
+    added: 2026-08-07
+  - name: "James Basden"
+    linkedin: https://www.linkedin.com/in/james-basden
+    source: deeptech-scanner
+    sampling: random
+    company: "Zenobe Energy Limited"
+    role: "Founder"
+    seniority: "c-suite"
+    location: "Greater London, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Marcus Scott"
+    linkedin: https://www.linkedin.com/in/marcus-scott-756b7
+    source: deeptech-scanner
+    sampling: random
+    company: "Superdielectrics"
+    role: "COO"
+    seniority: "c-suite"
+    discipline: "commercial"
+    location: "United Kingdom"
+    company_hiring: "1 process/chemical, 1 R&D/science"
+    added: 2026-08-07
+  - name: "Andrew Hynes"
+    linkedin: https://www.linkedin.com/in/andrew-hynes-6201331
+    source: deeptech-scanner
+    sampling: random
+    company: "UK Atomic Energy Authority"
+    role: "Director"
+    seniority: "head"
+    location: "Abingdon-On-Thames, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Chris Martin"
+    linkedin: https://www.linkedin.com/in/chrismartinxenva
+    source: deeptech-scanner
+    sampling: random
+    company: "Tokamak Energy Ltd"
+    role: "Director"
+    seniority: "head"
+    location: "Schattdorf, Uri, Switzerland"
+    added: 2026-08-07
+  - name: "Devam Sanghavi"
+    linkedin: https://www.linkedin.com/in/devamsanghavi
+    source: deeptech-scanner
+    sampling: random
+    company: "SuperDielectrics"
+    role: "Head of Engineering"
+    seniority: "head"
+    location: "Cambridge, England, United Kingdom"
+    company_hiring: "1 process/chemical, 1 R&D/science"
+    added: 2026-08-07
+  - name: "Ed Marshall"
+    linkedin: https://www.linkedin.com/in/dredmarshall
+    source: deeptech-scanner
+    sampling: random
+    role: "Head of Commercialisation"
+    seniority: "head"
+    discipline: "process/chemical"
+    location: "Duxford, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Graham Donald"
+    linkedin: https://www.linkedin.com/in/gdonald
+    source: deeptech-scanner
+    sampling: random
+    company: "Nusku"
+    role: "Senior Engineer"
+    seniority: "senior"
+    location: "Bristol, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Paul Young (MAPM)"
+    linkedin: https://www.linkedin.com/in/paul-young-mapm-791b49a
+    source: deeptech-scanner
+    sampling: random
+    company: "Roxel UK"
+    role: "Operations Manager"
+    seniority: "senior"
+    location: "United Kingdom"
+    added: 2026-08-07
+  - name: "Andrew Harrison"
+    linkedin: https://www.linkedin.com/in/randrewharrison
+    source: deeptech-scanner
+    sampling: random
+    company: "S32"
+    location: "Menlo Park, California, United States"
+    added: 2026-08-07
+  - name: "Arwel Evans"
+    linkedin: https://www.linkedin.com/in/arwel-evans-3180a21
+    source: deeptech-scanner
+    sampling: random
+    location: "Plymouth, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Biswaroop Mukherjee"
+    linkedin: https://www.linkedin.com/in/biswaroop-mukherjee-533a1b18
+    source: deeptech-scanner
+    sampling: random
+    company: "NewOrbit Space"
+    location: "Caversham, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Carl Walker BA, BEng"
+    linkedin: https://www.linkedin.com/in/carl-walker-ba-beng-880b2312
+    source: deeptech-scanner
+    sampling: random
+    company: "Roxel (UK Rocket Motors) Ltd"
+    location: "Stratford-Upon-Avon, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Chet Babla"
+    linkedin: https://www.linkedin.com/in/chetbabla
+    source: deeptech-scanner
+    sampling: random
+    company: "APPG for Semiconductors"
+    location: "Newton Aycliffe, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Dan Lawton"
+    linkedin: https://www.linkedin.com/in/dan-lawton-43bb3935
+    source: deeptech-scanner
+    sampling: random
+    company: "Nusku"
+    location: "Greater Bristol Area, United Kingdom"
+    added: 2026-08-07
+  - name: "Daria Kuczkowska"
+    linkedin: https://www.linkedin.com/in/daria-kuczkowska-b0929114
+    source: deeptech-scanner
+    sampling: random
+    company: "Roxel UK"
+    location: "West Midlands, England, United Kingdom"
+    added: 2026-08-07
+  - name: "David A R Brown"
+    linkedin: https://www.linkedin.com/in/david-a-r-brown-563a173
+    source: deeptech-scanner
+    sampling: random
+    company: "Framatome Ltd"
+    location: "Cranfield, England, United Kingdom"
+    added: 2026-08-07
+  - name: "David Beet"
+    linkedin: https://www.linkedin.com/in/david-beet-7373b0
+    source: deeptech-scanner
+    sampling: random
+    company: "UK Atomic Energy Authority"
+    location: "Bath, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Dom Kemp"
+    linkedin: https://www.linkedin.com/in/dom-kemp-engineering-design
+    source: deeptech-scanner
+    sampling: random
+    company: "Nusku"
+    location: "Bristol, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Dr. Klaus Hommels"
+    linkedin: https://www.linkedin.com/in/klaushommels
+    source: deeptech-scanner
+    sampling: random
+    company: "Lakestar"
+    location: "United Kingdom"
+    added: 2026-08-07
+  - name: "Dr. Ruth Allan, PhD"
+    linkedin: https://www.linkedin.com/in/ruthmaryallan
+    source: deeptech-scanner
+    sampling: random
+    company: "Recover & Thrive Ltd"
+    location: "Greater Oxford Area"
+    added: 2026-08-07
+  - name: "Elise Qian Huang"
+    linkedin: https://www.linkedin.com/in/qhuang8
+    source: deeptech-scanner
+    sampling: random
+    company: "Olive Technology Ventures"
+    location: "Menlo Park, California, United States"
+    added: 2026-08-07
+  - name: "Francisco Lopez Royo"
+    linkedin: https://www.linkedin.com/in/francisco-lopez-royo
+    source: deeptech-scanner
+    sampling: random
+    company: "Octric Semiconductors Ltd"
+    location: "Newton Aycliffe, England, United Kingdom"
+    company_industrial_score: 21
+    company_hiring: "1 electrical/embedded, 1 manufacturing/quality; 1 ops/commercial"
+    added: 2026-08-07
+  - name: "Fred Chong"
+    linkedin: https://www.linkedin.com/in/fred-chong-a5013
+    source: deeptech-scanner
+    sampling: random
+    location: "Greater Chicago Area"
+    added: 2026-08-07
+  - name: "Glenn Vickery"
+    linkedin: https://www.linkedin.com/in/glennvickery
+    source: deeptech-scanner
+    sampling: random
+    company: "Cambridge Aerospace"
+    location: "Fareham, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Grisha Sheldunov"
+    linkedin: https://www.linkedin.com/in/grrria
+    source: deeptech-scanner
+    sampling: random
+    company: "Amphiform"
+    location: "London, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Gustavo Padron"
+    linkedin: https://www.linkedin.com/in/gustavopadron
+    source: deeptech-scanner
+    sampling: random
+    company: "Framatome Ltd"
+    location: "Cranfield, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Jeff Peachman"
+    linkedin: https://www.linkedin.com/in/jeff-peachman-44176179
+    source: deeptech-scanner
+    sampling: random
+    company: "StandardX"
+    location: "London, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Joanna Maddocks"
+    linkedin: https://www.linkedin.com/in/joanna-maddocks-1ba8659
+    source: deeptech-scanner
+    sampling: random
+    company: "Framatome UK"
+    location: "Lymm, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Jose Juan de Jesus Toriz-Garcia"
+    linkedin: https://www.linkedin.com/in/jose-juan-de-jesus-toriz-garcia-28351515
+    source: deeptech-scanner
+    sampling: random
+    company: "Octric Semiconductors Ltd"
+    location: "Newton Aycliffe, England, United Kingdom"
+    company_industrial_score: 21
+    company_hiring: "1 electrical/embedded, 1 manufacturing/quality; 1 ops/commercial"
+    added: 2026-08-07
+  - name: "Laura Wheatley"
+    linkedin: https://www.linkedin.com/in/laura-wheatley-308560116
+    source: deeptech-scanner
+    sampling: random
+    company: "StandardX"
+    location: "United Kingdom"
+    added: 2026-08-07
+  - name: "Lee Johnson"
+    linkedin: https://www.linkedin.com/in/lee-johnson-uk
+    source: deeptech-scanner
+    sampling: random
+    company: "Toshiba Europe Ltd"
+    location: "Greater Cambridge Area"
+    added: 2026-08-07
+  - name: "Mark Bray-Parry"
+    linkedin: https://www.linkedin.com/in/mark-bray-parry-bb35514a
+    source: deeptech-scanner
+    sampling: random
+    company: "StandardX"
+    location: "London Area, United Kingdom"
+    added: 2026-08-07
+  - name: "Mike Karsonovich"
+    linkedin: https://www.linkedin.com/in/mike-karsonovich-1a4855
+    source: deeptech-scanner
+    sampling: random
+    location: "Greater Boston"
+    added: 2026-08-07
+  - name: "Morgan Alexander Ip"
+    linkedin: https://www.linkedin.com/in/morganip
+    source: deeptech-scanner
+    sampling: random
+    company: "Arctic Research and Development"
+    location: "Cambridge, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Nicholas Hookham"
+    linkedin: https://www.linkedin.com/in/nicholashookham
+    source: deeptech-scanner
+    sampling: random
+    company: "Roxel UK"
+    location: "Birmingham, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Pieter van der Zwet"
+    linkedin: https://www.linkedin.com/in/pietervanderzwet
+    source: deeptech-scanner
+    sampling: random
+    company: "Stantec"
+    location: "Delft, South Holland, Netherlands"
+    added: 2026-08-07
+  - name: "Rajeev Deshprabhu"
+    linkedin: https://www.linkedin.com/in/rajeev-deshprabhu-444a83
+    source: deeptech-scanner
+    sampling: random
+    company: "UK Atomic Energy Authority"
+    location: "Greater Oxford Area"
+    added: 2026-08-07
+  - name: "Rebecca Clark"
+    linkedin: https://www.linkedin.com/in/rebecca-clark-76730b23
+    source: deeptech-scanner
+    sampling: random
+    company: "Cambridge Aerospace"
+    location: "Milton Keynes, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Richard Pearson, PhD"
+    linkedin: https://www.linkedin.com/in/richard-pearson-phd-65660861
+    source: deeptech-scanner
+    sampling: random
+    company: "StandardX"
+    location: "United Kingdom"
+    added: 2026-08-07
+  - name: "Rob Marsden"
+    linkedin: https://www.linkedin.com/in/rob-marsden-987450103
+    source: deeptech-scanner
+    sampling: random
+    company: "Nusku"
+    role: "design engineer"
+    location: "Greater Bristol Area, United Kingdom"
+    added: 2026-08-07
+  - name: "Simon Turner"
+    linkedin: https://www.linkedin.com/in/safety-security
+    source: deeptech-scanner
+    sampling: random
+    company: "Framatome UK"
+    location: "Bristol, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Sirin Neyzi"
+    linkedin: https://www.linkedin.com/in/sirin-neyzi-97a3076
+    source: deeptech-scanner
+    sampling: random
+    company: "Intelligencia AI"
+    location: "Athens, Attiki, Greece"
+    added: 2026-08-07
+  - name: "Steph McDougal, MTSC, MSHP, PhD"
+    linkedin: https://www.linkedin.com/in/stephmcd
+    source: deeptech-scanner
+    sampling: random
+    company: "Stantec"
+    location: "Houston, Texas, United States"
+    added: 2026-08-07
+  - name: "Stéphane Simon"
+    linkedin: https://www.linkedin.com/in/st%C3%A9phane-simon-83b6133
+    source: deeptech-scanner
+    sampling: random
+    location: "Houston, Texas, United States"
+    added: 2026-08-07
+  - name: "Tamara J. Such"
+    linkedin: https://www.linkedin.com/in/tamarajsuch
+    source: deeptech-scanner
+    sampling: random
+    company: "Cambridge Aerospace"
+    location: "Kyiv, Kyiv City, Ukraine"
+    added: 2026-08-07
+  - name: "Tomas Hvamb"
+    linkedin: https://www.linkedin.com/in/tomas-hvamb-967a532
+    source: deeptech-scanner
+    sampling: random
+    company: "Havn Capital"
+    location: "London, England, United Kingdom"
+    added: 2026-08-07
+  - name: "Trevor H."
+    linkedin: https://www.linkedin.com/in/trevor-h-22473219
+    source: deeptech-scanner
+    sampling: random
+    company: "Octric Semiconductors Ltd"
+    location: "Darlington, England, United Kingdom"
+    company_industrial_score: 21
+    company_hiring: "1 electrical/embedded, 1 manufacturing/quality; 1 ops/commercial"
+    added: 2026-08-07
+  - name: "Yuval Boger"
+    linkedin: https://www.linkedin.com/in/yuvalboger
+    source: deeptech-scanner
+    sampling: random
+    company: "QuEra Computing Inc."
+    location: "Boston, Massachusetts, United States"
+    company_industrial_score: 35
+    company_hiring: "15 R&D/science, 10 mechanical, 3 manufacturing/quality, 1 electrical/embedded, 1 semiconductor/fab; 15 softwar"
+    added: 2026-08-07
