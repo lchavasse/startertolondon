@@ -64,7 +64,7 @@ async function fetchCalendarEntries(calId: string): Promise<LumaEntry[]> {
     const url = new URL(`${API_BASE}/calendar/get-items`)
     url.searchParams.set('calendar_api_id', calId)
     url.searchParams.set('pagination_limit', '50')
-    url.searchParams.set('period', 'upcoming')
+    url.searchParams.set('period', 'future')
     if (cursor) url.searchParams.set('pagination_cursor', cursor)
 
     const res = await fetch(url.toString(), {

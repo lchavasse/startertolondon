@@ -10,6 +10,30 @@ import { getEvents } from '../src/lib/kv'
 const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
 
+// PNG / JPEG / GIF / WebP / AVIF signatures.
+async function isImageByBytes(url: string): Promise<boolean> {
+  try {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': UA, Range: 'bytes=0-15' },
+      redirect: 'follow',
+      signal: AbortSignal.timeout(10000),
+    })
+    if (!res.ok) return false
+    const b = new Uint8Array(await res.arrayBuffer())
+    if (b.length < 12) return false
+    const ascii = (o: number, n: number) =>
+      String.fromCharCode(...b.slice(o, o + n))
+    if (b[0] === 0x89 && ascii(1, 3) === 'PNG') return true
+    if (b[0] === 0xff && b[1] === 0xd8) return true // JPEG
+    if (ascii(0, 3) === 'GIF') return true
+    if (ascii(0, 4) === 'RIFF' && ascii(8, 4) === 'WEBP') return true
+    if (ascii(4, 4) === 'ftyp' && ascii(8, 4).startsWith('avi')) return true
+    return false
+  } catch {
+    return false
+  }
+}
+
 async function reachable(url: string): Promise<{ ok: boolean; detail: string }> {
   try {
     let res = await fetch(url, { method: 'HEAD', headers: { 'User-Agent': UA }, redirect: 'follow', signal: AbortSignal.timeout(10000) })
@@ -18,6 +42,12 @@ async function reachable(url: string): Promise<{ ok: boolean; detail: string }> 
       res = await fetch(url, { method: 'GET', headers: { 'User-Agent': UA, Range: 'bytes=0-0' }, redirect: 'follow', signal: AbortSignal.timeout(10000) })
     }
     const ct = res.headers.get('content-type') ?? ''
+    // Some hosts (GCS) serve .webp as application/octet-stream — sniff magic
+    // bytes rather than trusting the header, so real images aren't flagged.
+    if (res.ok && !ct.startsWith('image/') && ct !== '') {
+      const sniffed = await isImageByBytes(url)
+      return { ok: sniffed, detail: `${res.status} ${ct}${sniffed ? ' (sniffed: image)' : ''}` }
+    }
     const ok = res.ok && (ct.startsWith('image/') || ct === '')
     return { ok, detail: `${res.status} ${ct}` }
   } catch (e: any) {

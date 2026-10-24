@@ -306,10 +306,33 @@ function pickByAuto(events: LondonEvent[], top: number): LondonEvent[] {
   return sorted.slice(0, top)
 }
 
+// Everything the post says about a day is London wall-clock, so bucket and
+// label in Europe/London. Reading the weekday off UTC used to disagree with the
+// date key (which slices the raw ISO string): an event stored as
+// "2026-09-21T00:00:00+01:00" keys to 2026-09-21 but is 2026-09-20 in UTC, so
+// the Monday came back labelled "Sun 20".
+const LONDON_DAY = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Europe/London',
+  weekday: 'short',
+  day: 'numeric',
+})
+
 function weekdayLabel(iso: string): string {
-  const d = new Date(iso)
-  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-  return `${days[d.getUTCDay()]} ${d.getUTCDate()}`
+  const parts = LONDON_DAY.formatToParts(new Date(iso))
+  const weekday = parts.find((p) => p.type === 'weekday')?.value ?? ''
+  const day = parts.find((p) => p.type === 'day')?.value ?? ''
+  return `${weekday} ${day}`
+}
+
+// The London calendar date an event belongs to (not the raw ISO prefix, which
+// is whatever offset the source happened to store).
+function londonDateKey(iso: string): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/London',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(iso))
 }
 
 interface LumaHostNode {
@@ -434,7 +457,7 @@ async function main() {
   // the top-N picks below.
   const dayMap = new Map<string, { date: string; weekday: string; curated: number; total: number }>()
   for (const e of ranged) {
-    const date = e.startAt.slice(0, 10)
+    const date = londonDateKey(e.startAt)
     const row = dayMap.get(date) ?? { date, weekday: weekdayLabel(e.startAt), curated: 0, total: 0 }
     row.total += 1
     if (e.curated) row.curated += 1

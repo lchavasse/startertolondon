@@ -8,11 +8,13 @@
  *   npm run fix-covers -- --apply --limit 200
  *   npm run fix-covers -- --source cerebral-valley --apply
  *
- * Operates on events:london (full-overwrite via saveEvents) and events:manual
- * (per-event update). Skips events whose URL is unfetchable, returns no
- * og:image, or whose host doesn't respond.
+ * Scraper-sourced events (events:london) get a cover *override* — the nightly
+ * cron overwrites events:london wholesale, so a cover written there would be
+ * blanked again on the next scrape. Manual events are patched in place.
+ * Skips events whose URL is unfetchable, returns no image, or whose extracted
+ * image doesn't resolve.
  */
-import { getRawEvents, saveEvents, getManualEvents, updateManualEvent } from '../src/lib/kv'
+import { getRawEvents, getManualEvents, updateManualEvent, setCoverOverride } from '../src/lib/kv'
 import type { LondonEvent } from '../src/lib/types'
 
 const UA =
@@ -29,7 +31,7 @@ function decodeHtmlEntities(s: string): string {
     .replace(/&#x2F;/gi, '/')
 }
 
-async function fetchOgImage(url: string): Promise<string | null> {
+async function fetchCover(url: string): Promise<string | null> {
   try {
     const res = await fetch(url, {
       headers: {
@@ -42,6 +44,8 @@ async function fetchOgImage(url: string): Promise<string | null> {
     if (!res.ok) return null
     const html = await res.text()
     // Match og:image regardless of attribute order
+    const luma = lumaCover(html)
+    if (luma) return luma
     const m =
       html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
       html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i) ||
@@ -49,6 +53,30 @@ async function fetchOgImage(url: string): Promise<string | null> {
     return m?.[1] ? decodeHtmlEntities(m[1]) : null
   } catch {
     return null
+  }
+}
+
+// Luma's og:image is a rendered social card with the title baked in. The real
+// event cover sits in the page's ld+json `image` array as an images.lumacdn.com
+// /uploads/ URL — same shape the Luma scrapers store.
+function lumaCover(html: string): string | null {
+  const m = html.match(
+    /https:\/\/images\.lumacdn\.com\/cdn-cgi\/image\/[^"'\\]*?\/(uploads\/[^"'\\]+?\.(?:png|jpg|jpeg|webp))/i
+  )
+  return m?.[1] ? `https://images.lumacdn.com/${m[1]}` : null
+}
+
+async function resolvesAsImage(url: string): Promise<boolean> {
+  try {
+    const res = await fetch(url, {
+      headers: { 'User-Agent': UA, Range: 'bytes=0-15' },
+      redirect: 'follow',
+      signal: AbortSignal.timeout(10000),
+    })
+    if (!res.ok) return false
+    return (res.headers.get('content-type') ?? '').startsWith('image/')
+  } catch {
+    return false
   }
 }
 
@@ -107,30 +135,23 @@ async function main() {
 
   let fixed = 0
   let failed = 0
-  // Track per-collection updates so we can persist london in one shot.
-  const londonUpdates = new Map<string, string>()  // id → coverUrl
 
   for (let i = 0; i < slice.length; i++) {
     const { event, from } = slice[i]
-    const cover = await fetchOgImage(event.url)
+    const found = await fetchCover(event.url)
+    const cover = found && (await resolvesAsImage(found)) ? found : null
     const tag = cover ? '✓' : '✗'
     console.log(`  [${i + 1}/${slice.length}] ${tag} ${from} ${event.source.padEnd(15)} ${event.name.slice(0, 60)}`)
     if (cover) {
       fixed++
       if (apply) {
-        if (from === 'london') londonUpdates.set(event.id, cover)
+        if (from === 'london') await setCoverOverride(event.id, cover)
         else await updateManualEvent(event.id, { coverUrl: cover })
       }
     } else {
       failed++
     }
     if (i < slice.length - 1) await new Promise((r) => setTimeout(r, REQUEST_DELAY_MS))
-  }
-
-  if (apply && londonUpdates.size > 0) {
-    const updated = london.map((e) => (londonUpdates.has(e.id) ? { ...e, coverUrl: londonUpdates.get(e.id)! } : e))
-    await saveEvents(updated)
-    console.log(`\npersisted ${londonUpdates.size} london updates`)
   }
 
   console.log(`\n${apply ? 'applied' : 'would apply'}: ${fixed} fixed · ${failed} no-image-found`)

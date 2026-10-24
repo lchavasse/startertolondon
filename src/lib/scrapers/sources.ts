@@ -40,6 +40,7 @@ export const CALENDAR_SOURCES: SystemSource[] = [
   { slug: 'genai-collective', curated: true },
   { slug: 'cursorcommunity', curated: true },
   { slug: 'deeptechfutures', curated: true },
+  { slug: 'calendar/cal-zDVR851q25N1HwR', curated: true }, // Deep Tech London (luma.com/deeptechldn)
   { slug: 'contrarianventures', curated: true },
   { slug: 'hy.pe', curated: true },
   { slug: 'ainexus-community', curated: true },

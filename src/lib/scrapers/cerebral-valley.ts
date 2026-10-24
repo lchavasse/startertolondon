@@ -35,6 +35,16 @@ interface LumaEventData {
   }
 }
 
+// CV serves naive datetimes ("2026-07-30 16:30:00") with timeZone always null.
+// Verified against Luma for the same events: the wall clock is UTC. Left raw,
+// `new Date()` parses it as *local* time, so BST events render an hour early and
+// near-midnight ones bucket to the wrong day.
+function toIso(naive: string): string {
+  const m = naive.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}(?::\d{2})?)$/)
+  if (!m) return naive // already offset-qualified (or unparseable) — leave alone
+  return new Date(`${m[1]}T${m[2]}Z`).toISOString()
+}
+
 function extractLumaSlug(url: string): string | null {
   // Handles https://luma.com/slug, https://lu.ma/slug
   const match = url.match(/(?:luma\.com|lu\.ma)\/([a-zA-Z0-9._-]+)/)
@@ -83,6 +93,49 @@ function detectPlatform(url: string): { source: 'eventbrite' | 'meetup' | null; 
   return { source: null }
 }
 
+// CV's `location` is self-reported and often wrong — Munich, San Jose, Belfast
+// and Edinburgh conferences all arrive tagged "London, UK", with `timeZone` and
+// `platformEventData` both null, so there is no better field to trust. Where the
+// event is on Luma we re-check the real city after enrichment (see `run()`);
+// where it isn't, `venue` is the only signal left.
+//
+// Biased towards precision: a false positive silently drops a real London event,
+// so ambiguous city names that are also London place names (Leicester Square,
+// Cambridge Heath, Manchester Square, Liverpool Street) are matched exactly or
+// qualified rather than as bare substrings. Extend both lists as offenders show up.
+const NON_LONDON_VENUE_EXACT = [
+  'leicester',
+  'belfast',
+  'mcenery convention center',
+  'john mcintyre conference centre',
+  'national space centre',
+]
+
+const NON_LONDON_VENUE_TOKENS = [
+  'munich',
+  'münchen',
+  'hilton cambridge',
+  'hilton nottingham',
+  'murrayfield',
+  'edinburgh',
+  'glasgow',
+  'cardiff',
+  'dublin',
+  'san jose',
+  'santa clara',
+  'las vegas',
+  'amsterdam',
+  'singapore',
+  'tokyo',
+]
+
+function isNonLondonVenue(venue: string | null | undefined): boolean {
+  if (!venue) return false
+  const v = venue.trim().toLowerCase()
+  if (NON_LONDON_VENUE_EXACT.includes(v)) return true
+  return NON_LONDON_VENUE_TOKENS.some((token) => v.includes(token))
+}
+
 function mapCVEvent(e: CVEvent, scrapedAt: string): LondonEvent {
   const platform = detectPlatform(e.url)
   const baseTags = e.type && e.type !== '' ? [e.type] : []
@@ -91,8 +144,8 @@ function mapCVEvent(e: CVEvent, scrapedAt: string): LondonEvent {
 
   const common = {
     name: e.name,
-    startAt: e.startDateTime,
-    endAt: e.endDateTime,
+    startAt: toIso(e.startDateTime),
+    endAt: toIso(e.endDateTime),
     timezone: 'Europe/London',
     url: e.url,
     coverUrl: e.imageUrl ?? null,
@@ -136,7 +189,7 @@ function mapLumaEvent(
     url: `https://lu.ma/${event.url}`,
     coverUrl: event.cover_url ?? null,
     locationName: event.geo_address_info?.full_address ?? '',
-    city: 'London',
+    city: event.geo_address_info?.city ?? 'London',
     organiserName: calendar?.name ?? '',
     organiserAvatarUrl: calendar?.avatar_url ?? null,
     tags: calendar?.name ? [calendar.name] : [],
@@ -191,7 +244,14 @@ export class CerebralValleyScraper implements EventScraper {
       allEvents = allEvents.concat(pageData.events ?? [])
     }
 
-    const cvEvents = allEvents.filter((e) => e.location === 'London, UK')
+    const claimedLondon = allEvents.filter((e) => e.location === 'London, UK')
+    const cvEvents = claimedLondon.filter((e) => !isNonLondonVenue(e.venue))
+    const droppedByVenue = claimedLondon.length - cvEvents.length
+    if (droppedByVenue > 0) {
+      console.warn(
+        `[cerebral-valley] dropped ${droppedByVenue} event(s) tagged "London, UK" with a non-London venue`
+      )
+    }
 
     const ENRICH_DELAY_MS = 500
     const results: LondonEvent[] = []
@@ -207,6 +267,14 @@ export class CerebralValleyScraper implements EventScraper {
 
       if (slug) {
         const luma = await fetchLumaEventDetails(slug)
+        // Luma carries the real city, so it overrules CV's self-reported one.
+        // Only a city that is present *and* isn't London disqualifies — an
+        // absent one just means Luma has no address, not that it's elsewhere.
+        const lumaCity = luma?.event.geo_address_info?.city
+        if (lumaCity && lumaCity !== 'London') {
+          await new Promise((r) => setTimeout(r, ENRICH_DELAY_MS))
+          continue
+        }
         results.push(luma ? mapLumaEvent(luma, scrapedAt) : mapCVEvent(e, scrapedAt))
         await new Promise((r) => setTimeout(r, ENRICH_DELAY_MS))
       } else {

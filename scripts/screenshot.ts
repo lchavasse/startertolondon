@@ -10,12 +10,16 @@
  *   --select "<a, b, …>" a hand-picked set rendered as the 4-up card grid
  *                        (cards only), like the weekend-hacks collage. Needs
  *                        ADMIN_SECRET (admin select-and-view).
+ *   --top [n]            the unfiltered curated /events page (full page:
+ *                        header + cards), cropped after the Nth card
+ *                        (default 20) — the "here's the week" zoomed-out hero.
  *
  * Prereq: start the app first — `npm run dev` (defaults to http://localhost:3000).
  *
  * Usage:
  *   npm run screenshot -- --week 2026-05-31 --day 2026-06-04
  *   npm run screenshot -- --week 2026-05-31 --select "VibeHack, NVIDIA Hack, Pop The Bubble, Agent Economy" --out sat-hacks.png
+ *   npm run screenshot -- --week 2026-05-31 --top 20 --out week-grid.png
  *   npm run screenshot -- ... --base-url http://localhost:3001
  */
 
@@ -23,7 +27,8 @@ import { chromium, type Page } from 'playwright'
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
 
-const VIEWPORT = { width: 1440, height: 1024 }
+// --width < 1024 drops the grid to 2 columns (e.g. a 2 x 3 collage at --width 1000).
+const VIEWPORT = { width: Number(arg('--width') ?? 1440), height: 1024 }
 
 function arg(name: string): string | undefined {
   const i = process.argv.indexOf(name)
@@ -43,6 +48,10 @@ function weekdaySlug(day: string): string {
 // anything below the fold. Scroll the whole page to trigger every loader, then
 // wait until all images have actually decoded before capturing.
 async function settleImages(page: Page) {
+  // The dev server floats its own indicator over the bottom-left of the page,
+  // which lands inside the crop on full-page shots.
+  await page.addStyleTag({ content: 'nextjs-portal { display: none !important }' })
+
   // Scroll through the page from Node (not one big in-page function — esbuild's
   // keepNames helper `__name` isn't defined in the browser context) to trigger
   // every lazy loader, then wait until all images have decoded.
@@ -123,7 +132,8 @@ async function shootSelect(
   page: Page,
   baseUrl: string,
   titles: string[],
-  outPath: string
+  outPath: string,
+  header = false
 ) {
   const secret = process.env.ADMIN_SECRET
   if (!secret) throw new Error('--select needs ADMIN_SECRET in .env.local')
@@ -149,8 +159,75 @@ async function shootSelect(
   await page.waitForTimeout(600)
   await settleImages(page) // force lazy covers to load before capture
 
-  // Cards only (no header) — grab just the card grid, like the collage.
-  await page.locator('.grid').last().screenshot({ path: outPath })
+  // Cards only (no header). Clip to the cards themselves rather than the grid
+  // element — the grid keeps its four tracks, so a 3-card set would otherwise
+  // carry a dead column of background on the right.
+  let clip = await cardClip(page)
+  const needed = Math.ceil(clip.y + clip.height + 40)
+  if (needed > VIEWPORT.height) {
+    await page.setViewportSize({ width: VIEWPORT.width, height: needed })
+    await page.waitForTimeout(300)
+    await settleImages(page)
+    clip = await cardClip(page)
+  }
+  // --header keeps the grid's own title block above the cards (full width).
+  // Its count line reflects the whole feed, not the selection, so hide it.
+  if (header) {
+    const top = await page.evaluate(() => {
+      const h1s = Array.from(document.querySelectorAll('h1')).filter((h) => /London Calling/i.test(h.textContent ?? ''))
+      const block = h1s[h1s.length - 1]?.parentElement
+      if (!block) return null
+      for (const p of Array.from(block.querySelectorAll('p'))) {
+        if (/upcoming events/.test(p.textContent ?? '')) (p as HTMLElement).style.display = 'none'
+      }
+      return block.getBoundingClientRect().top + window.scrollY
+    })
+    if (top == null) throw new Error('no title block found for --header')
+    clip = await cardClip(page)
+    const y = Math.max(0, Math.floor(top - 32))
+    clip = { x: 0, y, width: VIEWPORT.width, height: Math.ceil(clip.y + clip.height + 40 - y) }
+  }
+  await page.screenshot({ path: outPath, clip })
+}
+
+// Full page (header included) cropped after the Nth card in the main grid —
+// the unfiltered "here's the week" hero shot.
+async function cardsTopClip(page: Page, n: number) {
+  return page.evaluate((count) => {
+    const grids = Array.from(document.querySelectorAll('.grid'))
+    const grid = grids[grids.length - 1]
+    if (!grid) return null
+    const cards = Array.from(grid.children).slice(0, count)
+    let bottom = -Infinity
+    for (const card of cards) {
+      const box = card.getBoundingClientRect()
+      if (box.width === 0 || box.height === 0) continue
+      bottom = Math.max(bottom, box.bottom)
+    }
+    if (!isFinite(bottom)) return null
+    return { bottom: bottom + window.scrollY }
+  }, n)
+}
+
+async function shootTop(page: Page, baseUrl: string, n: number, outPath: string) {
+  await page.goto(`${baseUrl}/events`, { waitUntil: 'domcontentloaded' })
+  await page.locator('.grid').first().waitFor({ timeout: 15000 })
+  await settleImages(page)
+
+  let result = await cardsTopClip(page, n)
+  if (!result) throw new Error('no event cards found to crop to')
+
+  let height = Math.ceil(result.bottom + 40)
+  if (height > VIEWPORT.height) {
+    await page.setViewportSize({ width: VIEWPORT.width, height })
+    await page.waitForTimeout(300)
+    await settleImages(page)
+    result = await cardsTopClip(page, n)
+    if (!result) throw new Error('no event cards found to crop to')
+    height = Math.ceil(result.bottom + 40)
+  }
+
+  await page.screenshot({ path: outPath, clip: { x: 0, y: 0, width: VIEWPORT.width, height } })
 }
 
 async function main() {
@@ -158,8 +235,11 @@ async function main() {
   const week = arg('--week')
   const day = arg('--day')
   const select = arg('--select')
+  const hasTop = process.argv.includes('--top')
+  const topArg = arg('--top')
+  const top = hasTop ? Number(topArg && !topArg.startsWith('--') ? topArg : 20) : undefined
   if (!week) throw new Error('--week <YYYY-MM-DD> is required (sets the assets folder)')
-  if (!day && !select) throw new Error('pass --day <date> or --select "<titles>"')
+  if (!day && !select && !top) throw new Error('pass --day <date>, --select "<titles>", or --top [n]')
 
   // Preflight: dev server reachable?
   try {
@@ -171,8 +251,12 @@ async function main() {
   const dir = join('docs/posts/assets', week)
   mkdirSync(dir, { recursive: true })
 
+  // --top grids run to 20 cards / 5 rows — at the usual retina 2x DPR that's a
+  // 7MB+ PNG (bigger than Typefully/X's upload cap). 1x keeps it crisp (native
+  // render, not a lossy post-hoc resize) while landing comfortably under the
+  // limit.
   const browser = await chromium.launch()
-  const page = await browser.newPage({ viewport: VIEWPORT, deviceScaleFactor: 2 })
+  const page = await browser.newPage({ viewport: VIEWPORT, deviceScaleFactor: top ? 1 : 2 })
   try {
     if (day) {
       const out = join(dir, arg('--out') ?? `${weekdaySlug(day)}-curated.png`)
@@ -181,8 +265,12 @@ async function main() {
     } else if (select) {
       const titles = select.split(',').map((s) => s.trim()).filter(Boolean)
       const out = join(dir, arg('--out') ?? 'selected.png')
-      await shootSelect(page, baseUrl, titles, out)
+      await shootSelect(page, baseUrl, titles, out, process.argv.includes('--header'))
       console.log(`✓ ${out}  (${titles.length} cards)`)
+    } else if (top) {
+      const out = join(dir, arg('--out') ?? 'week-grid.png')
+      await shootTop(page, baseUrl, top, out)
+      console.log(`✓ ${out}  (top ${top} cards)`)
     }
   } finally {
     await browser.close()
